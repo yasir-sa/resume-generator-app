@@ -1,16 +1,19 @@
 {
   "name": "resume-generator-api",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "main": "server.js",
   "type": "commonjs",
+  "scripts": {
+    "clean:ui": "npx rimraf dist",
+    "build:ui": "cd ../resume-generator-ui && npm run build",
+    "copy:ui": "xcopy ..\\resume-generator-ui\\dist dist /E /I /Y",
+    "ui:update": "npm run clean:ui && npm run build:ui && npm run copy:ui",
+    "start": "npm run ui:update && node server.js"
+  },
   "dependencies": {
-    "express": "^5.2.1"
+    "express": "^4.22.1"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.10"
   }
 }
