@@ -12,7 +12,12 @@
     "start": "npx concurrently \"npm run watch:ui\" \"nodemon server.js\""
   },
   "dependencies": {
-    "express": "^4.22.1"
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^4.22.1",
+    "nodemailer": "^7.0.12",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "chokidar-cli": "^3.0.0",

@@ -16,7 +16,7 @@ const Register = () => {
 
     })
     const [otpdata,setotpdata]=useState("")
-
+    
 
     const registeration =async(e)=>{
         e.preventDefault();
@@ -26,14 +26,24 @@ const Register = () => {
      
         }
       
-        try{
-            const res= await API.post("/api/register", formdata)
-            console.log(res.data);
-            setconfirmotp(true)
-        }
-        catch(error){
-            console.error(err);
-        }
+       try {
+  const res = await API.post("/api/register", formdata);
+
+  console.log("MESSAGE 👉", res.data.message);
+
+  alert(res.data.message);   // ✅ success alert
+  setconfirmotp(true);
+
+}
+      catch (error) {
+  console.error(error);
+
+  if (error.response && error.response.data && error.response.data.message) {
+    alert(error.response.data.message);
+  } else {
+    alert("Something went wrong");
+  }
+}
 
      }
     const otpdetails =()=>{
