@@ -8,12 +8,16 @@
     "build:ui": "cd ../resume-generator-ui && npm run build",
     "copy:ui": "xcopy ..\\resume-generator-ui\\dist dist /E /I /Y",
     "ui:update": "npm run clean:ui && npm run build:ui && npm run copy:ui",
-    "start": "npm run ui:update && node server.js"
+    "watch:ui": "npx chokidar \"../resume-generator-ui/src/**/*\" -c \"npm run ui:update\"",
+    "start": "npx concurrently \"npm run watch:ui\" \"nodemon server.js\""
   },
   "dependencies": {
     "express": "^4.22.1"
   },
   "devDependencies": {
+    "chokidar-cli": "^3.0.0",
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.11",
     "rimraf": "^5.0.10"
   }
 }

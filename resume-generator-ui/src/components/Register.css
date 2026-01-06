@@ -1,0 +1,149 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #f8f8ff, #e0c3fc); /* soft gradient background */
+  font-family: 'Arial', sans-serif;
+}
+
+/* Form container */
+.register-container {
+  width: 100%;
+  max-width: 380px; /* reduced from 420px */
+  background-color: #ffffff;
+  padding: 30px 25px; /* reduced padding */
+  border-radius: 12px; /* slightly smaller radius */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* slightly smaller shadow */
+  transition: transform 0.3s ease;
+}
+
+/* Slight lift effect */
+.register-container:hover {
+  transform: translateY(-4px); /* slightly less lift */
+}
+
+/* Form layout */
+.register-form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Labels */
+.register-form label {
+  margin-bottom: 10px; /* slightly smaller spacing */
+  font-weight: 600;
+  color: #333;
+  font-size: 13px; /* slightly smaller font */
+}
+
+/* Inputs */
+.register-form input {
+  width: 100%;
+  padding: 10px; /* smaller padding */
+  margin-top: 5px;
+  margin-bottom: 12px; /* slightly smaller margin */
+  border: 1px solid #ccc;
+  border-radius: 6px; /* smaller radius */
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+/* Input focus glow */
+.register-form input:focus {
+  outline: none;
+  border-color: #ff6a00;
+  box-shadow: 0 0 6px rgba(255, 106, 0, 0.3); /* smaller glow */
+}
+
+/* Register button */
+.register-btn {
+  padding: 12px; /* reduced padding */
+  margin-top: 5px;
+  background: linear-gradient(90deg, #ff512f, #dd2476); 
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px; /* smaller radius */
+  cursor: pointer;
+  font-size: 15px; /* slightly smaller font */
+  transition: all 0.3s ease;
+}
+
+/* Register hover effect */
+.register-btn:hover {
+  background: linear-gradient(90deg, #dd2476, #ff512f);
+  transform: scale(1.04); /* smaller scale */
+}
+
+/* OTP container */
+.otp-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* slightly smaller gap */
+  margin-top: 10px;
+  animation: fadeIn 0.5s ease; 
+  align-items: center;
+
+  padding: 5px; /* optional small padding inside */
+  border-radius: 8px; /* small radius */
+}
+
+/* OTP input */
+.otp-container input {
+  width: 40%; /* slightly smaller width */
+  padding: 12px; /* slightly smaller padding */
+  border-radius: 6px; /* smaller radius */
+  border: 1px solid #ccc;
+  font-size: 15px; /* slightly smaller font */
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+/* OTP input focus */
+.otp-container input:focus {
+  border-color: #6a11cb;
+  box-shadow: 0 0 6px rgba(106, 17, 203, 0.3); /* smaller glow */
+  outline: none;
+}
+
+/* Confirm OTP button */
+.confirm-otp-btn {
+  padding: 12px; /* smaller padding */
+  background: linear-gradient(90deg, #11998e, #38ef7d);
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px; /* smaller radius */
+  cursor: pointer;
+  font-size: 15px; /* slightly smaller font */
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+/* Confirm OTP hover */
+.confirm-otp-btn:hover {
+  background: linear-gradient(90deg, #38ef7d, #11998e);
+  transform: scale(1.02); /* slightly smaller scale */
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); } /* slightly smaller movement */
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Remove spinner arrows for number inputs (Chrome, Safari, Edge) */
+.otp-container input::-webkit-outer-spin-button,
+.otp-container input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+

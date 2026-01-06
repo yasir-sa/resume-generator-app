@@ -5,6 +5,9 @@ const path = require("path");
 
 
 app.use(express.json());
+const authRoutes = require("./routes/auth.routes");
+app.use("/api", authRoutes);
+
 const distPath = path.join(__dirname, "dist");
 app.use(express.static(distPath));
 
