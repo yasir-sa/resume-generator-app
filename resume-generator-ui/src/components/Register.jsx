@@ -27,10 +27,10 @@ const Register = () => {
         }
       
        try {
-  const res = await API.post("/api/register", formdata);
+  const res = await API.post("/register", formdata);
 
   console.log("MESSAGE 👉", res.data.message);
-
+ 
   alert(res.data.message);   // ✅ success alert
   setconfirmotp(true);
 
@@ -40,14 +40,36 @@ const Register = () => {
 
   if (error.response && error.response.data && error.response.data.message) {
     alert(error.response.data.message);
+  setformdata({ name:"", email:"", password:"" });
+
   } else {
     alert("Something went wrong");
   }
 }
 
      }
-    const otpdetails =()=>{
-        setconfirmotp(false)
+    const otpdetails = async()=>{
+       if (!otpdata){
+        alert("please enter otp")
+        return;
+       }
+       try{
+            const res= await API.post("/verify-otp",{
+              email:formdata.email,
+              otp:otpdata
+            }) 
+            console.log("response",res.data)
+             setconfirmotp(false)
+             alert("registration successfully")
+       }
+       catch(error){
+        console.error("OTP Error",error)
+        alert("invalid OTP")
+       }
+
+
+
+       
     }
   
   
