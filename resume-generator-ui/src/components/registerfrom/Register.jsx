@@ -1,12 +1,13 @@
 import React from "react";
 import "./Register.css"
 import { useState } from "react";
-import API from "../api.js";
+import API from "../../api.js";
 
 
 
 
-const Register = () => {
+const Register = (e) => {
+  e.preventDefault();
 
     const [confirmotp,setconfirmotp]=useState(false)
     const [formdata,setformdata]=useState({
@@ -48,8 +49,12 @@ const Register = () => {
 }
 
      }
-    const otpdetails = async()=>{
-       if (!otpdata){
+    const otpdetails = async(e)=>{
+      
+          e.preventDefault();
+      
+      
+      if (!otpdata){
         alert("please enter otp")
         return;
        }
@@ -75,7 +80,8 @@ const Register = () => {
   
     return (
    <>
-     <div className="register-container">
+   <div className="registerform">
+       <div className="register-container">
 
         <form className="register-form">
     <label>
@@ -124,6 +130,8 @@ const Register = () => {
         </form>
 
      </div>
+   </div>
+    
       
    
    </>

@@ -7,13 +7,18 @@
 
 body {
   height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, #f8f8ff, #e0c3fc); /* soft gradient background */
+  
+  
   font-family: 'Arial', sans-serif;
 }
-
+.registerform{
+   height: 100vh;
+   display: flex;
+   justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #f8f8ff, #e0c3fc); /* soft gradient background */
+ 
+}
 /* Form container */
 .register-container {
   width: 100%;

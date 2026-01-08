@@ -1,0 +1,99 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+/* ===== Login Page Wrapper ===== */
+.login-form {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  font-family: Arial, sans-serif;
+}
+
+/* ===== Login Container ===== */
+.login-container {
+  width: 100%;
+  max-width: 360px;
+  background: #ffffff;
+  padding: 30px 25px;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  transition: transform 0.3s ease;
+}
+
+.login-container:hover {
+  transform: translateY(-4px);
+}
+
+/* ===== Labels ===== */
+.email-label,
+.password-label {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Inputs ===== */
+.login-container input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+/* ===== Input Focus Effect ===== */
+.login-container input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 8px rgba(102, 126, 234, 0.35);
+  /* small 90deg-style micro tilt */
+}
+
+/* ===== Login Button ===== */
+.login-btn {
+  margin-top: 10px;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: bold;
+  color: #ffffff;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  transition: all 0.35s ease;
+}
+
+/* ===== Button Hover (90deg gradient shift effect) ===== */
+.login-btn:hover {
+  background: linear-gradient(90deg, #764ba2, #667eea);
+  
+  box-shadow: 0 8px 18px rgba(102, 126, 234, 0.45);
+}
+
+/* ===== Button Active ===== */
+/* .login-btn:active {
+  transform: scale(0.97);
+} */
+
+/* ===== Link ===== */
+.login-container a {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 13px;
+  color: #667eea;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.login-container a:hover {
+  color: #764ba2;
+  text-decoration: underline;
+}
