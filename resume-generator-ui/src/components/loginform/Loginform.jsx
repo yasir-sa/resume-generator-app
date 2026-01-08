@@ -27,7 +27,7 @@ try{
    });
 
    console.log("Login success:", response.data);
-   alert("login successful ")
+    alert(res.data.message);
 }
 catch(error){
    console.error("Login error:", error.response?.data || error.message);
