@@ -2,13 +2,14 @@ import React from "react";
 import "./Register.css"
 import { useState } from "react";
 import API from "../../api.js";
+import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 
 
+const Register = () => {
 
-const Register = (e) => {
-  e.preventDefault();
-
+const navigate = useNavigate();
     const [confirmotp,setconfirmotp]=useState(false)
     const [formdata,setformdata]=useState({
         name:"",
@@ -76,7 +77,7 @@ const Register = (e) => {
 
        
     }
-  
+    
   
     return (
    <>
@@ -125,6 +126,9 @@ const Register = (e) => {
  className="register-btn" 
  onClick={registeration}>
     Register</button> }
+
+
+    <a><Link to="/login">go to login </Link>  </a>
  
    
         </form>

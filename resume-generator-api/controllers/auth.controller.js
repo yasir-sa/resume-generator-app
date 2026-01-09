@@ -160,6 +160,7 @@ exports.userlogin = async(req,res)=>{
           message:"please verify your email before login "
         })
        }
+      
 
        const ismatch = await bcrypt.compare(password,user.password);
 

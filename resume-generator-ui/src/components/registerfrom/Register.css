@@ -152,3 +152,14 @@ body {
     margin: 0;
 }
 
+.register-form a {
+  font-size: 15px ;
+  color: rgb(0, 140, 255);
+  text-decoration: none;
+  transition: 0.2s;
+
+}
+.register-form a:hover{
+  text-decoration: underline;
+}
+

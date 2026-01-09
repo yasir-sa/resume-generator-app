@@ -1,0 +1,92 @@
+/* Page layout */
+.home-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Navbar */
+.navbar {
+  height: 64px;
+  background-color: #0f172a;
+  color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30px;
+}
+
+.nav-title {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.nav-btn {
+  padding: 8px 18px;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.nav-btn.login {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.nav-btn.login:hover {
+  background-color: #1d4ed8;
+}
+
+.nav-btn.product {
+  background-color: #475569;
+  color: #ffffff;
+}
+
+.nav-btn.product:hover {
+  background-color: #334155;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 0 20px;
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+}
+
+.main-content h1 {
+  font-size: 34px;
+  color: #0f172a;
+  margin-bottom: 20px;
+}
+
+.main-content p {
+  max-width: 700px;
+  font-size: 16px;
+  color: #475569;
+  line-height: 1.8;
+}
+
+/* Footer */
+.footer {
+  height: 50px;
+  background-color: #0f172a;
+  color: #cbd5f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 13px;
+}

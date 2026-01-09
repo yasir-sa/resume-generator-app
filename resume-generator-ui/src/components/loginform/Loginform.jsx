@@ -2,6 +2,9 @@ import React from 'react'
 import "./loginform.css"
 import { useState } from 'react'
 import API from "../../api.js";
+import { Link } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
+
 
 
 
@@ -9,6 +12,10 @@ import API from "../../api.js";
 
 
 const Loginform = () => {
+ 
+    const navigate=useNavigate()
+
+   
 
 const [formdata,setformdata]=useState({
     email:"",
@@ -27,10 +34,14 @@ try{
    });
 
    console.log("Login success:", response.data);
-    alert(res.data.message);
+    alert(response.data.message);
+    navigate("/product")
 }
 catch(error){
-   console.error("Login error:", error.response?.data || error.message);
+    console.error("Login error:", error.response?.data || error.message);
+
+    // show backend message in alert
+    alert(error.response?.data?.message || error.message);
 }
 
 
@@ -83,7 +94,7 @@ catch(error){
         login
         </button>
 
-        <a>go to register </a>
+        <a><Link to="/register">go to register </Link></a>
 
 
       </form>
