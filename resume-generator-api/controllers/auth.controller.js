@@ -203,3 +203,70 @@ exports.userlogin = async(req,res)=>{
         res.status(500).json({message:"Server error"})
       }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+exports.checkAuth =(req,res)=>{
+  const token =req.cookies.token;
+  if(!token){
+    return res.status(401).json({
+      success:false,
+      message:"Token not found "
+    })
+  }
+  try{
+    const decoded = jwt.verify(token,process.env.JWT_SECRET);
+    return res.status(200).json({
+      success:true,
+      user:{
+        id:decoded.id,
+        email:decoded.email
+      }
+    })
+  }
+  catch(error){
+    return res.status(401).json({
+      success:false,
+      message:"Invalid or expired token"
+    })
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+exports.logout =(req,res)=>{
+  res.clearCookie("token",{
+    httpOnly:true,
+    sameSite:"lax",
+    secure:false
+  });
+  return res.status(200).json({
+      success: true,
+    message: "Logout successful"
+  })
+}

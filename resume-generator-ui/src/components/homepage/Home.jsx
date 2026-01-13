@@ -1,10 +1,23 @@
 import React from "react";
 import "./Home.css";
 import { useNavigate } from "react-router-dom";
-
+// import Cookies from 'js-cookie';
+import API from"../../api.js"
 const Home = () => {
   const navigate =useNavigate()
+  const handleProductClick = async() =>{
+        //  const token = Cookies.get("token");
+  try {
+    const response = await API.get("/check-auth");
 
+    if (response.data.success) {
+      navigate("/product");
+    }
+  } catch (error) {
+    // 401 / token invalid / expired
+    navigate("/login");
+  }
+};
   return (
     <div className="home-page">
       {/* Navbar */}
@@ -20,7 +33,7 @@ const Home = () => {
           </button>
           <button
             className="nav-btn product"
-            onClick={() => navigate("/product")}
+           onClick={handleProductClick}
           >
             Product
           </button>
