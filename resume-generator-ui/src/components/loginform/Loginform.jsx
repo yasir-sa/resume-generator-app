@@ -4,6 +4,7 @@ import { useState } from 'react'
 import API from "../../api.js";
 import { Link } from "react-router-dom";
 import { useNavigate } from 'react-router-dom';
+import {FcGoogle} from "react-icons/fc";
 
 
 
@@ -53,6 +54,12 @@ catch(error){
 
 
 
+const Googlelogin =()=>{
+    window.location.href = "http://localhost:5000/api/auth/google";
+}
+
+
+
 
 
 
@@ -61,13 +68,13 @@ catch(error){
       <>
       <div className="login-form" >
 
-          <form action="" className='login-container'>
+          <form action="" className='login-container' onSubmit={handlelogin}>
         <label className='email-label'>
            <input
             type="email" 
             placeholder='type email'
             name='email'
-            value={FormData.email}
+            value={formdata.email}
             onChange={(e)=> 
                 setformdata({
                     ...formdata,
@@ -81,7 +88,7 @@ catch(error){
             type="password" 
             placeholder='type password'
             name='password'
-            value={FormData.password}
+            value={formdata.password}
             onChange={(e)=> 
                 setformdata({
                     ...formdata,
@@ -90,11 +97,23 @@ catch(error){
                />
               </label>
 
-        <button className='login-btn' onClick={handlelogin}>
+        <button className='login-btn'type="submit">
         login
         </button>
 
         <a><Link to="/register">go to register </Link></a>
+
+<button
+  type="button"
+  className="google-login-btn"
+  onClick={Googlelogin}
+>
+  <FcGoogle size={20}/> continue with google
+</button>
+<button onClick={() => window.location.href = "http://localhost:5000/auth/google"}>
+  Login with Google
+</button>
+
 
 
       </form>

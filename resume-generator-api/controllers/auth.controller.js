@@ -131,7 +131,12 @@ exports.verifyOTP = async (req, res) => {
 
 
 exports.userlogin = async(req,res)=>{
-   const{email,password}=req.body
+    if (req.cookies.token) {
+      return res.redirect("http://localhost:5000/login");
+    }
+  
+  
+  const{email,password}=req.body
 
    
   if (!email || !password) {
@@ -270,3 +275,196 @@ exports.logout =(req,res)=>{
     message: "Logout successful"
   })
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+// exports.googlelogin =  async (req,res) =>{
+//  try{
+//       if(req.cookies.token){
+//       return res.redirect("http://localhost:5000/login")
+//     }
+
+      
+//       const profile= req.user
+      
+//       const email = profile.emails?.[0]?.value;
+//       const name =profile.displayName;
+//       const googleid = profile.id;
+//       const photosrc=profile.photos?.[0]?.value
+//       console.log("yasir  this profile data :",email,name,googleid,photosrc)
+ 
+//        const userquery =await pool.query(
+//           "SELECT * FROM registertable WHERE email = $1",
+//       [email]
+//        )
+//        if(userquery.rows.length>0){
+//         await pool.query(
+//            `UPDATE registertable
+//          SET name=$1, google_id=$2, picture=$3, provider='google'
+//          WHERE email=$4`,
+//         [name, googleid, photosrc, email]
+        
+//       )
+//       console.log("Existing user updated ✅");
+//        }
+//        else {
+//       // 5️⃣ Email does NOT exist → insert new row
+//       await pool.query(
+//         `INSERT INTO registertable (name, email, provider, google_id, picture)
+//          VALUES ($1, $2, 'google', $3, $4)`,
+//         [name, email, googleid, photosrc]
+//       );
+//       console.log("New Google user inserted ✅");
+//     }
+
+//     // 6️⃣ Redirect user to register page (or wherever you want)
+//     return res.redirect("http://localhost:5000/product");
+ 
+//     }
+//  catch(error){
+//   console.error("google login Error:",error)
+//   return res.status(500).send("Server Error");
+//  }
+
+  
+    
+
+  
+   
+
+
+
+
+  
+// }
+
+
+
+
+exports.googlelogin = async (req, res) => {
+  try {
+    // 1️⃣ Check if user already has a token cookie
+    if (req.cookies.token) {
+      return res.redirect("http://localhost:5000/login");
+    }
+    let user;
+    // 2️⃣ Get Google profile
+    const profile = req.user;
+
+    const email = profile.emails?.[0]?.value;
+    const name = profile.displayName;
+    const googleid = profile.id;
+    const photosrc = profile.photos?.[0]?.value;
+
+    console.log("yasir this profile data:", email, name, googleid, photosrc);
+
+    // 3️⃣ Check if email already exists in registertable
+    const userQuery = await pool.query(
+      "SELECT * FROM registertable WHERE email = $1",
+      [email]
+    );
+
+    if (userQuery.rows.length > 0) {
+      // 4️⃣ Existing user → update Google info + verification=true + provider='google'
+      const ubdateResult =await pool.query(
+        `UPDATE registertable
+         SET name=$1, google_id=$2, picture=$3, provider='google', verification=true,
+             password=COALESCE(password, '')   -- keep existing password or empty if null
+         WHERE email=$4
+         RETURNING *`,
+        [name, googleid, photosrc, email]
+      );
+        user = ubdateResult.rows[0];
+      
+      console.log("Existing Google user updated ✅ (provider=google, verification=true)");
+    } else {
+      // 5️⃣ New user → insert row with dummy password, verification=true, provider='google'
+      const insertResult = await pool.query(
+        `INSERT INTO registertable 
+         (name, email, password, provider, google_id, picture, verification)
+         VALUES ($1, $2, '', 'google', $3, $4, true)
+         RETURNING *`,
+        [name, email, googleid, photosrc]
+      );
+      user=insertResult.rows[0]
+      console.log("New Google user inserted ✅ (provider=google, verification=true)");
+    
+    
+    }
+       
+
+    const token = jwt.sign(
+      {
+        id:user.id,
+        email:user.email,
+        provider:user.provider,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn:process.env.JWT_EXPIRE,
+      }
+    )
+
+
+    res.cookie("token",token,{
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+       maxAge: 24 * 60 * 60 * 1000,
+    });
+
+
+
+
+
+
+    // 6️⃣ Redirect user after Google login
+    return res.redirect("http://localhost:5000/product");
+
+  } catch (error) {
+    console.error("Google login Error:", error);
+    return res.status(500).send("Server Error");
+  }
+};
+
+
+
+
+
+
+
+exports.getUserProfile = async (req, res) => {
+  console.log("🔥 getUserProfile HIT");
+  console.log("USER FROM JWT:", req.user);
+
+  // JWT id-ஐ பயன்படுத்தி DB-ல fetch பண்ண
+  const result = await pool.query(
+    "SELECT id, name, email, picture FROM registertable WHERE id = $1",
+    [req.user.id]  // ⚠️ இது id JWT-ல் இருந்தது (profile.id) → உங்கள் problem
+  );
+
+  if(result.rows.length === 0){
+    return res.status(404).json({ success:false, message:"User not found" });
+  }
+
+  const user = result.rows[0];
+  console.log("DB USER:", user);
+
+  res.json({
+    success: true,
+    userId: user.id,
+    name: user.name,
+    email: user.email,
+    picture: user.picture
+  });
+};
