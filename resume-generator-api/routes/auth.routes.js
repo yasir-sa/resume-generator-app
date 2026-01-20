@@ -10,7 +10,9 @@ const {
   checkAuth,
   logout,
   googlelogin,
-  getUserProfile   // 👈 IMPORT IMPORTANT
+  getUserProfile ,
+  getTitles,
+  createTitle  // 👈 IMPORT IMPORTANT
 } = require("../controllers/auth.controller");
 
 // 🔹 Google OAuth start
@@ -32,6 +34,8 @@ router.get(
 );
 
 // 🔹 Normal Auth
+router.post("/create/newchat",verifyToken,createTitle);
+router.get("/getTitles", verifyToken, getTitles);
 router.get("/user/profile",verifyToken,getUserProfile);
 router.post("/register", registerUser);
 router.post("/verify-otp", verifyOTP);

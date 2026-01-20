@@ -1,4 +1,5 @@
 import './App.css';
+import Chatbox from './components/chatbox/Chatbox';
 import Home from './components/homepage/home';
 import Loginform from './components/loginform/Loginform';
 import Product from './components/productpage/Product';
@@ -13,6 +14,7 @@ function App() {
         <Route path="/login" element={<Loginform />} />
         <Route path="/register" element={<Register />} />
         <Route path="/product" element={<Product />} />
+        <Route path="/chatbox" element={<Chatbox/>}/>
       </Routes>
     </>
   );

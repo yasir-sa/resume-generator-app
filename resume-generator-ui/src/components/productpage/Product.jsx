@@ -3,6 +3,7 @@ import "./Product.css";
 import { useNavigate } from "react-router-dom";
 import API from "../../api.js"
 import { useState,useEffect } from "react";
+import { Link } from "react-router-dom";
 const Product = () => {
   const navigate = useNavigate();
   const [profile,setprofile]=useState(false)
@@ -57,10 +58,10 @@ useEffect(()=>{
 
   return (
     <div className="product-page" onClick={()=> setprofile(false)}>
-
+         
     <nav className="main-page-header">
       <h1 className="main-title">
-        Ai Career Analyzer
+       <p className="box-ai">AI</p> Ai Career Analyzer
       </h1>
 
 
@@ -92,6 +93,13 @@ useEffect(()=>{
      
 
     </nav>
+    <Link to="/chatbox">
+    <button >go to chatpot</button>
+    </Link>
+      <Link to="/">
+    <button >go to home</button>
+    </Link>
+    
       
     </div>
   );

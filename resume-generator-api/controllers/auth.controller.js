@@ -468,3 +468,82 @@ exports.getUserProfile = async (req, res) => {
     picture: user.picture
   });
 };
+
+
+
+
+
+
+
+
+
+
+
+
+exports.getTitles= async (req,res)=>{
+  try{
+       const userId =req.user.id;
+    const result = await pool.query(
+      "SELECT title_name FROM chattable WHERE user_id = $1 ORDER BY created_time DESC",
+      [userId]
+    );
+     console.log("📦 Full DB result:", result);
+    console.log("📄 Only rows:", result.rows);
+    console.log("📝 Titles only:", result.rows.map(r => r.title_name));
+    return res.status(200).json(result.rows);
+  }
+  catch(error){
+    console.error("get titles error:",error)
+    return res.status(500).json({
+      message: "Server error while fetching titles"
+    })
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+exports.createTitle =async(req,res)=>{
+  try{
+    const userId = req.user.id;
+    const {title_name}= req.body;
+      if (!title_name || title_name.trim() === "") {
+      return res.status(400).json({
+        message: "Title required"
+      });
+    }
+    console.log(title_name)
+    const result = await pool.query(
+      `INSERT INTO chattable (user_id, title_name)
+       VALUES ($1, $2)
+       RETURNING chattitle_id, title_name`,
+      [userId,title_name]
+    );
+      
+    res.status(201).json({
+      message: "Chat title created",
+      data: result.rows[0]
+    });
+
+  }
+  catch(err){
+    console.error(" Error creating chat title:", err)
+    res.status(500).json({message:"server error"});
+  }
+
+}
