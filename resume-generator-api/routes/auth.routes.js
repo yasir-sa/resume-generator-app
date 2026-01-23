@@ -12,7 +12,12 @@ const {
   googlelogin,
   getUserProfile ,
   getTitles,
-  createTitle  // 👈 IMPORT IMPORTANT
+  createTitle ,
+  getChatMessages,
+  sendMessage,
+  
+
+   // 👈 IMPORT IMPORTANT
 } = require("../controllers/auth.controller");
 
 // 🔹 Google OAuth start
@@ -34,6 +39,12 @@ router.get(
 );
 
 // 🔹 Normal Auth
+router.get(
+  "/getChatMessages/:chattitle_id",
+  verifyToken,
+  getChatMessages
+);
+router.post("/send-message", verifyToken, sendMessage);
 router.post("/create/newchat",verifyToken,createTitle);
 router.get("/getTitles", verifyToken, getTitles);
 router.get("/user/profile",verifyToken,getUserProfile);

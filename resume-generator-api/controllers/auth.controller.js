@@ -1,10 +1,10 @@
 const pool = require("../config/db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken"); 
-
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 const sendOTPEmail =require("../utils/email");
-
-
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+require("dotenv").config();
 
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000);
 
@@ -484,7 +484,10 @@ exports.getTitles= async (req,res)=>{
   try{
        const userId =req.user.id;
     const result = await pool.query(
-      "SELECT title_name FROM chattable WHERE user_id = $1 ORDER BY created_time DESC",
+        `SELECT chattitle_id, title_name
+       FROM chattable
+       WHERE user_id = $1
+       ORDER BY created_time DESC`,
       [userId]
     );
      console.log("📦 Full DB result:", result);
@@ -499,6 +502,23 @@ exports.getTitles= async (req,res)=>{
     })
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -547,3 +567,233 @@ exports.createTitle =async(req,res)=>{
   }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+exports.getChatMessages = async (req, res) => {
+  try {
+    const userId = req.user.id; // JWT user id
+    const { chattitle_id } = req.params; // URL param
+
+    console.log("User ID 👉", userId);
+    console.log("ChatTitle ID 👉", chattitle_id);
+
+    const result = await pool.query(
+      `
+      SELECT 
+        user_question,
+        gemini_answer,
+        created_time
+      FROM chatbot
+      WHERE user_id = $1
+        AND chattitle_id = $2
+      ORDER BY created_time ASC
+      `,
+      [userId, chattitle_id]
+    );
+
+    console.log("📦 Chat rows:", result.rows);
+
+    return res.status(200).json(result.rows);
+  } catch (error) {
+    console.error("getChatMessages error:", error);
+    return res.status(500).json({
+      message: "Server error while fetching chat messages",
+    });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+exports.sendMessageOld = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { chattitle_id, message } = req.body;
+
+    // -----------------------
+    // 1️⃣ Fetch old chats
+    // -----------------------
+    const oldChats = await pool.query(
+      `SELECT user_question, gemini_answer
+       FROM chatbot
+       WHERE user_id=$1 AND chattitle_id=$2
+       ORDER BY created_time`,
+      [userId, chattitle_id]
+    );
+
+    // -----------------------
+    // 2️⃣ Prepare chat context for Gemini
+    // -----------------------
+    const chatContext = [];
+    oldChats.rows.forEach(chat => {
+      chatContext.push({
+        role: "user",
+        parts: [{ text: chat.user_question }]
+      });
+      chatContext.push({
+        role: "model",
+        parts: [{ text: chat.gemini_answer }]
+      });
+    });
+
+    chatContext.push({
+      role: "user",
+      parts: [{ text: message }]
+    });
+
+    // -----------------------
+    // 3️⃣ Gemini endpoint URL
+    // -----------------------
+    const GEMINI_MODEL = "gemini-2.5-flash"; // ✅ Check via ListModels
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`;
+
+    // -----------------------
+    // 4️⃣ Call Gemini API
+    // -----------------------
+    const geminiResponse = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: chatContext })
+    });
+
+    if (!geminiResponse.ok) {
+      const text = await geminiResponse.text();
+      console.error("Gemini API failed:", geminiResponse.status, text);
+      return res.status(500).json({ error: "Gemini API failed" });
+    }
+
+    const result = await geminiResponse.json();
+    console.log("Gemini raw response:", result);
+
+    // -----------------------
+    // 5️⃣ Extract answer safely
+    // -----------------------
+    const answer =
+      result.response?.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
+      if (!answer) console.log("⚠️ Gemini returned empty candidates");
+
+    console.log("Answer to insert into DB:", answer);
+
+    // -----------------------
+    // 6️⃣ Insert into DB
+    // -----------------------
+    await pool.query(
+      `INSERT INTO chatbot (user_id, chattitle_id, user_question, gemini_answer)
+       VALUES ($1,$2,$3,$4)`,
+      [userId, chattitle_id, message, answer]
+    );
+
+    // -----------------------
+    // 7️⃣ Send response to frontend
+    // -----------------------
+    res.json({ answer });
+
+  } catch (err) {
+    console.error("sendMessage error:", err);
+    res.status(500).json({ error: "Failed to send message" });
+  }
+};
+
+exports.sendMessage = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { chattitle_id, message } = req.body;
+
+    if (!message || message.trim() === "") {
+      return res.status(400).json({ error: "Message required" });
+    }
+
+    // 1️⃣ Get old messages
+    const history = await pool.query(
+      `SELECT user_question, gemini_answer
+       FROM chatbot
+       WHERE user_id=$1 AND chattitle_id=$2
+       ORDER BY created_time ASC`,
+      [userId, chattitle_id]
+    );
+
+    // 2️⃣ Build OpenAI-compatible messages
+    const messages = [];
+
+    history.rows.forEach(chat => {
+      messages.push({
+        role: "user",
+        content: chat.user_question
+      });
+      messages.push({
+        role: "assistant",
+        content: chat.gemini_answer
+      });
+    });
+
+    messages.push({
+      role: "user",
+      content: message
+    });
+
+    // 3️⃣ Gemini OpenAI-compatible endpoint
+    const GEMINI_MODEL = "gemini-2.5-flash-lite"; // safest stable
+    const url = `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`;
+
+    // 4️⃣ API Call
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.GEMINI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: GEMINI_MODEL,
+        messages,
+        temperature: 0.7
+      })
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error("Gemini Error:", response.status, errText);
+      return res.status(500).json({ error: "Gemini API failed" });
+    }
+
+    const data = await response.json();
+
+    // 5️⃣ Safe extraction (OpenAI style)
+    const answer =
+      data.choices?.[0]?.message?.content || "No response";
+
+    // 6️⃣ Save to DB
+    await pool.query(
+      `INSERT INTO chatbot (user_id, chattitle_id, user_question, gemini_answer)
+       VALUES ($1,$2,$3,$4)`,
+      [userId, chattitle_id, message, answer]
+    );
+
+    // 7️⃣ Respond to frontend
+    res.status(200).json({ answer });
+
+  } catch (err) {
+    console.error("sendMessage error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
