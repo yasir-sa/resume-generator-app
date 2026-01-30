@@ -443,31 +443,46 @@ exports.googlelogin = async (req, res) => {
 
 
 
+
+
 exports.getUserProfile = async (req, res) => {
-  console.log("🔥 getUserProfile HIT");
-  console.log("USER FROM JWT:", req.user);
+  try {
+    const result = await pool.query(
+      "SELECT id, name, email, picture, provider, password FROM registertable WHERE id = $1",
+      [req.user.id]
+    );
 
-  // JWT id-ஐ பயன்படுத்தி DB-ல fetch பண்ண
-  const result = await pool.query(
-    "SELECT id, name, email, picture FROM registertable WHERE id = $1",
-    [req.user.id]  // ⚠️ இது id JWT-ல் இருந்தது (profile.id) → உங்கள் problem
-  );
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
 
-  if(result.rows.length === 0){
-    return res.status(404).json({ success:false, message:"User not found" });
+    const user = result.rows[0];
+
+    // 🔥 CORE LOGIC
+    const needPassword = user.password ===!user.password || user.password.trim() === "";
+
+    res.json({
+      success: true,
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+      picture: user.picture,
+      provider: user.provider,
+      needPassword: needPassword   // ✅ MUST
+    });
+
+  } catch (err) {
+    console.error("getUserProfile error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
   }
-
-  const user = result.rows[0];
-  console.log("DB USER:", user);
-
-  res.json({
-    success: true,
-    userId: user.id,
-    name: user.name,
-    email: user.email,
-    picture: user.picture
-  });
 };
+
 
 
 
@@ -490,9 +505,9 @@ exports.getTitles= async (req,res)=>{
        ORDER BY created_time DESC`,
       [userId]
     );
-     console.log("📦 Full DB result:", result);
-    console.log("📄 Only rows:", result.rows);
-    console.log("📝 Titles only:", result.rows.map(r => r.title_name));
+     console.log("Full DB result:", result);
+    console.log(" Only rows:", result.rows);
+    console.log("Titles only:", result.rows.map(r => r.title_name));
     return res.status(200).json(result.rows);
   }
   catch(error){
@@ -626,94 +641,94 @@ exports.getChatMessages = async (req, res) => {
 
 
 
-exports.sendMessageOld = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { chattitle_id, message } = req.body;
+// exports.sendMessageOld = async (req, res) => {
+//   try {
+//     const userId = req.user.id;
+//     const { chattitle_id, message } = req.body;
 
-    // -----------------------
-    // 1️⃣ Fetch old chats
-    // -----------------------
-    const oldChats = await pool.query(
-      `SELECT user_question, gemini_answer
-       FROM chatbot
-       WHERE user_id=$1 AND chattitle_id=$2
-       ORDER BY created_time`,
-      [userId, chattitle_id]
-    );
+//     // -----------------------
+//     // 1️⃣ Fetch old chats
+//     // -----------------------
+//     const oldChats = await pool.query(
+//       `SELECT user_question, gemini_answer
+//        FROM chatbot
+//        WHERE user_id=$1 AND chattitle_id=$2
+//        ORDER BY created_time`,
+//       [userId, chattitle_id]
+//     );
 
-    // -----------------------
-    // 2️⃣ Prepare chat context for Gemini
-    // -----------------------
-    const chatContext = [];
-    oldChats.rows.forEach(chat => {
-      chatContext.push({
-        role: "user",
-        parts: [{ text: chat.user_question }]
-      });
-      chatContext.push({
-        role: "model",
-        parts: [{ text: chat.gemini_answer }]
-      });
-    });
+//     // -----------------------
+//     // 2️⃣ Prepare chat context for Gemini
+//     // -----------------------
+//     const chatContext = [];
+//     oldChats.rows.forEach(chat => {
+//       chatContext.push({
+//         role: "user",
+//         parts: [{ text: chat.user_question }]
+//       });
+//       chatContext.push({
+//         role: "model",
+//         parts: [{ text: chat.gemini_answer }]
+//       });
+//     });
 
-    chatContext.push({
-      role: "user",
-      parts: [{ text: message }]
-    });
+//     chatContext.push({
+//       role: "user",
+//       parts: [{ text: message }]
+//     });
 
-    // -----------------------
-    // 3️⃣ Gemini endpoint URL
-    // -----------------------
-    const GEMINI_MODEL = "gemini-2.5-flash"; // ✅ Check via ListModels
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`;
+//     // -----------------------
+//     // 3️⃣ Gemini endpoint URL
+//     // -----------------------
+//     const GEMINI_MODEL = "gemini-2.5-flash"; // ✅ Check via ListModels
+//     const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
-    // -----------------------
-    // 4️⃣ Call Gemini API
-    // -----------------------
-    const geminiResponse = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: chatContext })
-    });
+//     // -----------------------
+//     // 4️⃣ Call Gemini API
+//     // -----------------------
+//     const geminiResponse = await fetch(url, {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({ contents: chatContext })
+//     });
 
-    if (!geminiResponse.ok) {
-      const text = await geminiResponse.text();
-      console.error("Gemini API failed:", geminiResponse.status, text);
-      return res.status(500).json({ error: "Gemini API failed" });
-    }
+//     if (!geminiResponse.ok) {
+//       const text = await geminiResponse.text();
+//       console.error("Gemini API failed:", geminiResponse.status, text);
+//       return res.status(500).json({ error: "Gemini API failed" });
+//     }
 
-    const result = await geminiResponse.json();
-    console.log("Gemini raw response:", result);
+//     const result = await geminiResponse.json();
+//     console.log("Gemini raw response:", result);
 
-    // -----------------------
-    // 5️⃣ Extract answer safely
-    // -----------------------
-    const answer =
-      result.response?.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
-      if (!answer) console.log("⚠️ Gemini returned empty candidates");
+//     // -----------------------
+//     // 5️⃣ Extract answer safely
+//     // -----------------------
+//     const answer =
+//       result.response?.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
+//       if (!answer) console.log("⚠️ Gemini returned empty candidates");
 
-    console.log("Answer to insert into DB:", answer);
+//     console.log("Answer to insert into DB:", answer);
 
-    // -----------------------
-    // 6️⃣ Insert into DB
-    // -----------------------
-    await pool.query(
-      `INSERT INTO chatbot (user_id, chattitle_id, user_question, gemini_answer)
-       VALUES ($1,$2,$3,$4)`,
-      [userId, chattitle_id, message, answer]
-    );
+//     // -----------------------
+//     // 6️⃣ Insert into DB
+//     // -----------------------
+//     await pool.query(
+//       `INSERT INTO chatbot (user_id, chattitle_id, user_question, gemini_answer)
+//        VALUES ($1,$2,$3,$4)`,
+//       [userId, chattitle_id, message, answer]
+//     );
 
-    // -----------------------
-    // 7️⃣ Send response to frontend
-    // -----------------------
-    res.json({ answer });
+//     // -----------------------
+//     // 7️⃣ Send response to frontend
+//     // -----------------------
+//     res.json({ answer });
 
-  } catch (err) {
-    console.error("sendMessage error:", err);
-    res.status(500).json({ error: "Failed to send message" });
-  }
-};
+//   } catch (err) {
+//     console.error("sendMessage error:", err);
+//     res.status(500).json({ error: "Failed to send message" });
+//   }
+// };
 
 exports.sendMessage = async (req, res) => {
   try {
@@ -753,7 +768,7 @@ exports.sendMessage = async (req, res) => {
     });
 
     // 3️⃣ Gemini OpenAI-compatible endpoint
-    const GEMINI_MODEL = "gemini-2.5-flash-lite"; // safest stable
+    const GEMINI_MODEL ="gemini-2.5-flash-lite";//"gemini-1.5-flash";//"gemini-2.5-flash-lite"; // safest stable
     const url = `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`;
 
     // 4️⃣ API Call
@@ -795,5 +810,227 @@ exports.sendMessage = async (req, res) => {
   } catch (err) {
     console.error("sendMessage error:", err);
     res.status(500).json({ error: "Server error" });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// clear chat messages by title id
+exports.clearChatByTitleId = async (req, res) => {
+  const { titleid } = req.params;
+
+  if (!titleid) {
+    return res.status(400).json({
+      message: "Chat title id missing"
+    });
+  }
+
+  try {
+    // chatbot table-la அந்த title id-க்கு உள்ள messages delete
+    const result = await pool.query(
+      "DELETE FROM chatbot WHERE chattitle_id = $1",
+      [titleid]
+    );
+
+    return res.status(200).json({
+      message: "Chat messages cleared successfully",
+      deletedCount: result.rowCount
+    });
+
+  } catch (error) {
+    console.error("Clear chat error:", error);
+    return res.status(500).json({
+      message: "Server error while clearing chat"
+    });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+exports.deleteChatTitle = async (req, res) => {
+  const { id } = req.params;
+
+  console.log("Frontend அனுப்பிய chat title ID:", id);
+
+  if (!id) {
+    return res.status(400).json({ message: "Chat title ID is required" });
+  }
+
+  try {
+    // 🔹 Delete all chat messages from chatbot table
+    const deleteChats = await pool.query(
+      "DELETE FROM chatbot WHERE chattitle_id = $1",
+      [parseInt(id)]
+    );
+
+    console.log(`Deleted ${deleteChats.rowCount} chat messages from chatbot table`);
+
+    // 🔹 Delete chat title itself from chattable table
+    const deleteTitle = await pool.query(
+      "DELETE FROM chattable WHERE chattitle_id = $1",
+      [parseInt(id)]
+    );
+
+    console.log(`Deleted ${deleteTitle.rowCount} row from chattable`);
+
+    res.json({
+      success: true,
+      message: `Deleted chat title ID ${id} and ${deleteChats.rowCount} related messages`
+    });
+
+  } catch (err) {
+    console.error("Error deleting chat title:", err);
+    res.status(500).json({ message: "Delete failed" });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//this is for ubdate chat title
+exports.updateChatTitle = async (req, res) => {
+  const id = parseInt(req.params.id, 10); // ✅ integer
+  const { title_name } = req.body;
+
+  if (isNaN(id)) {
+    return res.status(400).json({ message: "Invalid chat title id" });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE chattable
+       SET title_name = $1
+       WHERE chattitle_id = $2
+       RETURNING *`,
+      [title_name, id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Title not found" });
+    }
+
+    res.json({
+      message: "Chat title updated successfully",
+      data: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error("Update chat title error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///this is for new password send to others provider registration ok
+exports.setPassword = async (req, res) => {
+  try {
+    const userId = req.user.id; // JWT மூலம் user ID
+    const { password } = req.body;
+
+    // 1️⃣ Database-ல் existing password fetch பண்ணு
+    const result = await pool.query(
+      "SELECT password FROM registertable WHERE id = $1",
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const existingPassword = result.rows[0].password;
+
+    // 2️⃣ Already password set ஆகி இருந்தா message return பண்ணு
+    if (existingPassword && existingPassword.trim() !== "") {
+      return res.json({ success: false, message: "Password already set" });
+    }
+
+    // 3️⃣ Password validation
+    if (!password || password.trim() === "") {
+      return res.status(400).json({ success: false, message: "Password cannot be empty" });
+    }
+
+    // 4️⃣ Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 5️⃣ Update DB
+    await pool.query(
+      "UPDATE registertable SET password = $1 WHERE id = $2",
+      [hashedPassword, userId]
+    );
+
+    res.json({ success: true, message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Error updating password:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

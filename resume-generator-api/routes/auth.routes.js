@@ -15,6 +15,11 @@ const {
   createTitle ,
   getChatMessages,
   sendMessage,
+ clearChatByTitleId,
+deleteChatTitle,
+ updateChatTitle,
+ setPassword,
+
   
 
    // 👈 IMPORT IMPORTANT
@@ -44,6 +49,11 @@ router.get(
   verifyToken,
   getChatMessages
 );
+
+router.post("/user/set-password",verifyToken,setPassword);
+router.put("/chattitle-ubdate/:id",updateChatTitle);
+router.delete("/chattitle-delete/:id",deleteChatTitle);
+router.delete("/clear-chat/:titleid",clearChatByTitleId)
 router.post("/send-message", verifyToken, sendMessage);
 router.post("/create/newchat",verifyToken,createTitle);
 router.get("/getTitles", verifyToken, getTitles);
@@ -55,17 +65,6 @@ router.get("/check-auth", checkAuth);
 router.post("/logout", logout);
 
 module.exports = router;
-
-
-
-
-
-
-
-
-
-
-
 
 
 
