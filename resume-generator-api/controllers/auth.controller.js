@@ -1100,12 +1100,60 @@ exports.submitResume = async (req, res) => {
     console.log("==============================");
 
     // 4️⃣ Build prompt for Gemini
-    let prompt = `Generate a ${pagecount}-page resume HTML.\n`;
-    prompt += `Page 1 Details: ${JSON.stringify(pageOne)}\n`;
-    if (pagecount >= 2) prompt += `Page 2 Details: ${JSON.stringify(pageTwo)}\n`;
-    if (pagecount === 3) prompt += `Page 3 Details: ${JSON.stringify(pageThree)}\n`;
-    prompt += `Include user photo: ${photo}\n`;
-    prompt += "Output clean HTML only, no extra text.";
+    let prompt = `
+You are a professional resume HTML generator.
+
+Generate EXACTLY ${pagecount} SEPARATE HTML DOCUMENTS.
+Each page must be a COMPLETE and STANDALONE HTML file.
+
+IMPORTANT RULES:
+- Each page must start with <!DOCTYPE html>
+- Each page must end with </html>
+- Do NOT merge pages
+- Do NOT use page-break CSS
+- Do NOT use markdown or backticks
+- Output ONLY raw HTML
+
+====================
+HTML DOCUMENT 1 (PAGE 1)
+====================
+Use ONLY these details:
+${JSON.stringify(pageOne, null, 2)}
+
+Include:
+- Photo (use this filename: ${photo})
+- Name
+- Job Title
+- Contact Info
+- Summary
+- Skills
+`;
+
+if (pagecount >= 2) {
+  prompt += `
+====================
+HTML DOCUMENT 2 (PAGE 2)
+====================
+Use ONLY these details:
+${JSON.stringify(pageTwo, null, 2)}
+
+Include:
+- Experience
+- Projects
+- Certifications
+`;
+}
+
+if (pagecount === 3) {
+  prompt += `
+====================
+HTML DOCUMENT 3 (PAGE 3)
+====================
+Use ONLY these details:
+${JSON.stringify(pageThree, null, 2)}
+`;
+}
+
 
     // 5️⃣ Gemini API call (chat completion style)
     const GEMINI_MODEL = "gemini-2.5-flash-lite"; // safer for chat
