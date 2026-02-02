@@ -1,0 +1,590 @@
+/* resumedetails.css */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.resume-details-page-full {
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 30px 20px;
+}
+
+.resume-details-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  padding: 50px;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.heading {
+  font-size: 42px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+  margin-bottom: 40px;
+  position: relative;
+  letter-spacing: -0.5px;
+}
+
+.heading::after {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 5px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+}
+
+/* Select Page Section */
+.select-page-section {
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+  padding: 25px 30px;
+  border-radius: 16px;
+  margin-bottom: 35px;
+  border: 2px solid #e8ebff;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.08);
+}
+
+.select-page-section label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2d3748;
+  margin-right: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.select-page-section select {
+  padding: 12px 40px 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  border: 2px solid #cbd5e0;
+  border-radius: 12px;
+  background: white;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 120px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667eea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+}
+
+.select-page-section select:hover {
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  transform: translateY(-2px);
+}
+
+.select-page-section select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+}
+
+.select-page-section p {
+  font-size: 15px;
+  color: #718096;
+  margin-top: 15px;
+  font-weight: 600;
+}
+
+.select-page-section p::before {
+  content: '📄 ';
+  margin-right: 5px;
+}
+
+/* First Page Information */
+.first-page-informations {
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  padding: 35px;
+  border-radius: 20px;
+  margin-bottom: 30px;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+  animation: slideInLeft 0.5s ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Photo Upload Section */
+.photo-upload {
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  padding: 30px;
+  border-radius: 16px;
+  margin-bottom: 30px;
+  text-align: center;
+  border: 2px dashed #a5b4fc;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.photo-upload:hover {
+  border-color: #667eea;
+  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.15);
+}
+
+.photo-upload label {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  color: #4c51bf;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.resume-photo-input {
+  display: block;
+  margin: 0 auto 20px;
+  padding: 12px 20px;
+  font-size: 15px;
+  cursor: pointer;
+  background: white;
+  border: 2px solid #cbd5e0;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.resume-photo-input:hover {
+  border-color: #667eea;
+  box-shadow: 0 3px 10px rgba(102, 126, 234, 0.2);
+}
+
+.photo-preview {
+  width: 180px;
+  height: 180px;
+  border-radius: 10px;
+  object-fit: cover;
+  margin: 20px auto;
+  display: block;
+  border: 4px solid #667eea;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.photo-preview:hover {
+  transform: scale(1.05);
+  box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+}
+
+.remove-photo {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 15px;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.remove-photo:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+.remove-photo:active {
+  transform: translateY(0);
+}
+
+/* Other First Page Details */
+.other-first-pagedetails {
+  display: grid;
+  gap: 20px;
+}
+
+/* All Input Fields - Base Styling */
+input[type="text"],
+input[type="email"],
+input[type="tel"] {
+  width: 100%;
+  padding: 16px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+  color: #2d3748;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+input[type="text"]:hover,
+input[type="email"]:hover,
+input[type="tel"]:hover {
+  border-color: #cbd5e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  background: #fafbff;
+}
+
+input::placeholder {
+  color: #a0aec0;
+  font-weight: 500;
+}
+
+/* Individual Input Field Styling with Color Accents */
+.input-fullname {
+  background: linear-gradient(to right, #ffffff 0%, #f7fafc 100%);
+  border-left: 4px solid #667eea;
+}
+
+.input-jobtitle {
+  background: linear-gradient(to right, #ffffff 0%, #f7fafc 100%);
+  border-left: 4px solid #764ba2;
+}
+
+.input-email {
+  background: linear-gradient(to right, #ffffff 0%, #f7fafc 100%);
+  border-left: 4px solid #10b981;
+}
+
+.input-phone {
+  background: linear-gradient(to right, #ffffff 0%, #f7fafc 100%);
+  border-left: 4px solid #f59e0b;
+}
+
+.input-phone:focus {
+  outline: none;
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15);
+  background: #fffbf5;
+}
+
+.input-address {
+  background: linear-gradient(to right, #ffffff 0%, #f7fafc 100%);
+  border-left: 4px solid #ec4899;
+}
+
+.input-summary {
+  background: linear-gradient(to right, #ffffff 0%, #f7fafc 100%);
+  border-left: 4px solid #8b5cf6;
+}
+
+.input-skill {
+  background: linear-gradient(to right, #ffffff 0%, #f7fafc 100%);
+  border-left: 4px solid #06b6d4;
+}
+
+/* Second Page Information */
+.second-page-information {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  padding: 35px;
+  border-radius: 20px;
+  margin-bottom: 30px;
+  border: 2px solid #fed7aa;
+  box-shadow: 0 8px 25px rgba(251, 146, 60, 0.1);
+  animation: slideInRight 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Third Page Information */
+.third-page-information {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  padding: 35px;
+  border-radius: 20px;
+  margin-bottom: 30px;
+  border: 2px solid #bbf7d0;
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.1);
+  animation: slideInLeft 0.5s ease-out;
+}
+
+/* Textareas */
+textarea {
+  width: 100%;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  font-size: 16px;
+  font-weight: 500;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+  color: #2d3748;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  min-height: 140px;
+  resize: vertical;
+  line-height: 1.6;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+textarea:hover {
+  border-color: #cbd5e0;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  background: #fafbff;
+}
+
+textarea::placeholder {
+  color: #a0aec0;
+  font-weight: 500;
+}
+
+.experience-input {
+  border-left: 4px solid #f59e0b;
+}
+
+.projects-input {
+  border-left: 4px solid #3b82f6;
+}
+
+.cetrification-input {
+  border-left: 4px solid #8b5cf6;
+}
+
+.language-input {
+  border-left: 4px solid #10b981;
+}
+
+.Achievement-input {
+  border-left: 4px solid #f97316;
+}
+
+.interests-input {
+  border-left: 4px solid #14b8a6;
+}
+
+/* Generate Resume Button */
+.genarate-resume-content {
+  text-align: center;
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 2px solid #e2e8f0;
+}
+
+.resume-generate-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 18px 60px;
+  font-size: 18px;
+  font-weight: 800;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  position: relative;
+  overflow: hidden;
+}
+
+.resume-generate-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.resume-generate-btn:hover::before {
+  left: 100%;
+}
+
+.resume-generate-btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+}
+
+.resume-generate-btn:active {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .resume-details-page {
+    padding: 30px 25px;
+    border-radius: 20px;
+  }
+
+  .heading {
+    font-size: 32px;
+  }
+
+  .first-page-informations,
+  .second-page-information,
+  .third-page-information {
+    padding: 25px 20px;
+  }
+
+  .photo-preview {
+    width: 150px;
+    height: 150px;
+  }
+
+  .resume-generate-btn {
+    padding: 16px 45px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .resume-details-page-full {
+    padding: 15px 10px;
+  }
+
+  .resume-details-page {
+    padding: 25px 20px;
+  }
+
+  .heading {
+    font-size: 26px;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  textarea {
+    padding: 14px 16px;
+    font-size: 15px;
+  }
+
+  .select-page-section {
+    padding: 20px;
+  }
+
+  .photo-upload {
+    padding: 20px;
+  }
+
+  .photo-preview {
+    width: 130px;
+    height: 130px;
+  }
+
+  .resume-generate-btn {
+    padding: 14px 35px;
+    font-size: 15px;
+    letter-spacing: 1px;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+  border: 2px solid #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+/* Loading Animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Additional focus states for better UX */
+.input-fullname:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+}
+
+.input-jobtitle:focus {
+  border-color: #764ba2;
+  box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.15);
+}
+
+.input-email:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+}
+
+.input-address:focus {
+  border-color: #ec4899;
+  box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.15);
+}
+
+.input-summary:focus {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
+}
+
+.input-skill:focus {
+  border-color: #06b6d4;
+  box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.15);
+}

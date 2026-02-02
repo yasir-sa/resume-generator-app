@@ -151,6 +151,9 @@ const sendpasword = async () => {
       <Link to="/">
     <button >go to home</button>
     </Link>
+      <Link to="/resume-creator">
+    <button >go to resume creator page </button>
+    </Link>
     
       
     </div>

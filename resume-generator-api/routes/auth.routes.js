@@ -19,6 +19,8 @@ const {
 deleteChatTitle,
  updateChatTitle,
  setPassword,
+submitResume, 
+upload,
 
   
 
@@ -50,6 +52,8 @@ router.get(
   getChatMessages
 );
 
+
+router.post("/resume-details", upload,submitResume);
 router.post("/user/set-password",verifyToken,setPassword);
 router.put("/chattitle-ubdate/:id",updateChatTitle);
 router.delete("/chattitle-delete/:id",deleteChatTitle);

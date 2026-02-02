@@ -4,9 +4,26 @@ const jwt = require("jsonwebtoken");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const sendOTPEmail =require("../utils/email");
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// const multer = require("multer");
 require("dotenv").config();
 
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000);
+ 
+const multer = require("multer");
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
+
+
+
+
+
+
+
+
+
+
+
 
 exports.registerUser = async (req,res)=>{
   const {name,email,password}= req.body;
@@ -1034,3 +1051,109 @@ exports.setPassword = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// this is resume creator all details send api 
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+// ---------------- controller ----------------
+exports.submitResume = async (req, res) => {
+  try {
+    // 1️⃣ Get FormData fields
+    const { pagecount } = req.body;
+    const pageOne = req.body.pageOne ? JSON.parse(req.body.pageOne) : {};
+    const pageTwo = req.body.pageTwo ? JSON.parse(req.body.pageTwo) : {};
+    const pageThree = req.body.pageThree ? JSON.parse(req.body.pageThree) : {};
+
+    // 2️⃣ Get uploaded file
+    const photo = req.file ? req.file.originalname : null;
+
+    // 3️⃣ Log received data
+    console.log("===== FORM DATA RECEIVED =====");
+    console.log("Page Count:", pagecount);
+    console.log("Page 1:", pageOne);
+    if (pagecount >= 2) console.log("Page 2:", pageTwo);
+    if (pagecount === 3) console.log("Page 3:", pageThree);
+    console.log("Photo:", photo);
+    console.log("==============================");
+
+    // 4️⃣ Build prompt for Gemini
+    let prompt = `Generate a ${pagecount}-page resume HTML.\n`;
+    prompt += `Page 1 Details: ${JSON.stringify(pageOne)}\n`;
+    if (pagecount >= 2) prompt += `Page 2 Details: ${JSON.stringify(pageTwo)}\n`;
+    if (pagecount === 3) prompt += `Page 3 Details: ${JSON.stringify(pageThree)}\n`;
+    prompt += `Include user photo: ${photo}\n`;
+    prompt += "Output clean HTML only, no extra text.";
+
+    // 5️⃣ Gemini API call (chat completion style)
+    const GEMINI_MODEL = "gemini-2.5-flash-lite"; // safer for chat
+    const url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+
+    const geminiResponse = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: GEMINI_MODEL,
+        messages: [
+          { role: "system", content: "You are an expert resume HTML generator." },
+          { role: "user", content: prompt },
+        ],
+        temperature: 0.7,
+      }),
+    });
+
+    if (!geminiResponse.ok) {
+      const errorText = await geminiResponse.text();
+      console.error("Gemini API error:", geminiResponse.status, errorText);
+      return res.status(500).json({ error: "Gemini API failed" });
+    }
+
+    const result = await geminiResponse.json();
+
+    // 6️⃣ Extract HTML from Gemini response
+    let geminiHTML = "No response from Gemini";
+    const parts = result?.choices?.[0]?.message?.content;
+    if (parts) geminiHTML = parts;
+
+    console.log("===== GEMINI HTML OUTPUT =====");
+    console.log(geminiHTML);
+    console.log("================================");
+
+    // 7️⃣ Send response to frontend
+    res.json({
+      message: "Resume HTML generated via Gemini",
+      html: geminiHTML,
+    });
+  } catch (err) {
+    console.error("submitResume error:", err);
+    res.status(500).json({ error: "Failed to generate resume" });
+  }
+};
+
+// ---------------- export multer upload ----------------
+exports.upload = upload.single("photo");
