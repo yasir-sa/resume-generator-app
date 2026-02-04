@@ -1,21 +1,26 @@
 import React, { useState } from "react";
 import "./resumedetails.css";
 import API from "../../api"
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const Resumedetails = () => {
  
   const [pagecount,setpagecount]=useState(1);
   const [PreviewPhoto,setPreviewPhoto]=useState(null)
   const [page1, setPage1] = useState({
-  fullName: "",
-  jobTitle: "",
-  email: "",
-  phoneNumber: "",
-  address: "",
-  summary: "",
+  fullName: "yasir",
+  jobTitle: "mernstack",
+  email: "yasirsa05@gmail.com",
+  phoneNumber: "8270089089",
+  address: "71/96 Kalvathunayagam street",
+  summary: "Motivated and detail-oriented aspiring Full Stack Developer with a strong foundation in HTML, CSS, JavaScript, React, and backend fundamentals. Experienced in building responsive web applications, REST APIs, and real-world projects including resume generators and e-commerce layouts. Passionate about learning modern frameworks, writing clean code, and solving practical problems through technology.",
   photo:null,
-  skill:"",
+  photoBase64: null, 
+  skill:"react,node,express,python,postgrs,githup",
 });
+const [previewPages, setPreviewPages] = useState([]);
+
 
 
 
@@ -63,22 +68,66 @@ const getPage3Error = () => {
 
 
 
+const fileToBase64=(file)=>{
+    return new Promise((resolve,reject)=>{
+        const reader = new FileReader();
+           reader.readAsDataURL(file);
+           reader.onload = () => {
+      resolve(reader.result); // Base64 string
+    };
+       reader.onerror = (error) => {
+      reject(error);
+    };
+    });
+}
 
 
 
 
+const splitBase64 = (base64, chunkSize = 50000) => {
+  const chunks = [];
+  for (let i = 0; i < base64.length; i += chunkSize) {
+    chunks.push(base64.slice(i, i + chunkSize));
+  }
+  return chunks;
+};
 
-  const handlePhotoChange = (e) => {
+
+
+
+  const handlePhotoChange =async (e) => {
    const file = e.target.files[0];
   if (file) {
     // backend அனுப்ப actual file
-    setPage1({ ...page1, photo: file });
-
+    ;
+     const base64 = await fileToBase64(file)
     // browser preview-க்கு temporary URL
     const previewURL = URL.createObjectURL(file);
     setPreviewPhoto(previewURL);
+
+    setPage1({ ...page1, photo: file ,photoBase64:base64})
   }
   };
+
+
+
+
+
+  const splitHTMLPages = (htmlString) => {
+  return htmlString
+    .split("</html>")
+    .map(page => page.trim())
+    .filter(page => page.length > 0)
+    .map(page => page + "</html>");
+};
+
+
+
+
+
+
+
+
 const createresume =async (e) => {
   e.preventDefault();
 
@@ -112,30 +161,24 @@ const createresume =async (e) => {
 
   // ✅ ALL GOOD
  
+try {
+  const photoChunks = page1.photoBase64 ? splitBase64(page1.photoBase64) : [];
 
-try{
-    const formData= new FormData();
-    formData.append("pagecount",pagecount)
-  formData.append("pageOne", JSON.stringify(page1));
-formData.append("pageTwo", JSON.stringify(page2));
-formData.append("pageThree", JSON.stringify(page3));
-formData.append("photo", page1.photo);
+const response = await API.post("/resume-details", {
+  pagecount,
+  pageOne: page1,
+  pageTwo: page2,
+  pageThree: page3,
+  photoChunks // அனுப்பிறோம் small chunks
+});
+  const rawHtml = response.data.html;
+  const pagesArray = splitHTMLPages(rawHtml);
+  setPreviewPages(pagesArray);
 
-    const response=await API.post("/resume-details",formData,{
-        headers:{
-            "Content-Type":"mmultipart/form-data"
-        },
-    })
-
-
-
-
-
- alert("All details filled correctly ✅ Resume can be created");
-}
-catch(error){
-console.error(error);
-alert("somthing went wrong in resume creation ")
+  alert("All details filled correctly ✅ Resume can be created");
+} catch (error) {
+  console.error(error);
+  alert("Something went wrong in resume creation");
 }
 
 
@@ -143,6 +186,47 @@ alert("somthing went wrong in resume creation ")
 
 
 };
+
+
+
+
+// ...
+
+const downloadResumePDF = async () => {
+  if (previewPages.length === 0) {
+    alert("No resume to download! Generate first.");
+    return;
+  }
+
+  const pdf = new jsPDF("p", "mm", "a4"); // Portrait, mm, A4 size
+
+  for (let i = 0; i < previewPages.length; i++) {
+    // Create temporary div to render iframe HTML
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = previewPages[i];
+    tempDiv.style.width = "794px"; // approx A4 width in px
+    tempDiv.style.padding = "10px";
+    document.body.appendChild(tempDiv);
+
+    // Render div to canvas
+    const canvas = await html2canvas(tempDiv, { scale: 2 });
+    const imgData = canvas.toDataURL("image/png");
+
+    // Add image to PDF
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    if (i > 0) pdf.addPage();
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+
+    // Remove temp div
+    document.body.removeChild(tempDiv);
+  }
+
+  // Save PDF
+  pdf.save(`${page1.fullName || "resume"}.pdf`);
+};
+
 
 
 
@@ -199,7 +283,7 @@ alert("somthing went wrong in resume creation ")
         {page1.photo && (
           <img
         
-            src={page1.photo}
+            src={PreviewPhoto}
             alt="Profile Preview"
             className="photo-preview"
           />
@@ -373,6 +457,24 @@ alert("somthing went wrong in resume creation ")
 )}
 
 
+ <div className="preview-page-div">
+  {previewPages.map((pageHTML, index) => (
+    <iframe
+      key={index}
+      srcDoc={pageHTML}
+      title={`Resume Page ${index }`}
+      
+    />
+  ))}
+    <button
+    type="button"
+    className="resume-download-btn"
+    onClick={downloadResumePDF}
+    style={{ marginLeft: "10px" }}
+  >
+    Download PDF
+  </button>
+</div>
 
 
 

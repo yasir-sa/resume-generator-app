@@ -9,7 +9,7 @@ require("dotenv").config();
 
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000);
  
-const multer = require("multer");
+// const multer = require("multer");
 const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
@@ -1074,128 +1074,581 @@ exports.setPassword = async (req, res) => {
 
 
 
-// this is resume creator all details send api 
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
+// // this is resume creator all details send api 
+// // const storage = multer.memoryStorage();
+// // const upload = multer({ storage });
 
-// ---------------- controller ----------------
+// // ---------------- controller ----------------
+// exports.submitResume = async (req, res) => {
+//   try {
+//     // 1️⃣ Get FormData fields
+//   const { pagecount, pageOne, pageTwo, pageThree, photoBase64 } = req.body;
+
+//     // 2️⃣ Get uploaded file
+//     // const photo = req.file ? req.file.originalname : null;
+
+//     // 3️⃣ Log received data
+//     console.log("===== FORM DATA RECEIVED =====");
+//     console.log("Page Count:", pagecount);
+//     console.log("Page 1:", pageOne);
+//     if (pagecount >= 2) console.log("Page 2:", pageTwo);
+//     if (pagecount === 3) console.log("Page 3:", pageThree);
+  
+//     console.log("==============================");
+
+//     // 4️⃣ Build prompt for Gemini
+//     let prompt = `
+// Generate an ATS-friendly professional resume in clean HTML.
+
+// Rules (IMPORTANT):
+// - Use a single-column layout only
+// - Do NOT use tables
+// - Do NOT use icons, emojis, images except profile photo
+// - Use only standard HTML elements (h1, h2, h3, p, ul, li, section, div)
+// - Keep font simple and readable
+// - Avoid excessive colors or styling
+
+// Include the following sections in this exact order:
+
+// 1. Profile Photo
+// Use this EXACT HTML (do not modify src or class):
+// <img src="${photoBase64}" class="profile-photo" />
+
+// Profile photo must NOT be circular.
+// Do NOT use border-radius: 50%.
+// Use border-radius: 10% for the photo.
+
+// 2. Full Name
+// 3. Job Title
+// 4. Contact Information (Email, Phone, Location)
+// 5. Professional Summary
+// 6. Skills (bulleted list)
+// 7. Experience
+// 8. Projects
+// 9. Education
+
+// Use ONLY these details:
+// ${JSON.stringify(pageOne, null, 2)}
+
+// ATS rules:
+// - Use clear section headings
+// - Use bullet points for skills and experience
+// - Do NOT use columns or sidebars
+// - Content should be keyword-optimized and machine-readable
+
+// Return ONLY valid HTML code.
+// `;
+
+
+// if (pagecount >= 2) {
+//   prompt += `
+// ====================
+// HTML DOCUMENT 2 (PAGE 2)
+// ====================
+// Use ONLY these details:
+// ${JSON.stringify(pageTwo, null, 2)}
+
+// Include:
+// - Experience
+// - Projects
+// - Certifications
+// `;
+// }
+
+// if (pagecount === 3) {
+//   prompt += `
+// ====================
+// HTML DOCUMENT 3 (PAGE 3)
+// ====================
+// Use ONLY these details:
+// ${JSON.stringify(pageThree, null, 2)}
+// `;
+// }
+
+
+//     // 5️⃣ Gemini API call (chat completion style)
+//     const GEMINI_MODEL = "gemini-2.5-flash-lite"; // safer for chat
+//     const url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+
+//     const geminiResponse = await fetch(url, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
+//       },
+//       body: JSON.stringify({
+//         model: GEMINI_MODEL,
+//         messages: [
+//           { role: "system", content: "You are an expert resume HTML generator." },
+//           { role: "user", content: prompt },
+//         ],
+//         temperature: 0.7,
+//       }),
+//     });
+
+//     if (!geminiResponse.ok) {
+//       const errorText = await geminiResponse.text();
+//       console.error("Gemini API error:", geminiResponse.status, errorText);
+//       return res.status(500).json({ error: "Gemini API failed" });
+//     }
+
+//     const result = await geminiResponse.json();
+
+//     // 6️⃣ Extract HTML from Gemini response
+//     let geminiHTML = "No response from Gemini";
+//     const parts = result?.choices?.[0]?.message?.content;
+//     if (parts) geminiHTML = parts;
+
+//     console.log("===== GEMINI HTML OUTPUT =====");
+//     console.log(geminiHTML);
+//     console.log("================================");
+
+//     // 7️⃣ Send response to frontend
+//     res.json({
+//       message: "Resume HTML generated via Gemini",
+//       html: geminiHTML,
+//     });
+//   } catch (err) {
+//     console.error("submitResume error:", err);
+//     res.status(500).json({ error: "Failed to generate resume" });
+//   }
+// };
+
+// // ---------------- export multer upload ----------------
+// // exports.upload = upload.single("photo");
+
+
+
+
+
+
+
+
+
+// // controller/auth.controller.js
+
+// exports.submitResume = async (req, res) => {
+//   try {
+//     // 1️⃣ Get data from JSON body (NOT FormData)
+//     let { pagecount, pageOne, pageTwo, pageThree, photoBase64 } = req.body;
+
+//     // Ensure number
+//     pagecount = Number(pagecount || 1);
+
+//     // Safety defaults
+//     pageOne = pageOne || {};
+//     pageTwo = pageTwo || {};
+//     pageThree = pageThree || "";
+
+//     // 2️⃣ Logs (debug)
+//     console.log("===== FORM DATA RECEIVED =====");
+//     console.log("Page Count:", pagecount);
+//     console.log("Page 1:", pageOne);
+//     if (pagecount >= 2) console.log("Page 2:", pageTwo);
+//     if (pagecount === 3) console.log("Page 3:", pageThree);
+//     console.log("Photo Base64 exists:", !!photoBase64);
+//     console.log("==============================");
+
+//     // 3️⃣ Build Gemini Prompt
+//     let prompt = `
+// Generate an ATS-friendly professional resume in clean HTML.
+
+// Rules (IMPORTANT):
+// - Use a single-column layout only
+// - Do NOT use tables
+// - Do NOT use icons, emojis, images except profile photo
+// - Use only standard HTML elements (h1, h2, h3, p, ul, li, section, div)
+// - Keep font simple and readable
+// - Avoid excessive colors or styling
+
+// Include the following sections in this exact order:
+
+// 1. Profile Photo
+// Use this EXACT HTML (do not modify src or class):
+// <img src="${photoBase64 || ""}" class="profile-photo" />
+
+// Profile photo must NOT be circular.
+// Do NOT use border-radius: 50%.
+// Use border-radius: 10% for the photo.
+
+// 2. Full Name
+// 3. Job Title
+// 4. Contact Information (Email, Phone, Location)
+// 5. Professional Summary
+// 6. Skills (bulleted list)
+// 7. Experience
+// 8. Projects
+// 9. Education
+
+// Use ONLY these details:
+// ${JSON.stringify(pageOne, null, 2)}
+
+// ATS rules:
+// - Use clear section headings
+// - Use bullet points for skills and experience
+// - Do NOT use columns or sidebars
+// - Content should be keyword-optimized and machine-readable
+
+// Return ONLY valid HTML code.
+// `;
+
+//     if (pagecount >= 2) {
+//       prompt += `
+// ====================
+// PAGE 2 DETAILS
+// ====================
+// ${JSON.stringify(pageTwo, null, 2)}
+// `;
+//     }
+
+//     if (pagecount === 3) {
+//       prompt += `
+// ====================
+// PAGE 3 DETAILS
+// ====================
+// ${JSON.stringify(pageThree, null, 2)}
+// `;
+//     }
+
+//     // 4️⃣ Gemini API Call
+//     const fetch = (...args) =>
+//       import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
+//     const response = await fetch(
+//       "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+//       {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//           Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
+//         },
+//         body: JSON.stringify({
+//           model: "gemini-2.5-flash-lite",
+//           messages: [
+//             { role: "system", content: "You are an expert resume HTML generator." },
+//             { role: "user", content: prompt },
+//           ],
+//           temperature: 0.6,
+//         }),
+//       }
+//     );
+
+//     if (!response.ok) {
+//       const errorText = await response.text();
+//       console.error("Gemini API error:", errorText);
+//       return res.status(500).json({ error: "Gemini API failed" });
+//     }
+
+//     const result = await response.json();
+
+//     // 5️⃣ Extract HTML safely
+//     const geminiHTML =
+//       result?.choices?.[0]?.message?.content || "<!-- No HTML returned -->";
+
+//     console.log("===== GEMINI HTML OUTPUT =====");
+//     console.log(geminiHTML);
+//     console.log("================================");
+
+//     // 6️⃣ Send to frontend
+//     res.json({
+//       success: true,
+//       html: geminiHTML,
+//     });
+//   } catch (err) {
+//     console.error("submitResume error:", err);
+//     res.status(500).json({ error: "Failed to generate resume" });
+//   }
+// };
+
+
+
+
+
+
+
+
+
+// // // controller/auth.controller.js
+
+// exports.submitResume = async (req, res) => {
+//   try {
+//     // 1️⃣ Get data from JSON body (NOT FormData)
+//     let { pagecount, pageOne, pageTwo, pageThree, photoChunks } = req.body;
+
+//     // Join photo chunks if they exist
+//     let photoBase64 = "";
+//     if (photoChunks && Array.isArray(photoChunks)) {
+//       photoBase64 = photoChunks.join("");
+//     }
+
+//     // Ensure number
+//     pagecount = Number(pagecount || 1);
+
+//     // Safety defaults
+//     pageOne = pageOne || {};
+//     pageTwo = pageTwo || {};
+//     pageThree = pageThree || "";
+
+//     // 2️⃣ Logs (debug)
+//     console.log("===== FORM DATA RECEIVED =====");
+//     console.log("Page Count:", pagecount);
+//     console.log("Page 1:", pageOne);
+//     if (pagecount >= 2) console.log("Page 2:", pageTwo);
+//     if (pagecount === 3) console.log("Page 3:", pageThree);
+//     console.log("Photo Base64 exists:", !!photoBase64);
+//     console.log("==============================");
+
+//     // 3️⃣ Build Gemini Prompt
+//     let prompt = `
+// Generate an ATS-friendly professional resume in clean HTML.
+
+// Rules (IMPORTANT):
+// - Use a single-column layout only
+// - Do NOT use tables
+// - Do NOT use icons, emojis, images except profile photo
+// - Use only standard HTML elements (h1, h2, h3, p, ul, li, section, div)
+// - Keep font simple and readable
+// - Avoid excessive colors or styling
+
+// Include the following sections in this exact order:
+
+// 1. Profile Photo
+// Use this EXACT HTML (do not modify src or class):
+// <img src="${photoBase64 || ""}" class="profile-photo" />
+
+// Profile photo must NOT be circular.
+// Do NOT use border-radius: 50%.
+// Use border-radius: 10% for the photo.
+
+// 2. Full Name
+// 3. Job Title
+// 4. Contact Information (Email, Phone, Location)
+// 5. Professional Summary
+// 6. Skills (bulleted list)
+// 7. Experience
+// 8. Projects
+// 9. Education
+
+// Use ONLY these details:
+// ${JSON.stringify(pageOne, null, 2)}
+
+// ATS rules:
+// - Use clear section headings
+// - Use bullet points for skills and experience
+// - Do NOT use columns or sidebars
+// - Content should be keyword-optimized and machine-readable
+
+// Return ONLY valid HTML code.
+// `;
+
+//     if (pagecount >= 2) {
+//       prompt += `
+// ====================
+// PAGE 2 DETAILS
+// ====================
+// ${JSON.stringify(pageTwo, null, 2)}
+// `;
+//     }
+
+//     if (pagecount === 3) {
+//       prompt += `
+// ====================
+// PAGE 3 DETAILS
+// ====================
+// ${JSON.stringify(pageThree, null, 2)}
+// `;
+//     }
+
+//     // 4️⃣ Gemini API Call
+//     const fetch = (...args) =>
+//       import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
+//     const response = await fetch(
+//       "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+//       {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//           Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
+//         },
+//         body: JSON.stringify({
+//           model: "gemini-2.5-flash-lite",
+//           messages: [
+//             { role: "system", content: "You are an expert resume HTML generator." },
+//             { role: "user", content: prompt },
+//           ],
+//           temperature: 0.6,
+//         }),
+//       }
+//     );
+
+//     if (!response.ok) {
+//       const errorText = await response.text();
+//       console.error("Gemini API error:", errorText);
+//       return res.status(500).json({ error: "Gemini API failed" });
+//     }
+
+//     const result = await response.json();
+
+//     // 5️⃣ Extract HTML safely
+//     const geminiHTML =
+//       result?.choices?.[0]?.message?.content || "<!-- No HTML returned -->";
+
+//     console.log("===== GEMINI HTML OUTPUT =====");
+//     console.log(geminiHTML);
+//     console.log("================================");
+
+//     // 6️⃣ Send to frontend
+//     res.json({
+//       success: true,
+//       html: geminiHTML,
+//     });
+//   } catch (err) {
+//     console.error("submitResume error:", err);
+//     res.status(500).json({ error: "Failed to generate resume" });
+//   }
+// };
 exports.submitResume = async (req, res) => {
   try {
-    // 1️⃣ Get FormData fields
-    const { pagecount } = req.body;
-    const pageOne = req.body.pageOne ? JSON.parse(req.body.pageOne) : {};
-    const pageTwo = req.body.pageTwo ? JSON.parse(req.body.pageTwo) : {};
-    const pageThree = req.body.pageThree ? JSON.parse(req.body.pageThree) : {};
+    let { pagecount, pageOne, pageTwo, pageThree, photoChunks } = req.body;
 
-    // 2️⃣ Get uploaded file
-    const photo = req.file ? req.file.originalname : null;
-
-    // 3️⃣ Log received data
-    console.log("===== FORM DATA RECEIVED =====");
-    console.log("Page Count:", pagecount);
-    console.log("Page 1:", pageOne);
-    if (pagecount >= 2) console.log("Page 2:", pageTwo);
-    if (pagecount === 3) console.log("Page 3:", pageThree);
-    console.log("Photo:", photo);
-    console.log("==============================");
-
-    // 4️⃣ Build prompt for Gemini
-    let prompt = `
-You are a professional resume HTML generator.
-
-Generate EXACTLY ${pagecount} SEPARATE HTML DOCUMENTS.
-Each page must be a COMPLETE and STANDALONE HTML file.
-
-IMPORTANT RULES:
-- Each page must start with <!DOCTYPE html>
-- Each page must end with </html>
-- Do NOT merge pages
-- Do NOT use page-break CSS
-- Do NOT use markdown or backticks
-- Output ONLY raw HTML
-
-====================
-HTML DOCUMENT 1 (PAGE 1)
-====================
-Use ONLY these details:
-${JSON.stringify(pageOne, null, 2)}
-
-Include:
-- Photo (use this filename: ${photo})
-- Name
-- Job Title
-- Contact Info
-- Summary
-- Skills
-`;
-
-if (pagecount >= 2) {
-  prompt += `
-====================
-HTML DOCUMENT 2 (PAGE 2)
-====================
-Use ONLY these details:
-${JSON.stringify(pageTwo, null, 2)}
-
-Include:
-- Experience
-- Projects
-- Certifications
-`;
-}
-
-if (pagecount === 3) {
-  prompt += `
-====================
-HTML DOCUMENT 3 (PAGE 3)
-====================
-Use ONLY these details:
-${JSON.stringify(pageThree, null, 2)}
-`;
-}
-
-
-    // 5️⃣ Gemini API call (chat completion style)
-    const GEMINI_MODEL = "gemini-2.5-flash-lite"; // safer for chat
-    const url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-
-    const geminiResponse = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: GEMINI_MODEL,
-        messages: [
-          { role: "system", content: "You are an expert resume HTML generator." },
-          { role: "user", content: prompt },
-        ],
-        temperature: 0.7,
-      }),
-    });
-
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text();
-      console.error("Gemini API error:", geminiResponse.status, errorText);
-      return res.status(500).json({ error: "Gemini API failed" });
+    // Join photo chunks into single Base64 string
+    let photoBase64 = "";
+    if (photoChunks && Array.isArray(photoChunks)) {
+      photoBase64 = photoChunks.join("");
     }
 
-    const result = await geminiResponse.json();
+    pagecount = Number(pagecount || 1);
+    pageOne = pageOne || {};
+    pageTwo = pageTwo || {};
+    pageThree = pageThree || {};
 
-    // 6️⃣ Extract HTML from Gemini response
-    let geminiHTML = "No response from Gemini";
-    const parts = result?.choices?.[0]?.message?.content;
-    if (parts) geminiHTML = parts;
+    console.log("Page Count:", pagecount);
 
-    console.log("===== GEMINI HTML OUTPUT =====");
-    console.log(geminiHTML);
-    console.log("================================");
+    // Gemini Prompt (always ask for 3 pages just in case)
+    let prompt = `Generate an ATS-friendly professional resume in clean HTML.
 
-    // 7️⃣ Send response to frontend
+Use this photo:
+<img src="${photoBase64 || ""}" class="profile-photo" />
+
+Page 1 Details:
+${JSON.stringify(pageOne, null, 2)}
+
+Page 2 Details:
+${JSON.stringify(pageTwo, null, 2)}
+
+Page 3 Details:
+${JSON.stringify(pageThree, null, 2)}
+`;
+
+    let fullHTML = "";
+
+    try {
+      const fetch = (...args) =>
+        import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
+      const response = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: "gemini-2.5-flash-lite",
+            messages: [
+              { role: "system", content: "You are an expert resume HTML generator." },
+              { role: "user", content: prompt },
+            ],
+            temperature: 0.6,
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Gemini API failed");
+
+      const result = await response.json();
+      let geminiHTML = result?.choices?.[0]?.message?.content || "";
+
+      if (geminiHTML) {
+        // Generate HTML for only the requested number of pages
+        const pages = geminiHTML
+          .split("</html>")
+          .map(p => p.trim())
+          .filter(p => p.length > 0)
+          .map(p => p + "</html>");
+
+        fullHTML = pages.slice(0, pagecount).join(""); // Only send requested pages
+      } else {
+        throw new Error("Empty Gemini HTML");
+      }
+    } catch (err) {
+      console.warn("Gemini failed. Using dummy HTML.");
+
+      const generateDummyHTML = (pageNum, pageData, includePhoto) => `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Resume - ${pageData.fullName || "Candidate"}</title>
+<style>
+  body { font-family: 'Arial', sans-serif; line-height: 1.6; margin: 20px; color: #333; background: #f9f9f9; }
+  .profile-photo { width: 150px; border-radius: 50%; float: right; margin-left: 20px; }
+  h1 { font-size: 28px; margin-bottom: 5px; }
+  h2 { font-size: 20px; margin-bottom: 10px; color: #555; }
+  h3 { font-size: 16px; margin-bottom: 5px; color: #222; }
+  p { margin-bottom: 8px; }
+  ul { margin: 0; padding-left: 20px; }
+  li { margin-bottom: 5px; }
+  .section { margin-top: 20px; clear: both; }
+</style>
+</head>
+<body>
+${includePhoto ? `<img src="${photoBase64 || ""}" class="profile-photo" />` : ""}
+<div class="section">
+${pageNum === 1 ? `
+<h1>${pageData.fullName || "Full Name"}</h1>
+<h2>${pageData.jobTitle || "Job Title"}</h2>
+<p><strong>Email:</strong> ${pageData.email || "email@example.com"}</p>
+<p><strong>Phone:</strong> ${pageData.phoneNumber || "000-000-0000"}</p>
+<p><strong>Address:</strong> ${pageData.address || "Address"}</p>
+<h3>Summary</h3>
+<p>${pageData.summary || "Professional summary goes here."}</p>
+<h3>Skills</h3>
+<ul>
+${(pageData.skill || "Skill1, Skill2, Skill3").split(",").map(s => `<li>${s.trim()}</li>`).join("")}
+</ul>` : ""}
+${pageNum === 2 ? `
+<h3>Experience</h3>
+<p>${pageData.experience || "Experience details go here."}</p>
+<h3>Projects</h3>
+<p>${pageData.projects || "Projects go here."}</p>
+<h3>Certifications</h3>
+<p>${pageData.certifications || "Certifications go here."}</p>` : ""}
+${pageNum === 3 ? `
+<h3>Languages</h3>
+<p>${pageData.languages || "Languages go here."}</p>
+<h3>Achievements</h3>
+<p>${pageData.achievements || "Achievements go here."}</p>
+<h3>Interests</h3>
+<p>${pageData.interests || "Interests go here."}</p>` : ""}
+</div>
+</body>
+</html>`;
+
+      // Only generate as many dummy pages as pagecount
+      const pagesToGenerate = [];
+      if (pagecount >= 1) pagesToGenerate.push(generateDummyHTML(1, pageOne, true));
+      if (pagecount >= 2) pagesToGenerate.push(generateDummyHTML(2, pageTwo, false));
+      if (pagecount === 3) pagesToGenerate.push(generateDummyHTML(3, pageThree, false));
+
+      fullHTML = pagesToGenerate.join("");
+    }
+
+    // Send as single HTML string containing only requested pages
     res.json({
-      message: "Resume HTML generated via Gemini",
-      html: geminiHTML,
+      success: true,
+      html: fullHTML,
     });
   } catch (err) {
     console.error("submitResume error:", err);
@@ -1203,5 +1656,150 @@ ${JSON.stringify(pageThree, null, 2)}
   }
 };
 
-// ---------------- export multer upload ----------------
-exports.upload = upload.single("photo");
+
+// // controller/auth.controller.js
+// exports.submitResume = async (req, res) => {
+//   try {
+//     let { pagecount, pageOne, pageTwo, pageThree, photoChunks } = req.body;
+
+//     // Join photo chunks into single Base64 string
+//     let photoBase64 = "";
+//     if (photoChunks && Array.isArray(photoChunks)) {
+//       photoBase64 = photoChunks.join("");
+//     }
+
+//     pagecount = Number(pagecount || 1);
+//     pageOne = pageOne || {};
+//     pageTwo = pageTwo || {};
+//     pageThree = pageThree || {};
+
+//     console.log("===== FORM DATA =====");
+//     console.log("Page Count:", pagecount);
+//     console.log("Page 1:", pageOne);
+//     if (pagecount >= 2) console.log("Page 2:", pageTwo);
+//     if (pagecount === 3) console.log("Page 3:", pageThree);
+//     console.log("Photo Base64 exists:", !!photoBase64);
+//     console.log("====================");
+
+//     // Gemini Prompt
+//     let prompt = `
+// Generate an ATS-friendly resume in clean HTML.
+
+// Use this photo:
+// <img src="${photoBase64 || ""}" class="profile-photo" />
+
+// Page 1 Details:
+// ${JSON.stringify(pageOne, null, 2)}
+
+// ${pagecount >= 2 ? `Page 2 Details:\n${JSON.stringify(pageTwo, null, 2)}` : ""}
+// ${pagecount === 3 ? `Page 3 Details:\n${JSON.stringify(pageThree, null, 2)}` : ""}
+// `;
+
+//     // 1️⃣ Gemini API call
+//     let htmlPages = [];
+//     try {
+//       const fetch = (...args) =>
+//         import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
+//       const response = await fetch(
+//         "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+//         {
+//           method: "POST",
+//           headers: {
+//             "Content-Type": "application/json",
+//             Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
+//           },
+//           body: JSON.stringify({
+//             model: "gemini-2.5-flash-lite",
+//             messages: [
+//               { role: "system", content: "You are an expert resume HTML generator." },
+//               { role: "user", content: prompt },
+//             ],
+//             temperature: 0.6,
+//           }),
+//         }
+//       );
+
+//       if (!response.ok) throw new Error("Gemini API failed");
+
+//       const result = await response.json();
+//       let geminiHTML = result?.choices?.[0]?.message?.content || "";
+
+//       // Split into pages by </html>
+//       htmlPages = geminiHTML
+//         .split("</html>")
+//         .map(p => p.trim())
+//         .filter(p => p.length > 0)
+//         .map(p => p + "</html>");
+
+//       if (htmlPages.length === 0) throw new Error("Empty Gemini HTML");
+
+//     } catch (err) {
+//       console.warn("Gemini failed or quota exceeded. Using dummy HTML.");
+
+//       // Dummy HTML generator per page
+//       const generateDummyHTML = (pageNum, pageData, includePhoto) => {
+//         return `
+// <!DOCTYPE html>
+// <html lang="en">
+// <head>
+// <meta charset="UTF-8">
+// <title>Resume - ${pageData.fullName || "Candidate"}</title>
+// <style>
+//   body { font-family: Arial, sans-serif; line-height: 1.5; margin: 20px; }
+//   .profile-photo { width: 150px; border-radius: 10%; }
+//   h1, h2, h3 { margin-bottom: 5px; }
+//   ul { margin: 0; padding-left: 20px; }
+// </style>
+// </head>
+// <body>
+// ${includePhoto ? `<img src="${photoBase64 || ""}" class="profile-photo" />` : ""}
+// ${pageNum === 1 ? `
+// <h1>${pageData.fullName || "Full Name"}</h1>
+// <h2>${pageData.jobTitle || "Job Title"}</h2>
+// <p>Email: ${pageData.email || "email@example.com"}</p>
+// <p>Phone: ${pageData.phoneNumber || "000-000-0000"}</p>
+// <p>Address: ${pageData.address || "Address"}</p>
+// <h3>Summary</h3>
+// <p>${pageData.summary || "Professional summary goes here."}</p>
+// <h3>Skills</h3>
+// <ul>
+// ${(pageData.skill || "Skill1, Skill2, Skill3").split(",").map(s => `<li>${s.trim()}</li>`).join("")}
+// </ul>
+// ` : ""}
+// ${pageNum === 2 ? `
+// <h3>Experience</h3>
+// <p>${pageData.experience || "Experience details go here."}</p>
+// <h3>Projects</h3>
+// <p>${pageData.projects || "Projects go here."}</p>
+// <h3>Certifications</h3>
+// <p>${pageData.certifications || "Certifications go here."}</p>
+// ` : ""}
+// ${pageNum === 3 ? `
+// <h3>Languages</h3>
+// <p>${pageData.languages || "Languages go here."}</p>
+// <h3>Achievements</h3>
+// <p>${pageData.achievements || "Achievements go here."}</p>
+// <h3>Interests</h3>
+// <p>${pageData.interests || "Interests go here."}</p>
+// ` : ""}
+// </body>
+// </html>`;
+//       };
+
+//       htmlPages.push(generateDummyHTML(1, pageOne, true));
+//       if (pagecount >= 2) htmlPages.push(generateDummyHTML(2, pageTwo, false));
+//       if (pagecount === 3) htmlPages.push(generateDummyHTML(3, pageThree, false));
+//     }
+
+//     // Send pages array to frontend
+//     res.json({
+//       success: true,
+//       htmlPages,
+//     });
+
+//   } catch (err) {
+//     console.error("submitResume error:", err);
+//     res.status(500).json({ error: "Failed to generate resume" });
+//   }
+// };
