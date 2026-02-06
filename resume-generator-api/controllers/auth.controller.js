@@ -1514,13 +1514,7 @@ exports.submitResume = async (req, res) => {
 
     pagecount = Number(pagecount || 1);
 
-    const pagesData = [
-      pageOne || {},
-      pageTwo || {},
-      pageThree || {}
-    ];
-
-    // ===== photo join =====
+    // 🟢 Join Base64 photo
     let photoBase64 = "";
     if (Array.isArray(photoChunks)) {
       photoBase64 = photoChunks.join("");
@@ -1529,118 +1523,253 @@ exports.submitResume = async (req, res) => {
     const fetch = (...args) =>
       import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
-    let finalHTML = "";
+    // 🟢 PROFESSIONAL PROMPT BUILDER (page wise)
+    const buildPrompt = (pageNum, pageData) => `
+Create ONE single-page ATS-friendly professional resume in pure HTML.
 
-    console.log("Page Count:", pagecount);
+STRICT RULES:
+- Output must contain ONLY ONE <html> document
+- Use ONLY the given data
+- Do NOT repeat other pages data
+- No gradient or background color for name
+- Clean typography, professional spacing
+- Profile photo must be square or rectangle (NOT round)
 
-    // ===== LOOP PER PAGE =====
-    for (let i = 0; i < pagecount; i++) {
-      const prompt = `
-You are generating ONLY PAGE ${i + 1} of a resume.
-
-STRICT RULES (VERY IMPORTANT):
-- Generate ONE and ONLY ONE <html> document
-- Use ONLY the data given for PAGE ${i + 1}
-- DO NOT include data from other pages
-- DO NOT repeat name/summary if not in data
-- DO NOT invent missing information
-- NO markdown, NO \`\`\`
-
-PAGE ${i + 1} DATA:
-${JSON.stringify(pagesData[i], null, 2)}
-
-${i === 0 && photoBase64 ? `
 PROFILE PHOTO:
 <img src="${photoBase64}" class="profile-photo" />
-` : ""}
+
+PAGE ${pageNum} DATA:
+${JSON.stringify(pageData, null, 2)}
 `;
+
+    // 🟢 Dummy HTML (safe fallback)
+    const dummyHTML = (pageNum, data, showPhoto) => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Resume</title>
+
+<style>
+/* ===== RESET ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ===== BODY ===== */
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #222;
+  margin: 40px;
+  background: #fff;
+}
+
+/* ===== HEADER ===== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 25px;
+}
+
+.name-title h1 {
+  font-size: 28px;
+  font-weight: bold;
+  background: none !important;
+  color: #000;
+}
+
+.name-title h2 {
+  font-size: 16px;
+  font-weight: normal;
+  color: #555;
+  margin-top: 4px;
+}
+
+/* ===== PHOTO ===== */
+.profile-photo {
+  width: 120px;
+  height: auto;
+  border: 1px solid #ccc;
+}
+
+/* ===== CONTACT ===== */
+.contact {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #333;
+}
+
+.contact p {
+  margin-bottom: 4px;
+}
+
+/* ===== SECTION ===== */
+.section {
+  margin-top: 22px;
+}
+
+.section h3 {
+  font-size: 15px;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-bottom: 1px solid #000;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.section p {
+  margin-bottom: 6px;
+}
+
+.section ul {
+  padding-left: 18px;
+}
+
+.section li {
+  margin-bottom: 4px;
+}
+
+/* ===== PRINT FIX ===== */
+@media print {
+  body {
+    margin: 30px;
+  }
+  h1, h2, h3 {
+    background: none !important;
+  }
+  * {
+    -webkit-print-color-adjust: economy !important;
+    print-color-adjust: economy !important;
+  }
+}
+</style>
+</head>
+
+<body>
+
+${pageNum === 1 ? `
+<div class="header">
+  <div class="name-title">
+    <h1>${data.fullName || "Your Name"}</h1>
+    <h2>${data.jobTitle || "Job Title"}</h2>
+
+    <div class="contact">
+      <p>Email: ${data.email || "-"}</p>
+      <p>Phone: ${data.phoneNumber || "-"}</p>
+      <p>Address: ${data.address || "-"}</p>
+    </div>
+  </div>
+
+  ${showPhoto && data ? `<img src="${photoBase64}" class="profile-photo" />` : ""}
+</div>
+
+<div class="section">
+  <h3>Professional Summary</h3>
+  <p>${data.summary || "Professional summary not provided."}</p>
+</div>
+
+<div class="section">
+  <h3>Skills</h3>
+  <ul>
+    ${(data.skill || "")
+      .split(",")
+      .map(s => `<li>${s.trim()}</li>`)
+      .join("")}
+  </ul>
+</div>
+` : ""}
+
+${pageNum === 2 ? `
+<div class="section">
+  <h3>Experience</h3>
+  <p>${data.experience || "Experience details not provided."}</p>
+</div>
+
+<div class="section">
+  <h3>Projects</h3>
+  <p>${data.projects || "Project details not provided."}</p>
+</div>
+
+<div class="section">
+  <h3>Certifications</h3>
+  <p>${data.certifications || "No certifications available."}</p>
+</div>
+` : ""}
+
+${pageNum === 3 ? `
+<div class="section">
+  <h3>Languages</h3>
+  <p>${data.languages || "-"}</p>
+</div>
+
+<div class="section">
+  <h3>Achievements</h3>
+  <p>${data.achievements || "-"}</p>
+</div>
+
+<div class="section">
+  <h3>Interests</h3>
+  <p>${data.interests || "-"}</p>
+</div>
+` : ""}
+
+</body>
+</html>
+`;
+
+
+    let finalHTML = "";
+
+    // 🔵 LOOP PAGE BY PAGE
+    for (let i = 1; i <= pagecount; i++) {
+      const pageData =
+        i === 1 ? pageOne :
+        i === 2 ? pageTwo :
+        pageThree;
 
       try {
         const response = await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              model: "gemini-2.5-flash-lite",
-              messages: [{ role: "user", content: prompt }],
-              temperature: 0.4,
-            }),
+              contents: [
+                { role: "user", parts: [{ text: buildPrompt(i, pageData) }] }
+              ]
+            })
           }
         );
 
         if (!response.ok) throw new Error("Gemini failed");
 
         const data = await response.json();
-        let html = data?.choices?.[0]?.message?.content || "";
+        const html = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-        // ===== CLEANUP (IMPORTANT) =====
-        html = html
-          .replace(/```html/gi, "")
-          .replace(/```/g, "")
-          .trim();
+        if (!html.includes("<html")) throw new Error("Invalid HTML");
 
-        if (!html.startsWith("<html")) {
-          throw new Error("Invalid HTML");
-        }
-
-        console.log(`✅ Gemini page ${i + 1} OK`);
+        console.log(`✅ Gemini page ${i} OK`);
         finalHTML += html;
 
       } catch (err) {
-        console.warn(`⚠️ Gemini failed page ${i + 1}, using dummy`);
-
-        // ===== DUMMY (PAGE SPECIFIC) =====
-        finalHTML += `
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Resume Page ${i + 1}</title>
-<style>
-body { font-family: Arial; margin:40px; color:#222 }
-.profile-photo { width:140px; float:right; border-radius:8px }
-h1{font-size:26px} h2{color:#555}
-</style>
-</head>
-<body>
-
-${i === 0 && photoBase64 ? `<img src="${photoBase64}" class="profile-photo"/>` : ""}
-
-${i === 0 ? `
-<h1>${pagesData[i].fullName || ""}</h1>
-<h2>${pagesData[i].jobTitle || ""}</h2>
-<p>${pagesData[i].summary || ""}</p>
-` : ""}
-
-${i === 1 ? `
-<h3>Experience</h3>
-<p>${pagesData[i].experience || ""}</p>
-<h3>Projects</h3>
-<p>${pagesData[i].projects || ""}</p>
-` : ""}
-
-${i === 2 ? `
-<h3>Achievements</h3>
-<p>${pagesData[i].achievements || ""}</p>
-` : ""}
-
-</body>
-</html>`;
+        console.warn(`⚠️ Gemini failed page ${i}, using dummy`);
+        finalHTML += dummyHTML(i, pageData, i === 1);
       }
     }
 
-    // ===== FINAL RESPONSE =====
+    // 🟢 FINAL RESPONSE
     res.json({
       success: true,
-      html: finalHTML // "</html></html>" EXACT count
+      html: finalHTML
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("submitResume error:", err);
     res.status(500).json({ error: "Resume generation failed" });
   }
 };
