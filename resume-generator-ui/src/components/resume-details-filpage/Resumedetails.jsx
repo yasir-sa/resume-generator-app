@@ -24,11 +24,18 @@ const [previewPages, setPreviewPages] = useState([]);
 
 
 
-  const [page2, setPage2] = useState({
-    experience: "",
-    projects: "",
-    certifications: "",
-  });
+ const [page2, setPage2] = useState({
+  experience:
+    "Completed multiple academic and personal projects during my college studies, gaining hands-on experience in front-end and basic back-end development. Worked with HTML, CSS, JavaScript, and React to build responsive and user-friendly web applications. Familiar with version control using Git and collaborative project workflows.",
+
+  projects:
+    "E-commerce Web Application – Developed a responsive shopping platform with product listing, cart functionality, and user interface optimization.\n" +
+    "To-Do List Application – Built a task management application with CRUD operations and clean UI for improved productivity.\n" +
+    "AI Career Analyzer – Created a basic AI-driven tool to analyze user skills and suggest suitable career paths using structured logic.",
+
+  certifications:
+    "Currently pursuing skill development through self-learning and academic coursework. Actively enhancing knowledge in full-stack web development and modern JavaScript frameworks."
+});
 
 
 
