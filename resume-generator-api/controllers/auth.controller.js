@@ -1511,26 +1511,27 @@ exports.setPassword = async (req, res) => {
 exports.submitResume = async (req, res) => {
   try {
     let { pagecount, pageOne, pageTwo, pageThree, photoChunks } = req.body;
-
     pagecount = Number(pagecount || 1);
+    pageTwo = pageTwo || {};
+    pageThree = pageThree || {};
 
-    // 🟢 Join Base64 photo
+    // 🟢 Join Base64 photo if exists
     let photoBase64 = "";
     if (Array.isArray(photoChunks)) {
       photoBase64 = photoChunks.join("");
+      pageOne.photoBase64 = photoBase64; // assign for dummy HTML
     }
 
     const fetch = (...args) =>
       import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
-    // 🟢 PROFESSIONAL PROMPT BUILDER (page wise)
+    // 🟢 PROFESSIONAL PROMPT BUILDER
     const buildPrompt = (pageNum, pageData) => `
 Create ONE single-page ATS-friendly professional resume in pure HTML.
 
 STRICT RULES:
 - Output must contain ONLY ONE <html> document
-- Use ONLY the given data
-- Do NOT repeat other pages data
+- Use ONLY the given data for this page
 - No gradient or background color for name
 - Clean typography, professional spacing
 - Profile photo must be square or rectangle (NOT round)
@@ -1542,195 +1543,98 @@ PAGE ${pageNum} DATA:
 ${JSON.stringify(pageData, null, 2)}
 `;
 
-    // 🟢 Dummy HTML (safe fallback)
-    const dummyHTML = (pageNum, data, showPhoto) => `
+    // 🟢 Dummy HTML fallback
+    const dummyHTML = (pageNum, data, showPhoto, totalPages) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <title>Resume</title>
-
 <style>
-/* ===== RESET ===== */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* ===== BODY ===== */
-body {
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #222;
-  margin: 40px;
-  background: #fff;
-}
-
-/* ===== HEADER ===== */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 25px;
-}
-
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; line-height: 1.7; color: #333; background: #f9f9f9; padding: 40px; }
+.container { max-width: 800px; margin: auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+.header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
 .name-title h1 {
-  font-size: 28px;
-  font-weight: bold;
-  background: none !important;
-  color: #000;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a2e; /* text color */
+  background: none !important; /* force remove any background */
+  -webkit-background-clip: unset !important; /* remove text clip */
+  -webkit-text-fill-color: unset !important; /* remove fill */
 }
 
-.name-title h2 {
-  font-size: 16px;
-  font-weight: normal;
-  color: #555;
-  margin-top: 4px;
-}
-
-/* ===== PHOTO ===== */
-.profile-photo {
-  width: 120px;
-  height: auto;
-  border: 1px solid #ccc;
-}
-
-/* ===== CONTACT ===== */
-.contact {
-  margin-top: 10px;
-  font-size: 13px;
-  color: #333;
-}
-
-.contact p {
-  margin-bottom: 4px;
-}
-
-/* ===== SECTION ===== */
-.section {
-  margin-top: 22px;
-}
-
-.section h3 {
-  font-size: 15px;
-  font-weight: bold;
-  text-transform: uppercase;
-  border-bottom: 1px solid #000;
-  padding-bottom: 4px;
-  margin-bottom: 8px;
-}
-
-.section p {
-  margin-bottom: 6px;
-}
-
-.section ul {
-  padding-left: 18px;
-}
-
-.section li {
-  margin-bottom: 4px;
-}
-
-/* ===== PRINT FIX ===== */
-@media print {
-  body {
-    margin: 30px;
-  }
-  h1, h2, h3 {
-    background: none !important;
-  }
-  * {
-    -webkit-print-color-adjust: economy !important;
-    print-color-adjust: economy !important;
-  }
-}
+.name-title h2 { font-size: 18px; font-weight: 500; color: #162447; margin-top: 4px; }
+.profile-photo { width: 130px; height: auto; border-radius: 10px; border: 2px solid #162447; }
+.contact { margin-top: 12px; font-size: 13px; color: #555; }
+.contact p { margin-bottom: 4px; }
+.contact span { color: #162447; font-weight: 600; }
+.section { margin-top: 28px; }
+.section h3 { font-size: 16px; font-weight: 700; color: #162447; border-bottom: 2px solid #1f4068; padding-bottom: 6px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+.section p, .section ul { margin-bottom: 8px; }
+.skills-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.skill-pill { background: #1f4068; color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; }
+.signature { text-align: right; margin-top: 50px; font-style: italic; font-weight: bold; font-size: 14px; color: #1a1a2e; }
+@media print { body { padding: 10px; } h1,h2,h3 { background: none !important; } * { -webkit-print-color-adjust: economy !important; print-color-adjust: economy !important; } }
 </style>
 </head>
-
 <body>
+<div class="container">
 
 ${pageNum === 1 ? `
 <div class="header">
   <div class="name-title">
     <h1>${data.fullName || "Your Name"}</h1>
     <h2>${data.jobTitle || "Job Title"}</h2>
-
     <div class="contact">
-      <p>Email: ${data.email || "-"}</p>
-      <p>Phone: ${data.phoneNumber || "-"}</p>
-      <p>Address: ${data.address || "-"}</p>
+      <p><span>Email:</span> ${data.email || "-"}</p>
+      <p><span>Phone:</span> ${data.phoneNumber || "-"}</p>
+      <p><span>Address:</span> ${data.address || "-"}</p>
+      <p><span>LinkedIn:</span> ${data.linkedIn || "-"}</p>
+      <p><span>GitHub:</span> ${data.github || "-"}</p>
     </div>
   </div>
-
-  ${showPhoto && data ? `<img src="${photoBase64}" class="profile-photo" />` : ""}
+  ${showPhoto && data.photoBase64 ? `<img src="${data.photoBase64}" class="profile-photo" />` : ""}
 </div>
-
-<div class="section">
-  <h3>Professional Summary</h3>
-  <p>${data.summary || "Professional summary not provided."}</p>
-</div>
-
-<div class="section">
-  <h3>Skills</h3>
-  <ul>
-    ${(data.skill || "")
-      .split(",")
-      .map(s => `<li>${s.trim()}</li>`)
-      .join("")}
-  </ul>
-</div>
+<div class="section"><h3>Professional Summary</h3><p>${data.summary || "-"}</p></div>
+<div class="section"><h3>Skills</h3><div class="skills-container">${(data.skill || "").split(",").map(s => `<div class="skill-pill">${s.trim()}</div>`).join("")}</div></div>
+<div class="section"><h3>Education</h3><p>${data.education || "-"}</p></div>
+<div class="section"><h3>Languages</h3><p>${data.languages || "-"}</p></div>
+<div class="section"><h3>Certifications</h3><p>${data.certifications || "-"}</p></div>
 ` : ""}
 
 ${pageNum === 2 ? `
-<div class="section">
-  <h3>Experience</h3>
-  <p>${data.experience || "Experience details not provided."}</p>
-</div>
-
-<div class="section">
-  <h3>Projects</h3>
-  <p>${data.projects || "Project details not provided."}</p>
-</div>
-
-<div class="section">
-  <h3>Certifications</h3>
-  <p>${data.certifications || "No certifications available."}</p>
-</div>
+<div class="section"><h3>Experience</h3><p>${data.experience || "-"}</p></div>
+<div class="section"><h3>Projects</h3><p>${data.projects || "-"}</p></div>
+<div class="section"><h3>Certifications</h3><p>${data.certifications || "-"}</p></div>
+<div class="section"><h3>Achievements</h3><p>${data.achievements || "-"}</p></div>
+<div class="section"><h3>Volunteering</h3><p>${data.volunteering || "-"}</p></div>
+<div class="section"><h3>Awards</h3><p>${data.awards || "-"}</p></div>
+<div class="section"><h3>Notable Projects</h3><p>${data.notableProjects || "-"}</p></div>
+<div class="section"><h3>Publications</h3><p>${data.publications || "-"}</p></div>
 ` : ""}
 
 ${pageNum === 3 ? `
-<div class="section">
-  <h3>Languages</h3>
-  <p>${data.languages || "-"}</p>
-</div>
+<div class="section"><h3>Languages</h3><p>${data.languages || "-"}</p></div>
+<div class="section"><h3>Achievements</h3><p>${data.achievements || "-"}</p></div>
+<div class="section"><h3>Interests</h3><p>${data.interests || "-"}</p></div>
+<div class="section"><h3>Soft Skills</h3><p>${data.softSkills || "-"}</p></div>
+<div class="section"><h3>Hobbies</h3><p>${data.hobbies || "-"}</p></div>
 
-<div class="section">
-  <h3>Achievements</h3>
-  <p>${data.achievements || "-"}</p>
-</div>
-
-<div class="section">
-  <h3>Interests</h3>
-  <p>${data.interests || "-"}</p>
-</div>
+<div class="section"><h3>Community</h3><p>${data.community || "-"}</p></div>
 ` : ""}
 
+${pageNum === totalPages ? `<div class="signature">Submitted by: ${pageOne.fullName || "Your Name"}</div>` : ""}
+
+</div>
 </body>
 </html>
 `;
 
-
+    // 🔵 Loop page by page
     let finalHTML = "";
-
-    // 🔵 LOOP PAGE BY PAGE
     for (let i = 1; i <= pagecount; i++) {
-      const pageData =
-        i === 1 ? pageOne :
-        i === 2 ? pageTwo :
-        pageThree;
+      const pageData = i === 1 ? pageOne : i === 2 ? pageTwo : pageThree;
 
       try {
         const response = await fetch(
@@ -1750,7 +1654,6 @@ ${pageNum === 3 ? `
 
         const data = await response.json();
         const html = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
         if (!html.includes("<html")) throw new Error("Invalid HTML");
 
         console.log(`✅ Gemini page ${i} OK`);
@@ -1758,21 +1661,19 @@ ${pageNum === 3 ? `
 
       } catch (err) {
         console.warn(`⚠️ Gemini failed page ${i}, using dummy`);
-        finalHTML += dummyHTML(i, pageData, i === 1);
+        finalHTML += dummyHTML(i, pageData, i === 1, pagecount); // <-- pass totalPages here
       }
     }
 
-    // 🟢 FINAL RESPONSE
-    res.json({
-      success: true,
-      html: finalHTML
-    });
+    // 🟢 Return final HTML
+    res.json({ success: true, html: finalHTML });
 
   } catch (err) {
     console.error("submitResume error:", err);
     res.status(500).json({ error: "Resume generation failed" });
   }
 };
+
 
 
 

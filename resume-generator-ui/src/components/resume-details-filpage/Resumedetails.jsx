@@ -18,13 +18,18 @@ const Resumedetails = () => {
   photo:null,
   photoBase64: null, 
   skill:"react,node,express,python,postgrs,githup",
+   
+   linkedIn: "https://www.linkedin.com/in/yasir-sa",         // Example LinkedIn
+  github: "https://github.com/yasirsa05",                  // Example GitHub
+  education: "B.Tech in Computer Science, XYZ University, 2024",  // Example education
+  languages: "English, Tamil, Hindi",                      // Example languages
+  certifications: "ReactJS, NodeJS, FullStack Web Development Certificate", // Example certifications
 });
 const [previewPages, setPreviewPages] = useState([]);
 
 
 
-
- const [page2, setPage2] = useState({
+const [page2, setPage2] = useState({
   experience:
     "Completed multiple academic and personal projects during my college studies, gaining hands-on experience in front-end and basic back-end development. Worked with HTML, CSS, JavaScript, and React to build responsive and user-friendly web applications. Familiar with version control using Git and collaborative project workflows.",
 
@@ -34,16 +39,52 @@ const [previewPages, setPreviewPages] = useState([]);
     "AI Career Analyzer – Created a basic AI-driven tool to analyze user skills and suggest suitable career paths using structured logic.",
 
   certifications:
-    "Currently pursuing skill development through self-learning and academic coursework. Actively enhancing knowledge in full-stack web development and modern JavaScript frameworks."
+    "Currently pursuing skill development through self-learning and academic coursework. Actively enhancing knowledge in full-stack web development and modern JavaScript frameworks.",
+
+  // ✅ Extra fields for Page 2
+  achievements:
+    "Recipient of 'Best Student Project Award' for E-commerce Web Application. Recognized for teamwork and contribution in collaborative coding projects.",
+
+  volunteering:
+    "Volunteered as a mentor for college coding club workshops, teaching HTML, CSS, and basic JavaScript to beginners.",
+
+  awards:
+    "Hackathon Winner – College-level hackathon on AI-based tools (2024).",
+
+  notableProjects:
+    "Developed a real-time chat application using Node.js and Socket.io for college community engagement.",
+
+  publications:
+    "Published a technical article on 'Introduction to React Hooks' in the college tech magazine."
 });
 
 
 
-    const [page3, setPage3] = useState({
-    languages: "",
-    achievements: "",
-    interests: "",
-  });
+const [page3, setPage3] = useState({
+  languages:
+    "English – Professional fluency\n" +
+    "Tamil – Native\n" +
+    "Hindi – Conversational",
+
+  achievements:
+    "Completed 'Full Stack Web Development Bootcamp' with distinction.\n" +
+    "Winner of inter-college coding competition for innovative project ideas.\n" +
+    "Maintains a GitHub portfolio with 10+ projects demonstrating web development skills.",
+
+  interests:
+    "Web development, Open-source contribution, AI & Machine Learning, Blogging about tech, Traveling and photography.",
+
+  // ✅ Extra fields for Page 3
+  softSkills:
+    "Problem-solving, Critical thinking, Team collaboration, Communication, Time management.",
+
+  hobbies:
+    "Reading tech blogs, Playing chess, Exploring new web frameworks.",
+
+
+  community:
+    "Active member of local coding community, organizing workshops and hackathons."
+});
 
 
 const getPage1Error = () => {
@@ -54,6 +95,12 @@ const getPage1Error = () => {
   if (!page1.address) return "Address";
   if (!page1.skill) return "Skill";
   if (!page1.photo) return "Profile Photo";
+  
+   if (!page1.linkedIn) return "LinkedIn Profile";
+  if (!page1.github) return "GitHub / Portfolio";
+  if (!page1.education) return "Education";
+  if (!page1.languages) return "Languages";
+  if (!page1.certifications) return "Certifications";
   return null;
 };
 
@@ -368,6 +415,59 @@ const downloadResumePDF = async () => {
     }
   />
 
+
+  {/* //extra details  page 1*/}
+  <input
+  type="url"
+  placeholder="LinkedIn Profile URL"
+  className="input-linkedin"
+  value={page1.linkedIn}
+  onChange={(e) =>
+    setPage1({ ...page1, linkedIn: e.target.value })
+  }
+/>
+
+<input
+  type="url"
+  placeholder="GitHub / Portfolio URL"
+  className="input-github"
+  value={page1.github}
+  onChange={(e) =>
+    setPage1({ ...page1, github: e.target.value })
+  }
+/>
+
+<input
+  type="text"
+  placeholder="Education"
+  className="input-education"
+  value={page1.education}
+  onChange={(e) =>
+    setPage1({ ...page1, education: e.target.value })
+  }
+/>
+
+<input
+  type="text"
+  placeholder="Languages (comma separated)"
+  className="input-languages"
+  value={page1.languages}
+  onChange={(e) =>
+    setPage1({ ...page1, languages: e.target.value })
+  }
+/>
+
+<input
+  type="text"
+  placeholder="Certifications (comma separated)"
+  className="input-certifications"
+  value={page1.certifications}
+  onChange={(e) =>
+    setPage1({ ...page1, certifications: e.target.value })
+  }
+/>
+ {/* //extra details page 1 end  */}
+
 </div>
 
 
@@ -414,10 +514,57 @@ const downloadResumePDF = async () => {
       setPage2({ ...page2, certifications: e.target.value })
     }
   />
+
+{/* extradata page 2 start */}
+  
+  <textarea
+    className="achievements-input"
+    placeholder="Achievements"
+    value={page2.achievements}
+    onChange={(e) =>
+      setPage2({ ...page2, achievements: e.target.value })
+    }
+  />
+
+  <textarea
+    className="volunteering-input"
+    placeholder="Volunteering"
+    value={page2.volunteering}
+    onChange={(e) =>
+      setPage2({ ...page2, volunteering: e.target.value })
+    }
+  />
+
+  <textarea
+    className="awards-input"
+    placeholder="Awards"
+    value={page2.awards}
+    onChange={(e) =>
+      setPage2({ ...page2, awards: e.target.value })
+    }
+  />
+
+  <textarea
+    className="notableProjects-input"
+    placeholder="Notable Projects"
+    value={page2.notableProjects}
+    onChange={(e) =>
+      setPage2({ ...page2, notableProjects: e.target.value })
+    }
+  />
+
+  <textarea
+    className="publications-input"
+    placeholder="Publications"
+    value={page2.publications}
+    onChange={(e) =>
+      setPage2({ ...page2, publications: e.target.value })
+    }
+  />
 </div>
 
 
-
+// extra data page 2 end 
 
 )}
 
@@ -457,6 +604,41 @@ const downloadResumePDF = async () => {
       setPage3({ ...page3, interests: e.target.value })
     }
   />
+
+
+  {/* extra dta for page 3 */}
+   <textarea
+    className="softSkills-input"
+    placeholder="Soft Skills"
+    value={page3.softSkills}
+    onChange={(e) =>
+      setPage3({ ...page3, softSkills: e.target.value })
+    }
+  />
+
+  <textarea
+    className="hobbies-input"
+    placeholder="Hobbies"
+    value={page3.hobbies}
+    onChange={(e) =>
+      setPage3({ ...page3, hobbies: e.target.value })
+    }
+  />
+
+
+  <textarea
+    className="community-input"
+    placeholder="Community"
+    value={page3.community}
+    onChange={(e) =>
+      setPage3({ ...page3, community: e.target.value })
+    }
+  />
+
+  {/* extra data for page 3 end  */}
+
+
+
 </div>
 
 
