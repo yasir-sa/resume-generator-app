@@ -1526,22 +1526,40 @@ exports.submitResume = async (req, res) => {
       import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
     // 🟢 PROFESSIONAL PROMPT BUILDER
-    const buildPrompt = (pageNum, pageData) => `
+//     const buildPrompt = (pageNum, pageData) => `
+// Create ONE single-page ATS-friendly professional resume in pure HTML.
+
+// STRICT RULES:
+// - Output must contain ONLY ONE <html> document
+// - Use ONLY the given data for this page
+// - No gradient or background color for name
+// - Clean typography, professional spacing
+// - Profile photo must be square or rectangle (NOT round)
+
+// PROFILE PHOTO:
+// <img src="${photoBase64}" class="profile-photo" />
+
+// PAGE ${pageNum} DATA:
+// ${JSON.stringify(pageData, null, 2)}
+// `;
+const buildPrompt = (pageNum, pageData) => `
 Create ONE single-page ATS-friendly professional resume in pure HTML.
 
 STRICT RULES:
 - Output must contain ONLY ONE <html> document
 - Use ONLY the given data for this page
-- No gradient or background color for name
 - Clean typography, professional spacing
 - Profile photo must be square or rectangle (NOT round)
 
-PROFILE PHOTO:
+IMPORTANT:
+Insert exactly this HTML tag for the profile photo:
 <img src="${photoBase64}" class="profile-photo" />
+Do NOT remove, modify, or replace this tag. Keep it exactly as is.
 
 PAGE ${pageNum} DATA:
 ${JSON.stringify(pageData, null, 2)}
 `;
+
 
     // 🟢 Dummy HTML fallback
     const dummyHTML = (pageNum, data, showPhoto, totalPages) => `
