@@ -3,7 +3,7 @@ import "./chatbox.css"
 import { FaBars, FaPaperPlane, FaPlus, FaHome } from "react-icons/fa";
 import API from "../../api.js"
 import { Link } from "react-router-dom";
-
+//this is for pc worker
 const Chatbox = () => {
 
   const [userask, setuserask] = useState("");
