@@ -1,13 +1,21 @@
-import React, { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import "./resumedetails.css";
 import API from "../../api"
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
+
 const Resumedetails = () => {
  
   const [pagecount,setpagecount]=useState(1);
   const [PreviewPhoto,setPreviewPhoto]=useState(null)
+   const [titleOpen, setTitleOpen] = useState(false); // to show/hide title input div
+  const [titleName, setTitleName] = useState("");    // input value
+  const [htmlCode, setHtmlCode] = useState("");      // your resume HTML content
+  const titleRef = useRef();  
+  const [previewPages, setPreviewPages] = useState([]);
+
+
   const [page1, setPage1] = useState({
   fullName: "yasir",
   jobTitle: "mernstack",
@@ -25,8 +33,6 @@ const Resumedetails = () => {
   languages: "English, Tamil, Hindi",                      // Example languages
   certifications: "ReactJS, NodeJS, FullStack Web Development Certificate", // Example certifications
 });
-const [previewPages, setPreviewPages] = useState([]);
-
 
 
 const [page2, setPage2] = useState({
@@ -182,10 +188,68 @@ const splitBase64 = (base64, chunkSize = 50000) => {
 
 
 
-const createresume =async (e) => {
+// const createresume =async (e) => {
+//   e.preventDefault();
+
+//   // PAGE 1 – always mandatory
+//   const page1Error = getPage1Error();
+//   if (page1Error) {
+//     alert(`நீ ${pagecount} page select பண்ணியிருக்க.
+// முதல் பக்கத்தில் "${page1Error}" நிரப்பவில்லை`);
+//     return;
+//   }
+
+//   // PAGE 2 – only if pagecount >= 2
+//   if (pagecount >= 2) {
+//     const page2Error = getPage2Error();
+//     if (page2Error) {
+//       alert(`நீ ${pagecount} page select பண்ணியிருக்க.
+// இரண்டாம் பக்கத்தில் "${page2Error}" நிரப்பவில்லை`);
+//       return;
+//     }
+//   }
+
+//   // PAGE 3 – only if pagecount === 3
+//   if (pagecount >=3) {
+//     const page3Error = getPage3Error();
+//     if (page3Error) {
+//       alert(`நீ  ${pagecount} page select பண்ணியிருக்க.
+// மூன்றாம் பக்கத்தில் "${page3Error}" நிரப்பவில்லை`);
+//       return;
+//     }
+//   }
+
+//   // ✅ ALL GOOD
+ 
+// try {
+//   const photoChunks = page1.photoBase64 ? splitBase64(page1.photoBase64) : [];
+
+// const response = await API.post("/resume-details", {
+//   pagecount,
+//   pageOne: page1,
+//   pageTwo: page2,
+//   pageThree: page3,
+//   photoChunks // அனுப்பிறோம் small chunks
+// });
+//   const rawHtml = response.data.html;
+//   const pagesArray = splitHTMLPages(rawHtml);
+//   setPreviewPages(pagesArray);
+
+//   alert("All details filled correctly ✅ Resume can be created");
+// } catch (error) {
+//   console.error(error);
+//   alert("Something went wrong in resume creation");
+// }
+
+
+
+
+
+// };
+const createresume = async (e) => {
   e.preventDefault();
 
-  // PAGE 1 – always mandatory
+  // ✅ PAGE 1 validation
   const page1Error = getPage1Error();
   if (page1Error) {
     alert(`நீ ${pagecount} page select பண்ணியிருக்க.
@@ -193,7 +257,7 @@ const createresume =async (e) => {
     return;
   }
 
-  // PAGE 2 – only if pagecount >= 2
+  // ✅ PAGE 2 validation
   if (pagecount >= 2) {
     const page2Error = getPage2Error();
     if (page2Error) {
@@ -203,46 +267,96 @@ const createresume =async (e) => {
     }
   }
 
-  // PAGE 3 – only if pagecount === 3
-  if (pagecount >=3) {
+  // ✅ PAGE 3 validation
+  if (pagecount >= 3) {
     const page3Error = getPage3Error();
     if (page3Error) {
-      alert(`நீ  ${pagecount} page select பண்ணியிருக்க.
+      alert(`நீ ${pagecount} page select பண்ணியிருக்க.
 மூன்றாம் பக்கத்தில் "${page3Error}" நிரப்பவில்லை`);
       return;
     }
   }
 
-  // ✅ ALL GOOD
- 
-try {
-  const photoChunks = page1.photoBase64 ? splitBase64(page1.photoBase64) : [];
+  try {
+    let photoUrl = "";
 
-const response = await API.post("/resume-details", {
-  pagecount,
-  pageOne: page1,
-  pageTwo: page2,
-  pageThree: page3,
-  photoChunks // அனுப்பிறோம் small chunks
-});
-  const rawHtml = response.data.html;
-  const pagesArray = splitHTMLPages(rawHtml);
-  setPreviewPages(pagesArray);
+    // 🔥 STEP 1: Upload photo using page1.photo
+    if (page1.photo) {
+      const formData = new FormData();
+      formData.append("photo", page1.photo);
 
-  alert("All details filled correctly ✅ Resume can be created");
-} catch (error) {
-  console.error(error);
-  alert("Something went wrong in resume creation");
-}
+      const uploadRes = await API.post("/resume-details", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
+      photoUrl = uploadRes.data.url; // URL from backend
+      console.log("✅ Photo uploaded successfully:", photoUrl);
+    }
 
+    // 🔥 STEP 2: Send resume details with photoUrl
+    const response = await API.post("/resume-details", {
+      pagecount,
+      pageOne: { ...page1, photoUrl },
+      pageTwo: page2,
+      pageThree: page3,
+    });
 
+    let rawHtml = response.data.html;
+    console.log("✅ Resume HTML received from backend");
 
+    // 🔥🔥🔥 STEP 3: AGGRESSIVE PHOTO REPLACEMENT IN UI (BACKUP SAFETY)
+    if (photoUrl) {
+      console.log("🔥 UI: Doing additional photo replacement as backup");
+      
+      // Replace Strategy 1: PHOTO_PLACEHOLDER_URL
+      rawHtml = rawHtml.replace(/PHOTO_PLACEHOLDER_URL/g, photoUrl);
+      
+      // Replace Strategy 2: Empty src=""
+      rawHtml = rawHtml.replace(
+        /<img\s+src=["']["']\s+class=["']profile-photo["']\s*\/?>/gi,
+        `<img src="${photoUrl}" class="profile-photo" />`
+      );
+      
+      // Replace Strategy 3: Any img with class="profile-photo"
+      rawHtml = rawHtml.replace(
+        /<img[^>]*class=["']profile-photo["'][^>]*>/gi,
+        `<img src="${photoUrl}" class="profile-photo" />`
+      );
+      
+      // Replace Strategy 4: src comes before class
+      rawHtml = rawHtml.replace(
+        /<img\s+src=["'][^"']*["']\s+class=["']profile-photo["']\s*\/?>/gi,
+        `<img src="${photoUrl}" class="profile-photo" />`
+      );
 
+      console.log("✅ UI: Photo replacement complete");
+    }
+
+    // 🔥 STEP 4: Split pages and set preview
+    const pagesArray = splitHTMLPages(rawHtml);
+    
+    // 🔥 STEP 5: VERIFY photo is in HTML before setting preview
+    if (photoUrl) {
+      const hasPhoto = rawHtml.includes(photoUrl);
+      console.log(`🔍 Photo verification: ${hasPhoto ? "✅ FOUND" : "❌ NOT FOUND"}`);
+      
+      if (!hasPhoto) {
+        console.error("❌ WARNING: Photo URL not found in HTML after replacement!");
+        console.log("Photo URL:", photoUrl);
+        console.log("HTML preview:", rawHtml.substring(0, 500));
+      }
+    }
+    
+    setPreviewPages(pagesArray);
+
+    alert("All details filled correctly ✅ Resume created successfully");
+
+  } catch (error) {
+    console.error("❌ Resume creation error:", error);
+    console.error("Error details:", error.response?.data || error.message);
+    alert("Something went wrong in resume creation");
+  }
 };
-
-
-
 
 // ...
 
@@ -283,6 +397,68 @@ const downloadResumePDF = async () => {
 
 
 
+
+
+const resumeTitleOpen=(e)=>{
+
+  e.preventDefault();
+    if (previewPages.length === 0) {
+    alert("No resume to download! Generate first.");
+    return;
+  }
+       setTitleOpen(true);
+
+}
+
+
+ useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (titleRef.current && !titleRef.current.contains(event.target)) {
+        setTitleOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+
+
+const handleSaveResume = async (e) => {
+  e.preventDefault();
+
+  if (!titleName || titleName.trim() === "") {
+    alert("Please enter a resume title before saving!");
+    return;
+  }
+
+  if (!previewPages || previewPages.length === 0) {
+    alert("No resume generated! Please create the resume first.");
+    return;
+  }
+
+  try {
+  const response = await API.post("/save-resume", {
+  title: titleName.trim(),      // ✅ matches backend
+  htmlPages: previewPages       // ✅ matches backend
+});
+
+    if (response.data.success) {
+      alert("Resume saved successfully ✅");
+      setTitleOpen(false);
+      setTitleName("");
+    } else {
+      alert("Failed to save resume. Please try again.");
+    }
+
+  } catch (error) {
+    console.error("Error saving resume:", error);
+    alert("Something went wrong while saving the resume.");
+  }
+};
 
 
   return (
@@ -647,22 +823,51 @@ const downloadResumePDF = async () => {
 
 
  <div className="preview-page-div">
-  {previewPages.map((pageHTML, index) => (
+   {previewPages.map((pageHTML, index) => (
     <iframe
       key={index}
+      className="preview-page-div"
       srcDoc={pageHTML}
-      title={`Resume Page ${index }`}
-      
+      title={`Resume Page ${index}`}
     />
   ))}
+
+
+ {previewPages.length !== 0 && (
+  <div>
     <button
-    type="button"
-    className="resume-download-btn"
-    onClick={downloadResumePDF}
-    style={{ marginLeft: "10px" }}
-  >
-    Download PDF
-  </button>
+      type="button"
+      className="resume-download-btn"
+      onClick={downloadResumePDF}
+      style={{ marginLeft: "10px" }}
+    >
+      Download PDF
+    </button>
+    <button 
+      className="resume-save-btn"
+      onClick={resumeTitleOpen}
+    >
+      Save Resume
+    </button>
+  </div>
+)}
+
+   
+  {titleOpen && (
+  <div className="overlay">
+    <div className="resume-title-content" ref={titleRef}>
+      <input
+        type="text"
+        placeholder="Enter resume title"
+        value={titleName}
+        onChange={(e) => setTitleName(e.target.value)}
+      />
+      <button onClick={handleSaveResume}>Save</button>
+      <button onClick={() => setTitleOpen(false)}>Cancel</button>
+    </div>
+  </div>
+)}
+
 </div>
 
 
@@ -675,6 +880,7 @@ const downloadResumePDF = async () => {
       </form>
     </div>
 </div>
+
 
 
     

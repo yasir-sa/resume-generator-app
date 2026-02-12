@@ -6,11 +6,15 @@
   box-sizing: border-box;
 }
 
+/* MAIN CONTAINER - THIS SHOULD SCROLL */
 .resume-details-page-full {
   font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   padding: 30px 20px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 .resume-details-page {
@@ -20,18 +24,7 @@
   border-radius: 24px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   padding: 50px;
-  animation: fadeInUp 0.6s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  margin-bottom: 50px;
 }
 
 .heading {
@@ -130,18 +123,6 @@
   margin-bottom: 30px;
   border: 2px solid #e2e8f0;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
-  animation: slideInLeft 0.5s ease-out;
-}
-
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
 }
 
 /* Photo Upload Section */
@@ -238,9 +219,10 @@
 }
 
 /* All Input Fields - Base Styling */
-input[type="text"],
-input[type="email"],
-input[type="tel"] {
+.resume-details-page input[type="text"],
+.resume-details-page input[type="email"],
+.resume-details-page input[type="tel"],
+.resume-details-page input[type="url"] {
   width: 100%;
   padding: 16px 20px;
   font-size: 16px;
@@ -253,23 +235,25 @@ input[type="tel"] {
   font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
-input[type="text"]:hover,
-input[type="email"]:hover,
-input[type="tel"]:hover {
+.resume-details-page input[type="text"]:hover,
+.resume-details-page input[type="email"]:hover,
+.resume-details-page input[type="tel"]:hover,
+.resume-details-page input[type="url"]:hover {
   border-color: #cbd5e0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-input[type="text"]:focus,
-input[type="email"]:focus,
-input[type="tel"]:focus {
+.resume-details-page input[type="text"]:focus,
+.resume-details-page input[type="email"]:focus,
+.resume-details-page input[type="tel"]:focus,
+.resume-details-page input[type="url"]:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
   background: #fafbff;
 }
 
-input::placeholder {
+.resume-details-page input::placeholder {
   color: #a0aec0;
   font-weight: 500;
 }
@@ -317,6 +301,31 @@ input::placeholder {
   border-left: 4px solid #06b6d4;
 }
 
+.input-linkedin {
+  background: linear-gradient(to right, #ffffff 0%, #f7fafc 100%);
+  border-left: 4px solid #0077b5;
+}
+
+.input-github {
+  background: linear-gradient(to right, #ffffff 0%, #f7fafc 100%);
+  border-left: 4px solid #333;
+}
+
+.input-education {
+  background: linear-gradient(to right, #ffffff 0%, #f7fafc 100%);
+  border-left: 4px solid #f97316;
+}
+
+.input-languages {
+  background: linear-gradient(to right, #ffffff 0%, #f7fafc 100%);
+  border-left: 4px solid #14b8a6;
+}
+
+.input-certifications {
+  background: linear-gradient(to right, #ffffff 0%, #f7fafc 100%);
+  border-left: 4px solid #a855f7;
+}
+
 /* Second Page Information */
 .second-page-information {
   background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
@@ -325,18 +334,6 @@ input::placeholder {
   margin-bottom: 30px;
   border: 2px solid #fed7aa;
   box-shadow: 0 8px 25px rgba(251, 146, 60, 0.1);
-  animation: slideInRight 0.5s ease-out;
-}
-
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
 }
 
 /* Third Page Information */
@@ -347,11 +344,10 @@ input::placeholder {
   margin-bottom: 30px;
   border: 2px solid #bbf7d0;
   box-shadow: 0 8px 25px rgba(34, 197, 94, 0.1);
-  animation: slideInLeft 0.5s ease-out;
 }
 
 /* Textareas */
-textarea {
+.resume-details-page textarea {
   width: 100%;
   padding: 18px 20px;
   margin-bottom: 20px;
@@ -368,19 +364,19 @@ textarea {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-textarea:hover {
+.resume-details-page textarea:hover {
   border-color: #cbd5e0;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
 }
 
-textarea:focus {
+.resume-details-page textarea:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
   background: #fafbff;
 }
 
-textarea::placeholder {
+.resume-details-page textarea::placeholder {
   color: #a0aec0;
   font-weight: 500;
 }
@@ -409,6 +405,38 @@ textarea::placeholder {
   border-left: 4px solid #14b8a6;
 }
 
+.achievements-input {
+  border-left: 4px solid #ec4899;
+}
+
+.volunteering-input {
+  border-left: 4px solid #06b6d4;
+}
+
+.awards-input {
+  border-left: 4px solid #eab308;
+}
+
+.notableProjects-input {
+  border-left: 4px solid #6366f1;
+}
+
+.publications-input {
+  border-left: 4px solid #84cc16;
+}
+
+.softSkills-input {
+  border-left: 4px solid #f43f5e;
+}
+
+.hobbies-input {
+  border-left: 4px solid #0ea5e9;
+}
+
+.community-input {
+  border-left: 4px solid #22c55e;
+}
+
 /* Generate Resume Button */
 .genarate-resume-content {
   text-align: center;
@@ -434,21 +462,6 @@ textarea::placeholder {
   overflow: hidden;
 }
 
-.resume-generate-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.5s;
-}
-
-.resume-generate-btn:hover::before {
-  left: 100%;
-}
-
 .resume-generate-btn:hover {
   transform: translateY(-4px);
   box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
@@ -457,6 +470,111 @@ textarea::placeholder {
 .resume-generate-btn:active {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+/* Download and Save Buttons */
+.resume-download-btn,
+.resume-save-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 14px 30px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 10px 5px;
+}
+
+.resume-download-btn:hover,
+.resume-save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
+/* Preview Pages */
+.preview-page-div {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  width: 100%;
+  margin-top: 30px;
+}
+
+.preview-page-div iframe {
+  width: 100%;
+  max-width: 800px;
+  height: 1100px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+/* Overlay for Title Input */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  backdrop-filter: blur(3px);
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+/* Title Input Modal */
+.resume-title-content {
+  background: #fff;
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  z-index: 1000;
+  min-width: 400px;
+}
+
+.resume-title-content input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.resume-title-content input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.resume-title-content button {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: all 0.3s ease;
+}
+
+.resume-title-content button:first-of-type {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.resume-title-content button:last-of-type {
+  background: #e2e8f0;
+  color: #333;
+}
+
+.resume-title-content button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* Responsive Design */
@@ -485,6 +603,11 @@ textarea::placeholder {
     padding: 16px 45px;
     font-size: 16px;
   }
+
+  .resume-title-content {
+    min-width: 90%;
+    padding: 25px 30px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -500,10 +623,11 @@ textarea::placeholder {
     font-size: 26px;
   }
 
-  input[type="text"],
-  input[type="email"],
-  input[type="tel"],
-  textarea {
+  .resume-details-page input[type="text"],
+  .resume-details-page input[type="email"],
+  .resume-details-page input[type="tel"],
+  .resume-details-page input[type="url"],
+  .resume-details-page textarea {
     padding: 14px 16px;
     font-size: 15px;
   }
@@ -528,81 +652,22 @@ textarea::placeholder {
   }
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
+/* Custom Scrollbar - only for resume page */
+.resume-details-page-full::-webkit-scrollbar {
   width: 12px;
 }
 
-::-webkit-scrollbar-track {
+.resume-details-page-full::-webkit-scrollbar-track {
   background: #f1f5f9;
   border-radius: 10px;
 }
 
-::-webkit-scrollbar-thumb {
+.resume-details-page-full::-webkit-scrollbar-thumb {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 10px;
   border: 2px solid #f1f5f9;
 }
 
-::-webkit-scrollbar-thumb:hover {
+.resume-details-page-full::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-}
-
-/* Loading Animation */
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-/* Additional focus states for better UX */
-.input-fullname:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
-}
-
-.input-jobtitle:focus {
-  border-color: #764ba2;
-  box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.15);
-}
-
-.input-email:focus {
-  border-color: #10b981;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
-}
-
-.input-address:focus {
-  border-color: #ec4899;
-  box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.15);
-}
-
-.input-summary:focus {
-  border-color: #8b5cf6;
-  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
-}
-
-.input-skill:focus {
-  border-color: #06b6d4;
-  box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.15);
-}
-
-.preview-page-div {
-  display: flex;
-  flex-direction: column; /* stack pages vertically */
-  gap: 20px; /* spacing between pages */
-  align-items: center;
-  width: 100%;
-}
-
-.preview-page-div iframe {
-  width: 100%;       /* full width of parent */
-  max-width: 800px;  /* optional: limit max width */
-  height: 1100px;    /* enough to fit A4 page */
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  overflow: hidden;   /* remove extra scroll inside iframe */
 }

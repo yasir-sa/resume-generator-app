@@ -2,11 +2,13 @@ import React from "react";
 import "./Product.css";
 import { useNavigate } from "react-router-dom";
 import API from "../../api.js"
+import { FaPlus } from "react-icons/fa"; 
 import { useState,useEffect } from "react";
 import { Link } from "react-router-dom";
 const Product = () => {
   const navigate = useNavigate();
   const [profile,setprofile]=useState(false)
+
   const [user,setuser]=useState({
   id: null,
   name: "",
@@ -17,6 +19,21 @@ const Product = () => {
 const [openpassword, setopenpassword] = useState(false);
 const [needPassword, setNeedPassword] = useState(false);
 const [newPassword, setNewPassword] = useState("");
+
+
+
+
+  const [FullTitleName, setFullTitleName] = useState([]);
+  // const [edittitle,setedittitle]=useState(false);
+  // const [deletetitle,setdeletetitle]=useState(false);
+ const [changetitle,setchangetitle]=useState("")
+// const [mode, setMode] = useState("view");
+const [editId, setEditId] = useState(null);
+const [deleteId, setDeleteId] = useState(null);
+
+
+// possible values: "view" | "edit" | "delete"
+
 
   const handleLogout = async() => {
     // later: localStorage.removeItem("token");
@@ -63,7 +80,6 @@ useEffect(() => {
 
 
 
-
 const sendpasswordbtn=()=>{
   alert("hi pro now sdtart")
   setopenpassword(true)
@@ -89,6 +105,89 @@ const sendpasword = async () => {
     alert("Failed to set password");
   }
 };
+
+
+
+
+const getAlltitles =async()=>{
+ 
+ try{
+      const response = await API.get("/getall-titles")
+      setFullTitleName(
+  response.data.map((item) => ({
+    titleId: item.title_id,
+    titleName: item.title_name
+  }))
+);
+ }
+ catch(error){
+  console.error("resume titles get error :",error)
+ }
+}
+
+useEffect(()=>{
+  getAlltitles();
+},[]);
+
+
+const edittitleopen = (id) => {
+  setDeleteId(null); // close delete if open
+  setEditId(id);
+
+  const selected = FullTitleName.find(t => t.titleId === id);
+  if (selected) {
+    setchangetitle(selected.titleName);
+  }
+};
+
+const deletetitleopen = (id) => {
+  setEditId(null); // close edit if open
+  setDeleteId(id);
+};
+
+
+const canceledit = () => {
+  setEditId(null);
+  setchangetitle("");
+};
+
+const newtitlesave = async (id) => {
+  try {
+    await API.put("/update-resume-title", {
+      titleId: id,
+      titleName: changetitle
+    });
+
+    await getAlltitles();
+
+    setEditId(null);     // ✅ close edit mode
+    setchangetitle("");  // clear input
+
+  } catch (error) {
+    console.error("Update error:", error);
+  }
+};
+
+
+const confirmDelete = async (id) => {
+  try {
+    await API.delete(`/delete-resume-title/${id}`);
+
+    await getAlltitles();
+
+    setDeleteId(null); // close delete mode
+
+  } catch (error) {
+    console.error("Delete error:", error);
+  }
+};
+
+
+const cancelDelete = () => {
+  setDeleteId(null);
+};
+
+
 
   return (
     <div className="product-page" onClick={()=> setprofile(false)}>
@@ -145,17 +244,82 @@ const sendpasword = async () => {
      
 
     </nav>
-    <Link to="/chatbox">
+  
+      <div className="body-container">
+ 
+ <div className="resume-create-section">
+
+     <Link to="/resume-creator" className="resume-create-button">
+    <button >
+      <FaPlus size={20} color="green" />
+      go to resume creator page 
+      </button>
+    </Link>
+<div className="resume-titeles">
+  {FullTitleName.map((title) => (
+    <div className="title-one" key={title.titleId}>
+
+      {/* Title or Input */}
+      {editId === title.titleId ? (
+        <input
+          value={changetitle}
+          onChange={(e) => setchangetitle(e.target.value)}
+        />
+      ) : (
+        <span>{title.titleName}</span>
+      )}
+
+      {/* Buttons */}
+     <div className="btn-container-title">
+
+  {editId === title.titleId ? (
+    <>
+      <button onClick={() => newtitlesave(title.titleId)}>Ok</button>
+      <button onClick={canceledit}>Cancel</button>
+    </>
+  ) : deleteId === title.titleId ? (
+    <>
+      <button onClick={() => confirmDelete(title.titleId)}>Confirm</button>
+      <button onClick={cancelDelete}>Cancel</button>
+    </>
+  ) : (
+    <>
+      <button onClick={() => edittitleopen(title.titleId)}>Edit</button>
+      <button onClick={() => deletetitleopen(title.titleId)}>Delete</button>
+    </>
+  )}
+
+</div>
+
+
+    </div>
+  ))}
+</div>
+
+
+
+ </div>
+ 
+ 
+ <div className="other-features-section">
+ 
+  <Link to="/chatbox">
     <button >go to chatpot</button>
     </Link>
       <Link to="/">
     <button >go to home</button>
     </Link>
-      <Link to="/resume-creator">
-    <button >go to resume creator page </button>
-    </Link>
+     
+ </div>
+
+
+
+
     
-      
+
+
+
+      </div>
     </div>
   );
 };

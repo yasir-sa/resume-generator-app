@@ -6,6 +6,10 @@ const sendOTPEmail =require("../utils/email");
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 // const multer = require("multer");
 require("dotenv").config();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
 
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000);
  
@@ -1508,41 +1512,160 @@ exports.setPassword = async (req, res) => {
 //     res.status(500).json({ error: "Failed to generate resume" });
 //   }
 // };
+
+
+
+// // ===== UPLOAD FOLDER PATH =====
+// const resumePhotosDir = path.join(__dirname, '../uploads/resume-photos');
+
+// // ===== TIME AFTER WHICH FILES SHOULD BE DELETED =====
+// const FILE_EXPIRATION = 10 * 60 * 1000; // 10 minutes
+
+// // ===== FUNCTION TO DELETE OLD FILES =====
+// function deleteOldFiles() {
+//   fs.readdir(resumePhotosDir, (err, files) => {
+//     if (err) return console.error('Error reading upload folder:', err);
+
+//     files.forEach(file => {
+//       const filePath = path.join(resumePhotosDir, file);
+
+//       fs.stat(filePath, (err, stats) => {
+//         if (err) return console.error('Error getting file stats:', err);
+
+//         const now = Date.now();
+//         const fileAge = now - stats.mtimeMs; // file modified time in ms
+
+//         if (fileAge > FILE_EXPIRATION) {
+//           fs.unlink(filePath, (err) => {
+//             if (err) return console.error('Error deleting file:', err);
+//             console.log('🗑️ Deleted old file:', file);
+//           });
+//         }
+//       });
+//     });
+//   });
+// }
+
+// // ===== RUN AUTOMATICALLY EVERY MINUTE =====
+// setInterval(deleteOldFiles, 60 * 1000);
+
+
+
+// const fs = require('fs');
+// const path = require('path');
+// const multer = require('multer');
+
+// ===== UPLOAD FOLDER =====
+const uploadDir = 'uploads/resume-photos';
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// ===== MULTER STORAGE =====
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'resume-photo-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+// ===== MULTER UPLOAD CONFIG =====
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'));
+    }
+  }
+});
+
+// 🔥 MULTER MIDDLEWARE
+exports.uploadResumePhoto = upload.single('photo');
+
+// ===== HELPER FUNCTION: DELETE OLD FILES EXCEPT CURRENT =====
+async function deleteOldFilesExceptCurrent(folder, keepFile) {
+  try {
+    const files = await fs.promises.readdir(folder);
+    for (const file of files) {
+      if (file === keepFile) continue; // keep the newly uploaded file
+      const filePath = path.join(folder, file);
+      await fs.promises.unlink(filePath);
+      console.log('🗑️ Deleted old file:', file);
+    }
+  } catch (err) {
+    console.error('Error deleting old files:', err);
+  }
+}
+
+// 🔥 HANDLE PHOTO UPLOAD RESPONSE
+exports.handlePhotoUpload = async (req, res) => {
+  try {
+    // ===== CHECK IF FILE EXISTS =====
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'No photo file uploaded'
+      });
+    }
+
+    // ===== DELETE OLD FILES AFTER UPLOAD (KEEP CURRENT) =====
+    await deleteOldFilesExceptCurrent(uploadDir, req.file.filename);
+
+    // Generate URL for the uploaded photo
+    const photoUrl = `${req.protocol}://${req.get('host')}/uploads/resume-photos/${req.file.filename}`;
+
+    console.log('✅ Photo uploaded successfully:', photoUrl);
+
+    res.json({
+      success: true,
+      url: photoUrl,
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      size: req.file.size
+    });
+
+  } catch (error) {
+    console.error('❌ Photo upload error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Photo upload failed',
+      message: error.message
+    });
+  }
+};
+
+
+
+
+
+
+
+
+
+// 🔥 YOUR EXISTING submitResume FUNCTION (NO CHANGES NEEDED)
 exports.submitResume = async (req, res) => {
   try {
-    let { pagecount, pageOne, pageTwo, pageThree, photoChunks } = req.body;
+    let { pagecount, pageOne, pageTwo, pageThree } = req.body;
+
     pagecount = Number(pagecount || 1);
+    pageOne = pageOne || {};
     pageTwo = pageTwo || {};
     pageThree = pageThree || {};
-
-    // 🟢 Join Base64 photo if exists
-    let photoBase64 = "";
-    if (Array.isArray(photoChunks)) {
-      photoBase64 = photoChunks.join("");
-      pageOne.photoBase64 = photoBase64; // assign for dummy HTML
-    }
 
     const fetch = (...args) =>
       import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
-    // 🟢 PROFESSIONAL PROMPT BUILDER
-//     const buildPrompt = (pageNum, pageData) => `
-// Create ONE single-page ATS-friendly professional resume in pure HTML.
-
-// STRICT RULES:
-// - Output must contain ONLY ONE <html> document
-// - Use ONLY the given data for this page
-// - No gradient or background color for name
-// - Clean typography, professional spacing
-// - Profile photo must be square or rectangle (NOT round)
-
-// PROFILE PHOTO:
-// <img src="${photoBase64}" class="profile-photo" />
-
-// PAGE ${pageNum} DATA:
-// ${JSON.stringify(pageData, null, 2)}
-// `;
-const buildPrompt = (pageNum, pageData) => `
+    const buildPrompt = (pageNum, pageData) => `
 Create ONE single-page ATS-friendly professional resume in pure HTML.
 
 STRICT RULES:
@@ -1552,18 +1675,17 @@ STRICT RULES:
 - Profile photo must be square or rectangle (NOT round)
 
 IMPORTANT:
-Insert exactly this HTML tag for the profile photo:
-<img src="${photoBase64}" class="profile-photo" />
-Do NOT remove, modify, or replace this tag. Keep it exactly as is.
+- Insert this EXACT <img> tag for the profile photo in the profile section:
+<img src="PHOTO_PLACEHOLDER_URL" class="profile-photo" />
+- Do NOT modify or replace this tag. Keep it exactly as is.
+- Do not add any other <img> tags for the profile photo.
 
 PAGE ${pageNum} DATA:
 ${JSON.stringify(pageData, null, 2)}
 `;
 
-
-    // 🟢 Dummy HTML fallback
     const dummyHTML = (pageNum, data, showPhoto, totalPages) => `
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -1576,12 +1698,11 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 
 .name-title h1 {
   font-size: 32px;
   font-weight: 700;
-  color: #1a1a2e; /* text color */
-  background: none !important; /* force remove any background */
-  -webkit-background-clip: unset !important; /* remove text clip */
-  -webkit-text-fill-color: unset !important; /* remove fill */
+  color: #1a1a2e;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: unset !important;
 }
-
 .name-title h2 { font-size: 18px; font-weight: 500; color: #162447; margin-top: 4px; }
 .profile-photo { width: 130px; height: auto; border-radius: 10px; border: 2px solid #162447; }
 .contact { margin-top: 12px; font-size: 13px; color: #555; }
@@ -1612,7 +1733,7 @@ ${pageNum === 1 ? `
       <p><span>GitHub:</span> ${data.github || "-"}</p>
     </div>
   </div>
-  ${showPhoto && data.photoBase64 ? `<img src="${data.photoBase64}" class="profile-photo" />` : ""}
+  ${showPhoto ? `<img src="PHOTO_PLACEHOLDER_URL" class="profile-photo" />` : ""}
 </div>
 <div class="section"><h3>Professional Summary</h3><p>${data.summary || "-"}</p></div>
 <div class="section"><h3>Skills</h3><div class="skills-container">${(data.skill || "").split(",").map(s => `<div class="skill-pill">${s.trim()}</div>`).join("")}</div></div>
@@ -1638,7 +1759,6 @@ ${pageNum === 3 ? `
 <div class="section"><h3>Interests</h3><p>${data.interests || "-"}</p></div>
 <div class="section"><h3>Soft Skills</h3><p>${data.softSkills || "-"}</p></div>
 <div class="section"><h3>Hobbies</h3><p>${data.hobbies || "-"}</p></div>
-
 <div class="section"><h3>Community</h3><p>${data.community || "-"}</p></div>
 ` : ""}
 
@@ -1649,14 +1769,14 @@ ${pageNum === totalPages ? `<div class="signature">Submitted by: ${pageOne.fullN
 </html>
 `;
 
-    // 🔵 Loop page by page
     let finalHTML = "";
+
     for (let i = 1; i <= pagecount; i++) {
       const pageData = i === 1 ? pageOne : i === 2 ? pageTwo : pageThree;
 
       try {
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${process.env.GEMINI_API_KEY}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -1670,8 +1790,11 @@ ${pageNum === totalPages ? `<div class="signature">Submitted by: ${pageOne.fullN
 
         if (!response.ok) throw new Error("Gemini failed");
 
-        const data = await response.json();
-        const html = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        const result = await response.json();
+        let html = result?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+        html = html.replace(/```html\n?/g, "").replace(/```\n?/g, "").trim();
+
         if (!html.includes("<html")) throw new Error("Invalid HTML");
 
         console.log(`✅ Gemini page ${i} OK`);
@@ -1679,21 +1802,45 @@ ${pageNum === totalPages ? `<div class="signature">Submitted by: ${pageOne.fullN
 
       } catch (err) {
         console.warn(`⚠️ Gemini failed page ${i}, using dummy`);
-        finalHTML += dummyHTML(i, pageData, i === 1, pagecount); // <-- pass totalPages here
+        finalHTML += dummyHTML(i, pageData, i === 1 && pageOne.photoUrl, pagecount);
       }
     }
 
-    // 🟢 Return final HTML
-    res.json({ success: true, html: finalHTML });
+    // 🔥 AGGRESSIVE PHOTO REPLACEMENT
+    if (pageOne.photoUrl) {
+      console.log("🔥 Backend: Replacing photo with URL:", pageOne.photoUrl);
+
+      finalHTML = finalHTML.replace(/PHOTO_PLACEHOLDER_URL/g, pageOne.photoUrl);
+      finalHTML = finalHTML.replace(
+        /<img\s+src=["']["']\s+class=["']profile-photo["']\s*\/?>/gi,
+        `<img src="${pageOne.photoUrl}" class="profile-photo" />`
+      );
+      finalHTML = finalHTML.replace(
+        /<img[^>]*class=["']profile-photo["'][^>]*>/gi,
+        `<img src="${pageOne.photoUrl}" class="profile-photo" />`
+      );
+      finalHTML = finalHTML.replace(
+        /<img\s+src=["'][^"']*["']\s+class=["']profile-photo["']\s*\/?>/gi,
+        `<img src="${pageOne.photoUrl}" class="profile-photo" />`
+      );
+
+      console.log("✅ Backend: Photo replacement complete");
+    }
+
+    res.json({
+      success: true,
+      html: finalHTML,
+      photoUrl: pageOne.photoUrl || null
+    });
 
   } catch (err) {
     console.error("submitResume error:", err);
-    res.status(500).json({ error: "Resume generation failed" });
+    res.status(500).json({
+      error: "Resume generation failed",
+      message: err.message
+    });
   }
 };
-
-
-
 
 //1,2,3
 // // controller/auth.controller.js
@@ -1842,3 +1989,573 @@ ${pageNum === totalPages ? `<div class="signature">Submitted by: ${pageOne.fullN
 //     res.status(500).json({ error: "Failed to generate resume" });
 //   }
 // };
+
+
+
+
+
+
+
+
+
+//last 
+
+// exports.submitResume = async (req, res) => {
+//   try {
+//     let { pagecount, pageOne, pageTwo, pageThree, photoChunks } = req.body;
+//     pagecount = Number(pagecount || 1);
+//     pageTwo = pageTwo || {};
+//     pageThree = pageThree || {};
+
+//     // 🟢 Join Base64 photo if exists
+//     let photoBase64 = "";
+//     if (Array.isArray(photoChunks)) {
+//       photoBase64 = photoChunks.join("");
+//       pageOne.photoBase64 = photoBase64; // assign for dummy HTML
+//     }
+
+//     const fetch = (...args) =>
+//       import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
+//     // 🟢 PROFESSIONAL PROMPT BUILDER
+// //     const buildPrompt = (pageNum, pageData) => `
+// // Create ONE single-page ATS-friendly professional resume in pure HTML.
+
+// // STRICT RULES:
+// // - Output must contain ONLY ONE <html> document
+// // - Use ONLY the given data for this page
+// // - No gradient or background color for name
+// // - Clean typography, professional spacing
+// // - Profile photo must be square or rectangle (NOT round)
+
+// // PROFILE PHOTO:
+// // <img src="${photoBase64}" class="profile-photo" />
+
+// // PAGE ${pageNum} DATA:
+// // ${JSON.stringify(pageData, null, 2)}
+// // `;
+// const buildPrompt = (pageNum, pageData) => `
+// Create ONE single-page ATS-friendly professional resume in pure HTML.
+
+// STRICT RULES:
+// - Output must contain ONLY ONE <html> document
+// - Use ONLY the given data for this page
+// - Clean typography, professional spacing
+// - Profile photo must be square or rectangle (NOT round)
+
+// IMPORTANT:
+// Insert exactly this HTML tag for the profile photo:
+// <img src="${photoBase64}" class="profile-photo" />
+// Do NOT remove, modify, or replace this tag. Keep it exactly as is.
+
+// PAGE ${pageNum} DATA:
+// ${JSON.stringify(pageData, null, 2)}
+// `;
+
+
+//     // 🟢 Dummy HTML fallback
+//     const dummyHTML = (pageNum, data, showPhoto, totalPages) => `
+// <!DOCTYPE html>
+// <html lang="en">
+// <head>
+// <meta charset="UTF-8" />
+// <title>Resume</title>
+// <style>
+// * { margin: 0; padding: 0; box-sizing: border-box; }
+// body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; line-height: 1.7; color: #333; background: #f9f9f9; padding: 40px; }
+// .container { max-width: 800px; margin: auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+// .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
+// .name-title h1 {
+//   font-size: 32px;
+//   font-weight: 700;
+//   color: #1a1a2e; /* text color */
+//   background: none !important; /* force remove any background */
+//   -webkit-background-clip: unset !important; /* remove text clip */
+//   -webkit-text-fill-color: unset !important; /* remove fill */
+// }
+
+// .name-title h2 { font-size: 18px; font-weight: 500; color: #162447; margin-top: 4px; }
+// .profile-photo { width: 130px; height: auto; border-radius: 10px; border: 2px solid #162447; }
+// .contact { margin-top: 12px; font-size: 13px; color: #555; }
+// .contact p { margin-bottom: 4px; }
+// .contact span { color: #162447; font-weight: 600; }
+// .section { margin-top: 28px; }
+// .section h3 { font-size: 16px; font-weight: 700; color: #162447; border-bottom: 2px solid #1f4068; padding-bottom: 6px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+// .section p, .section ul { margin-bottom: 8px; }
+// .skills-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+// .skill-pill { background: #1f4068; color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; }
+// .signature { text-align: right; margin-top: 50px; font-style: italic; font-weight: bold; font-size: 14px; color: #1a1a2e; }
+// @media print { body { padding: 10px; } h1,h2,h3 { background: none !important; } * { -webkit-print-color-adjust: economy !important; print-color-adjust: economy !important; } }
+// </style>
+// </head>
+// <body>
+// <div class="container">
+
+// ${pageNum === 1 ? `
+// <div class="header">
+//   <div class="name-title">
+//     <h1>${data.fullName || "Your Name"}</h1>
+//     <h2>${data.jobTitle || "Job Title"}</h2>
+//     <div class="contact">
+//       <p><span>Email:</span> ${data.email || "-"}</p>
+//       <p><span>Phone:</span> ${data.phoneNumber || "-"}</p>
+//       <p><span>Address:</span> ${data.address || "-"}</p>
+//       <p><span>LinkedIn:</span> ${data.linkedIn || "-"}</p>
+//       <p><span>GitHub:</span> ${data.github || "-"}</p>
+//     </div>
+//   </div>
+//   ${showPhoto && data.photoBase64 ? `<img src="${data.photoBase64}" class="profile-photo" />` : ""}
+// </div>
+// <div class="section"><h3>Professional Summary</h3><p>${data.summary || "-"}</p></div>
+// <div class="section"><h3>Skills</h3><div class="skills-container">${(data.skill || "").split(",").map(s => `<div class="skill-pill">${s.trim()}</div>`).join("")}</div></div>
+// <div class="section"><h3>Education</h3><p>${data.education || "-"}</p></div>
+// <div class="section"><h3>Languages</h3><p>${data.languages || "-"}</p></div>
+// <div class="section"><h3>Certifications</h3><p>${data.certifications || "-"}</p></div>
+// ` : ""}
+
+// ${pageNum === 2 ? `
+// <div class="section"><h3>Experience</h3><p>${data.experience || "-"}</p></div>
+// <div class="section"><h3>Projects</h3><p>${data.projects || "-"}</p></div>
+// <div class="section"><h3>Certifications</h3><p>${data.certifications || "-"}</p></div>
+// <div class="section"><h3>Achievements</h3><p>${data.achievements || "-"}</p></div>
+// <div class="section"><h3>Volunteering</h3><p>${data.volunteering || "-"}</p></div>
+// <div class="section"><h3>Awards</h3><p>${data.awards || "-"}</p></div>
+// <div class="section"><h3>Notable Projects</h3><p>${data.notableProjects || "-"}</p></div>
+// <div class="section"><h3>Publications</h3><p>${data.publications || "-"}</p></div>
+// ` : ""}
+
+// ${pageNum === 3 ? `
+// <div class="section"><h3>Languages</h3><p>${data.languages || "-"}</p></div>
+// <div class="section"><h3>Achievements</h3><p>${data.achievements || "-"}</p></div>
+// <div class="section"><h3>Interests</h3><p>${data.interests || "-"}</p></div>
+// <div class="section"><h3>Soft Skills</h3><p>${data.softSkills || "-"}</p></div>
+// <div class="section"><h3>Hobbies</h3><p>${data.hobbies || "-"}</p></div>
+
+// <div class="section"><h3>Community</h3><p>${data.community || "-"}</p></div>
+// ` : ""}
+
+// ${pageNum === totalPages ? `<div class="signature">Submitted by: ${pageOne.fullName || "Your Name"}</div>` : ""}
+
+// </div>
+// </body>
+// </html>
+// `;
+
+//     // 🔵 Loop page by page
+//     let finalHTML = "";
+//     for (let i = 1; i <= pagecount; i++) {
+//       const pageData = i === 1 ? pageOne : i === 2 ? pageTwo : pageThree;
+
+//       try {
+//         const response = await fetch(
+//           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
+//           {
+//             method: "POST",
+//             headers: { "Content-Type": "application/json" },
+//             body: JSON.stringify({
+//               contents: [
+//                 { role: "user", parts: [{ text: buildPrompt(i, pageData) }] }
+//               ]
+//             })
+//           }
+//         );
+
+//         if (!response.ok) throw new Error("Gemini failed");
+
+//         const data = await response.json();
+//         const html = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+//         if (!html.includes("<html")) throw new Error("Invalid HTML");
+
+//         console.log(`✅ Gemini page ${i} OK`);
+//         finalHTML += html;
+
+//       } catch (err) {
+//         console.warn(`⚠️ Gemini failed page ${i}, using dummy`);
+//         finalHTML += dummyHTML(i, pageData, i === 1, pagecount); // <-- pass totalPages here
+//       }
+//     }
+
+//     // 🟢 Return final HTML
+//     res.json({ success: true, html: finalHTML });
+
+//   } catch (err) {
+//     console.error("submitResume error:", err);
+//     res.status(500).json({ error: "Resume generation failed" });
+//   }
+// };
+
+
+
+// const multer = require("multer");
+// const path = require("path");
+// const fs = require("fs");
+
+// ===============================
+// 📌 MULTER CONFIG
+// ===============================
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     const uploadPath = "uploads";
+//     if (!fs.existsSync(uploadPath)) {
+//       fs.mkdirSync(uploadPath);
+//     }
+//     cb(null, uploadPath);
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, Date.now() + "-" + file.originalname);
+//   }
+// });
+
+// exports.upload = multer({ storage });
+
+
+// // ===============================
+// // 📌 PHOTO UPLOAD API
+// // ===============================
+// exports.uploadPhoto = (req, res) => {
+//   try {
+//     if (!req.file) {
+//       return res.status(400).json({ error: "No file uploaded" });
+//     }
+
+//     const photoUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+
+//     res.json({
+//       success: true,
+//       url: photoUrl
+//     });
+
+//   } catch (err) {
+//     console.error("Photo upload error:", err);
+//     res.status(500).json({ error: "Upload failed" });
+//   }
+// };
+
+
+// // ===============================
+// // 📌 RESUME GENERATION API
+// // ===============================
+// exports.submitResume = async (req, res) => {
+//   try {
+
+//     let { pagecount, pageOne, pageTwo, pageThree } = req.body;
+
+//     pagecount = Number(pagecount || 1);
+//     pageOne = pageOne || {};
+//     pageTwo = pageTwo || {};
+//     pageThree = pageThree || {};
+
+//     const fetch = (...args) =>
+//       import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
+//     // ---------------- PROMPT BUILDER ----------------
+//     const buildPrompt = (pageNum, pageData) => `
+// Create ONE single-page ATS-friendly professional resume in pure HTML.
+
+// STRICT RULES:
+// - Output must contain ONLY ONE <html> document
+// - Clean typography
+// - Include this EXACT tag:
+// <img src="" class="profile-photo" />
+
+// PAGE ${pageNum} DATA:
+// ${JSON.stringify(pageData, null, 2)}
+// `;
+
+//     // ---------------- DUMMY HTML ----------------
+//     const dummyHTML = (pageNum, data, totalPages) => `
+// <!DOCTYPE html>
+// <html>
+// <head>
+// <meta charset="UTF-8">
+// <title>Resume</title>
+// <style>
+// body { font-family: Arial; padding: 30px; }
+// .profile-photo { width: 130px; border-radius: 10px; }
+// .section { margin-top: 20px; }
+// </style>
+// </head>
+// <body>
+
+// ${pageNum === 1 ? `
+// <h1>${data.fullName || "Your Name"}</h1>
+// <h3>${data.jobTitle || "Job Title"}</h3>
+// <img src="${data.photoUrl || ""}" class="profile-photo" />
+
+// <div class="section"><b>Email:</b> ${data.email || "-"}</div>
+// <div class="section"><b>Phone:</b> ${data.phoneNumber || "-"}</div>
+// <div class="section"><b>Summary:</b> ${data.summary || "-"}</div>
+// ` : ""}
+
+// ${pageNum === totalPages ? `
+// <div class="section">
+// <b>Submitted by:</b> ${pageOne.fullName || "Your Name"}
+// </div>
+// ` : ""}
+
+// </body>
+// </html>
+// `;
+
+//     // ---------------- GENERATE PAGES ----------------
+//     let finalHTML = "";
+
+//     for (let i = 1; i <= pagecount; i++) {
+
+//       const pageData =
+//         i === 1 ? pageOne :
+//         i === 2 ? pageTwo :
+//         pageThree;
+
+//       try {
+
+//         if (!process.env.GEMINI_API_KEY) {
+//           throw new Error("No Gemini key");
+//         }
+
+//         const response = await fetch(
+//           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
+//           {
+//             method: "POST",
+//             headers: { "Content-Type": "application/json" },
+//             body: JSON.stringify({
+//               contents: [
+//                 {
+//                   role: "user",
+//                   parts: [{ text: buildPrompt(i, pageData) }]
+//                 }
+//               ]
+//             })
+//           }
+//         );
+
+//         if (!response.ok) throw new Error("Gemini failed");
+
+//         const result = await response.json();
+
+//         let html =
+//           result?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+//         if (!html.includes("<html")) {
+//           throw new Error("Invalid HTML");
+//         }
+
+//         // 🔥 Replace photo for page 1
+//         if (i === 1 && pageOne.photoUrl) {
+//           html = html.replace(
+//             /<img\s+src=["'].*?["']\s+class=["']profile-photo["']\s*\/?>/,
+//             `<img src="${pageOne.photoUrl}" class="profile-photo" />`
+//           );
+//         }
+
+//         finalHTML += html;
+
+//       } catch (err) {
+
+//         console.warn(`Gemini failed page ${i}, using dummy`);
+
+//         finalHTML += dummyHTML(i, pageData, pagecount);
+//       }
+//     }
+
+//     res.json({ success: true, html: finalHTML });
+
+//   } catch (err) {
+//     console.error("submitResume error:", err);
+//     res.status(500).json({ error: "Resume generation failed" });
+//   }
+// };
+
+
+
+
+
+//save resume to user_all_resume table 
+// auth.controller.js
+ // your Postgres pool
+
+ // your Postgres pool
+
+exports.saveResume = async (req, res) => {
+  try {
+    // ✅ User ID from JWT
+    const userId = req.user.id;
+
+    // ✅ Match frontend keys
+    const { title, htmlPages } = req.body;
+
+    // 🔹 Validate input
+    if (!title || title.trim() === "") {
+      return res.status(400).json({ success: false, error: "Title is required" });
+    }
+
+    if (!Array.isArray(htmlPages) || htmlPages.length === 0) {
+      return res.status(400).json({ success: false, error: "No resume pages provided" });
+    }
+
+    // 🔹 Combine all HTML pages into one string
+    const combinedHTML = htmlPages.join("\n\n<!-- PAGE BREAK -->\n\n");
+
+    // 🔹 Direct insert query
+    const result = await pool.query(
+      `INSERT INTO user_all_resumes (user_id, title_name, html_codes)
+       VALUES ($1, $2, $3)
+       RETURNING title_id, title_name, created_time`,
+      [userId, title.trim(), combinedHTML]
+    );
+
+    // 🔹 Console log
+    console.log("===== SAVE RESUME REQUEST =====");
+    console.log("User ID from JWT:", userId);
+    console.log("Title from UI:", title);
+    console.log("Number of HTML pages:", htmlPages.length);
+    htmlPages.forEach((page, idx) => {
+      console.log(`Page ${idx + 1} preview (first 200 chars):`, page.slice(0, 200));
+    });
+    console.log("Inserted resume ID:", result.rows[0].title_id);
+    console.log("===============================");
+
+    // 🔹 Response
+    res.json({ success: true, message: "Resume saved successfully ✅", data: result.rows[0] });
+
+  } catch (err) {
+    console.error("Error saving resume:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+exports.getAllTitles =async (req,res)=>{
+  try{
+       const userId = req.user.id;
+       const {rows}=await pool.query(
+          `SELECT title_id, title_name 
+       FROM user_all_resumes 
+       WHERE user_id = $1
+       ORDER BY created_time DESC`,
+      [userId]
+       );
+       
+       console.log("Fetched rows:", rows);
+    return res.status(200).json(rows);
+  }
+  catch(error){
+    console.error("get all titles in backend",error);
+    res.status(500).json({
+       message: "Internal server error"
+    })
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+exports.updateResumeTitle = async (req, res) => {
+  const { titleId, titleName } = req.body;
+
+  if (!titleId || !titleName) {
+    return res.status(400).json({
+      message: "Title ID and Title Name required"
+    });
+  }
+
+  try {
+    const { rowCount, rows } = await pool.query(
+      `UPDATE user_all_resumes 
+       SET title_name = $1 
+       WHERE title_id = $2 
+       RETURNING title_id, title_name`,
+      [titleName, titleId]
+    );
+
+    if (rowCount === 0) {
+      return res.status(404).json({
+        message: "Title not found"
+      });
+    }
+
+    return res.status(200).json({
+      message: "Title updated successfully",
+      updatedTitle: rows[0]
+    });
+
+  } catch (error) {
+    console.error("Update title error:", error);
+    return res.status(500).json({
+      message: "Internal server error"
+    });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+exports.deleteResumeTitle = async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({
+      message: "Title ID required"
+    });
+  }
+
+  try {
+    const { rowCount } = await pool.query(
+      `DELETE FROM user_all_resumes 
+       WHERE title_id = $1`,
+      [id]
+    );
+
+    if (rowCount === 0) {
+      return res.status(404).json({
+        message: "Title not found"
+      });
+    }
+
+    return res.status(200).json({
+      message: "Title deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("Delete title error:", error);
+    return res.status(500).json({
+      message: "Internal server error"
+    });
+  }
+};
