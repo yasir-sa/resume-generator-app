@@ -5,6 +5,9 @@ import API from "../../api.js"
 import { FaPlus } from "react-icons/fa"; 
 import { useState,useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useRef } from "react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 const Product = () => {
   const navigate = useNavigate();
   const [profile,setprofile]=useState(false)
@@ -30,6 +33,10 @@ const [newPassword, setNewPassword] = useState("");
 // const [mode, setMode] = useState("view");
 const [editId, setEditId] = useState(null);
 const [deleteId, setDeleteId] = useState(null);
+const [previewid,setpreviewid]=useState(null)
+const [resumePages, setResumePages] = useState([]);
+const resumeRef = useRef(null);
+
 
 
 // possible values: "view" | "edit" | "delete"
@@ -84,6 +91,7 @@ const sendpasswordbtn=()=>{
   alert("hi pro now sdtart")
   setopenpassword(true)
 }
+
 
 
 const sendpasword = async () => {
@@ -187,6 +195,81 @@ const cancelDelete = () => {
   setDeleteId(null);
 };
 
+const openpreviewtitle=(id)=>{
+     setpreviewid(id);
+}
+
+
+
+
+useEffect(() => {
+  // if preview not selected → do nothing
+  if (!previewid) return;
+
+  const getresumehtml = async () => {
+    try {
+      const res = await API.get(`/get-resume-html/${previewid}`);
+
+      console.log("Resume Html response:", res.data);
+
+      // ✅ get html string from backend
+      let htmlString = res.data?.html || "";
+
+      // ✅ split multiple pages
+      const pages = htmlString.split("<!-- PAGE BREAK -->");
+
+      // ✅ store into state
+      setResumePages(pages);
+
+    } catch (err) {
+      console.error("Resume fetch error:", err);
+    }
+  };
+
+  getresumehtml();
+
+}, [previewid]);
+
+
+
+
+
+
+
+
+
+
+const resumedownload = async () => {
+  const pdf = new jsPDF("p", "mm", "a4");
+
+  const pages = resumeRef.current.querySelectorAll(".resume-page");
+
+  for (let i = 0; i < pages.length; i++) {
+    const page = pages[i];
+
+    // convert page → canvas
+    const canvas = await html2canvas(page, {
+      scale: 2,          // high quality
+      useCORS: true
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+
+    const imgWidth = 210; // A4 width mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    if (i !== 0) {
+      pdf.addPage();
+    }
+
+    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+  }
+
+  pdf.save("My_Resume.pdf");
+};
+
+
+
 
 
   return (
@@ -257,7 +340,7 @@ const cancelDelete = () => {
     </Link>
 <div className="resume-titeles">
   {FullTitleName.map((title) => (
-    <div className="title-one" key={title.titleId}>
+    <div className="title-one" key={title.titleId} onClick={()=>openpreviewtitle(title.titleId)}>
 
       {/* Title or Input */}
       {editId === title.titleId ? (
@@ -320,6 +403,32 @@ const cancelDelete = () => {
 
 
       </div>
+{previewid !== null &&(
+        <div className="resume-preview-page">
+          <div className="resume-container"ref={resumeRef}>
+  {resumePages.map((page, index) => (
+    <div
+      key={index}
+      className="resume-page"
+      dangerouslySetInnerHTML={{ __html: page }}
+    />
+  ))}
+</div>
+
+
+             <button
+  onClick={() => setpreviewid(null)}
+  className="go-back-btn"
+>
+  go back
+</button>
+
+              <button onClick={resumedownload} className="download-btn">download your resume</button>
+        </div>
+)}
+      
+
+
     </div>
   );
 };

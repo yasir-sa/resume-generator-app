@@ -98,6 +98,7 @@ const {
   getAllTitles , 
   updateResumeTitle,
   deleteResumeTitle,
+  getResumeHTML,
                       // 🔥 NEW: Photo upload handler
 } = require("../controllers/auth.controller");
 
@@ -129,6 +130,13 @@ router.get(
 
 
 
+
+
+router.get(
+  "/get-resume-html/:id",
+   verifyToken,
+  getResumeHTML
+);
 
 router.put("/update-resume-title", updateResumeTitle);
 router.delete("/delete-resume-title/:id", deleteResumeTitle);

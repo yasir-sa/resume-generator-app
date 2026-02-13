@@ -1773,6 +1773,8 @@ ${pageNum === totalPages ? `<div class="signature">Submitted by: ${pageOne.fullN
 
     for (let i = 1; i <= pagecount; i++) {
       const pageData = i === 1 ? pageOne : i === 2 ? pageTwo : pageThree;
+    // const GEMINI_MODEL ="gemini-2.5-flash-lite";//"gemini-1.5-flash";//"gemini-2.5-flash-lite"; // safest stable
+    // const url = `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`;
 
       try {
         const response = await fetch(
@@ -2556,6 +2558,50 @@ exports.deleteResumeTitle = async (req, res) => {
     console.error("Delete title error:", error);
     return res.status(500).json({
       message: "Internal server error"
+    });
+  }
+};
+
+
+
+
+
+// getResumeHTML 
+exports.getResumeHTML  = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id; // coming from JWT middleware
+
+  // validation
+  if (!id) {
+    return res.status(400).json({
+      message: "Resume ID is required"
+    });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT html_codes
+       FROM user_all_resumes
+       WHERE title_id = $1 AND user_id = $2`,
+      [id, userId]
+    );
+
+    // if resume not found
+    if (rows.length === 0) {
+      return res.status(404).json({
+        message: "Resume not found"
+      });
+    }
+
+    // send HTML back
+    return res.status(200).json({
+      html: rows[0].html_codes
+    });
+
+  } catch (error) {
+    console.error("Get Resume HTML Error:", error);
+    return res.status(500).json({
+      message: "Server error while fetching resume"
     });
   }
 };
