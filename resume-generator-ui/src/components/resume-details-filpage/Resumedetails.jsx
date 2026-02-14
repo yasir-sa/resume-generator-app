@@ -128,46 +128,32 @@ const getPage3Error = () => {
 
 
 
-const fileToBase64=(file)=>{
-    return new Promise((resolve,reject)=>{
-        const reader = new FileReader();
-           reader.readAsDataURL(file);
-           reader.onload = () => {
-      resolve(reader.result); // Base64 string
-    };
-       reader.onerror = (error) => {
-      reject(error);
-    };
-    });
-}
+// const fileToBase64=(file)=>{
+//     return new Promise((resolve,reject)=>{
+//         const reader = new FileReader();
+//            reader.readAsDataURL(file);
+//            reader.onload = () => {
+//       resolve(reader.result); // Base64 string
+//     };
+//        reader.onerror = (error) => {
+//       reject(error);
+//     };
+//     });
+// }
 
 
 
 
-const splitBase64 = (base64, chunkSize = 50000) => {
-  const chunks = [];
-  for (let i = 0; i < base64.length; i += chunkSize) {
-    chunks.push(base64.slice(i, i + chunkSize));
-  }
-  return chunks;
-};
+// const splitBase64 = (base64, chunkSize = 50000) => {
+//   const chunks = [];
+//   for (let i = 0; i < base64.length; i += chunkSize) {
+//     chunks.push(base64.slice(i, i + chunkSize));
+//   }
+//   return chunks;
+// };
 
 
 
-
-  const handlePhotoChange =async (e) => {
-   const file = e.target.files[0];
-  if (file) {
-    // backend அனுப்ப actual file
-    ;
-     const base64 = await fileToBase64(file)
-    // browser preview-க்கு temporary URL
-    const previewURL = URL.createObjectURL(file);
-    setPreviewPhoto(previewURL);
-
-    setPage1({ ...page1, photo: file ,photoBase64:base64})
-  }
-  };
 
 
 
@@ -427,6 +413,57 @@ const resumeTitleOpen=(e)=>{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  const handlePhotoChange =async (e) => {
+   const file = e.target.files[0];
+  if (file) {
+    // backend அனுப்ப actual file
+    ;
+     const base64 = await fileToBase64(file)
+    // browser preview-க்கு temporary URL
+    const previewURL = URL.createObjectURL(file);
+    setPreviewPhoto(previewURL);
+
+    setPage1({ ...page1, photo: file ,photoBase64:base64})
+  }
+  };
+
+
+
+
+  const fileToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (err) => reject(err);
+  });
+};
+
+// ============================
+// ✅ Handle Resume Save
+// ============================
 const handleSaveResume = async (e) => {
   e.preventDefault();
 
@@ -441,10 +478,31 @@ const handleSaveResume = async (e) => {
   }
 
   try {
-  const response = await API.post("/save-resume", {
-  title: titleName.trim(),      // ✅ matches backend
-  htmlPages: previewPages       // ✅ matches backend
+    // ==========================
+    // ✅ Replace Page 1 photo placeholder with Base64 if exists
+    // ==========================
+   const updatedPages = previewPages.map((html, index) => {
+  if (index === 0 && page1.photoBase64) {
+    // எந்த <img> tag-லும் class="profile-photo" இருந்தாலும் Base64 replace பண்ணும்
+    return html.replace(
+      /<img[^>]*class=["']profile-photo["'][^>]*>/gi,
+      `<img src="${page1.photoBase64}" class="profile-photo" />`
+    );
+  }
+  return html; // மற்ற pages-ல் மாற்றம் வேண்டாம்
 });
+
+
+    // ✅ Update previewPages state
+    setPreviewPages(updatedPages);
+
+    // ==========================
+    // ✅ Send to backend
+    // ==========================
+    const response = await API.post("/save-resume", {
+      title: titleName.trim(),
+      htmlPages: updatedPages
+    });
 
     if (response.data.success) {
       alert("Resume saved successfully ✅");
@@ -459,7 +517,6 @@ const handleSaveResume = async (e) => {
     alert("Something went wrong while saving the resume.");
   }
 };
-
 
   return (
 <div className="resume-details-page-full">

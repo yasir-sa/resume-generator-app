@@ -352,27 +352,26 @@ const resumedownload = async () => {
         <span>{title.titleName}</span>
       )}
 
-      {/* Buttons */}
-     <div className="btn-container-title">
-
+ {/* Buttons */}
+<div className="btn-container-title">
   {editId === title.titleId ? (
     <>
-      <button onClick={() => newtitlesave(title.titleId)}>Ok</button>
-      <button onClick={canceledit}>Cancel</button>
+      <button onClick={(e) => { e.stopPropagation(); newtitlesave(title.titleId); }}>Ok</button>
+      <button onClick={(e) => { e.stopPropagation(); canceledit(); }}>Cancel</button>
     </>
   ) : deleteId === title.titleId ? (
     <>
-      <button onClick={() => confirmDelete(title.titleId)}>Confirm</button>
-      <button onClick={cancelDelete}>Cancel</button>
+      <button onClick={(e) => { e.stopPropagation(); confirmDelete(title.titleId); }}>Confirm</button>
+      <button onClick={(e) => { e.stopPropagation(); cancelDelete(); }}>Cancel</button>
     </>
   ) : (
     <>
-      <button onClick={() => edittitleopen(title.titleId)}>Edit</button>
-      <button onClick={() => deletetitleopen(title.titleId)}>Delete</button>
+      <button onClick={(e) => { e.stopPropagation(); edittitleopen(title.titleId); }}>Edit</button>
+      <button onClick={(e) => { e.stopPropagation(); deletetitleopen(title.titleId); }}>Delete</button>
     </>
   )}
-
 </div>
+
 
 
     </div>
