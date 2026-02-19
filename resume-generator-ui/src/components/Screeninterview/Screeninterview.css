@@ -1,0 +1,242 @@
+/* .interview-screen {
+  min-height: 100vh;
+  background: #f1f5f9;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+} */
+
+/* CAMERA SCREEN */
+/* .camera-video {
+  width: 520px;
+  height: 360px;
+  background: black;
+  border-radius: 12px;
+  border: 3px solid #2563eb;
+  object-fit: cover;
+} */
+
+/* RECORDED PREVIEW */
+/* .preview-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+} */
+/* 
+.preview-video {
+  width: 520px;
+  border-radius: 12px;
+  border: 3px solid #16a34a;
+} */
+
+/* BUTTONS */
+/* .btn-group {
+  display: flex;
+  gap: 15px;
+} */
+/* 
+button {
+  padding: 10px 22px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.start-btn {
+  background: #2563eb;
+}
+
+.stop-btn {
+  background: #dc2626;
+} */
+
+/* =========================
+   MAIN SCREEN
+========================= */
+.interview-screen {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e0f2fe, #f8fafc);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px;
+
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+/* =========================
+   TOP SECTION WRAPPER
+========================= */
+.camera-chatbot {
+  width: 100%;
+  max-width: 1200px;
+
+  display: flex;
+  flex-wrap: wrap;      /* ⭐ allows next line */
+  gap: 20px;
+}
+
+
+/* =========================
+   COMMON CARD STYLE
+========================= */
+.camera-container,
+.chatbot-container,
+.prview-video-container,
+.results-container {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  transition: all 0.25s ease;
+  box-sizing: border-box;
+}
+
+/* Hover effect */
+.camera-container:hover,
+.chatbot-container:hover,
+.prview-video-container:hover,
+.results-container:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 35px rgba(0,0,0,0.12);
+}
+
+
+/* =========================
+   ⭐ FIRST LINE (CAMERA + CHATBOT)
+========================= */
+.camera-container {
+  flex: 1 1 calc(50% - 10px);
+  min-height: 420px;
+}
+
+.chatbot-container {
+  flex: 1 1 calc(50% - 10px);
+  min-height: 420px;
+}
+
+
+/* =========================
+   ⭐ SECOND LINE (PREVIEW VIDEO)
+========================= */
+.prview-video-container {
+  flex: 1 1 100%;   /* FULL WIDTH NEXT LINE */
+  min-height: 420px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+
+/* =========================
+   VIDEO STYLE
+========================= */
+.prview-video-container video {
+  width: 100%;
+  max-width: 700px;
+  border-radius: 12px;
+  background: black;
+
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+
+.camera-container video {
+  width: 100%;
+  max-width: 700px;
+  border-radius: 12px;
+  background: black;
+
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+
+/* Download Button */
+.preview-video-download-btn {
+  margin-top: 15px;
+  padding: 12px 20px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.preview-video-download-btn:hover {
+  background: #1d4ed8;
+}
+
+
+/* =========================
+   RESULTS SECTION
+========================= */
+.results-container {
+  width: 100%;
+  max-width: 1200px;
+
+  /* auto height based on content */
+  min-height: 200px;
+}
+
+
+/* =========================
+   BUTTONS
+========================= */
+button {
+  padding: 12px 22px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.save-interview-btn {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  transition: 0.25s ease;
+}
+
+.save-interview-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(34,197,94,0.3);
+}
+
+
+/* =========================
+   MOBILE RESPONSIVE
+========================= */
+@media (max-width: 768px) {
+
+  .camera-container,
+  .chatbot-container,
+  .prview-video-container {
+    flex: 1 1 100%;
+    min-height: 300px;
+  }
+
+  .interview-screen {
+    padding: 15px;
+  }
+
+  button {
+    width: 100%;
+  }
+}

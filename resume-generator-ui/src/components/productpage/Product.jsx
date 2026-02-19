@@ -391,6 +391,9 @@ const resumedownload = async () => {
       <Link to="/">
     <button >go to home</button>
     </Link>
+         <button onClick={() => navigate("/interview-screen")}>
+         go to  interview 
+      </button>
      
  </div>
 

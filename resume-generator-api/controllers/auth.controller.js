@@ -1665,24 +1665,126 @@ exports.submitResume = async (req, res) => {
     const fetch = (...args) =>
       import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
-    const buildPrompt = (pageNum, pageData) => `
-Create ONE single-page ATS-friendly professional resume in pure HTML.
+//     const buildPrompt = (pageNum, pageData) => `
+// Create ONE single-page ATS-friendly professional resume in pure HTML.
 
-STRICT RULES:
-- Output must contain ONLY ONE <html> document
-- Use ONLY the given data for this page
-- Clean typography, professional spacing
-- Profile photo must be square or rectangle (NOT round)
+// STRICT RULES:
+// - Output must contain ONLY ONE <html> document
+// - Use ONLY the given data for this page
+// - Clean typography, professional spacing
+// - Profile photo must be square or rectangle (NOT round)
 
-IMPORTANT:
-- Insert this EXACT <img> tag for the profile photo in the profile section:
+// IMPORTANT:
+// - Insert this EXACT <img> tag for the profile photo in the profile section:
+// <img src="PHOTO_PLACEHOLDER_URL" class="profile-photo" />
+// - Do NOT modify or replace this tag. Keep it exactly as is.
+// - Do not add any other <img> tags for the profile photo.
+
+// PAGE ${pageNum} DATA:
+// ${JSON.stringify(pageData, null, 2)}
+// `;
+const buildPrompt = (pageNum, pageData, totalPages) => `
+You are generating ONE PAGE of a MULTI-PAGE professional resume.
+
+==============================
+IMPORTANT CONTEXT
+==============================
+- Total resume pages: ${totalPages}
+- You are generating ONLY PAGE ${pageNum}
+- Each page is independent.
+- NEVER repeat content from other pages.
+- DO NOT recreate the full resume again.
+- Use ONLY the data provided for THIS page.
+
+==============================
+STRICT OUTPUT RULES
+==============================
+- Output ONLY ONE complete HTML document.
+- Must include <html>, <head>, and <body>.
+- Do NOT output markdown.
+- Do NOT wrap HTML inside \`\`\`.
+- Do NOT add explanations or comments.
+- Output must be valid clean HTML.
+
+==============================
+PHOTO RULE (VERY STRICT)
+==============================
+- PAGE 1 MUST ALWAYS include this EXACT image tag inside header:
+
 <img src="PHOTO_PLACEHOLDER_URL" class="profile-photo" />
-- Do NOT modify or replace this tag. Keep it exactly as is.
-- Do not add any other <img> tags for the profile photo.
 
-PAGE ${pageNum} DATA:
+- Pages 2 and above MUST NOT include profile photo.
+- Do NOT modify this tag.
+- Do NOT create additional profile images.
+
+==============================
+DESIGN CONSISTENCY RULE (VERY IMPORTANT)
+==============================
+- All pages MUST use identical layout, typography, spacing, and colors.
+- Continue the SAME design across all pages.
+- Do NOT create a new theme or layout.
+- Maintain ATS-friendly professional styling.
+- Use clean modern resume styling with readable fonts.
+
+==============================
+SECTION RENDERING RULE (CRITICAL)
+==============================
+- Render ONLY sections present in this page data.
+- DO NOT invent information.
+- DO NOT remove valid fields.
+- EVERY field present in the data MUST appear in the HTML output.
+- NEVER skip fields even if they look optional.
+
+==============================
+FIELD → SECTION MAPPING (MANDATORY)
+==============================
+Convert fields into resume sections exactly like this:
+
+fullName → Resume Header Name
+jobTitle → Professional Title
+email → Contact Information
+phoneNumber → Contact Information
+address → Contact Information
+summary → Professional Summary
+skills OR skill → Skills Section
+linkedIn → LinkedIn Profile Link
+github → GitHub Profile Link
+education → Education Section
+languages → Languages Section
+certifications → Certifications Section
+experience → Work Experience Section
+projects → Projects Section
+achievements → Achievements Section
+volunteering → Volunteering Section
+awards → Awards Section
+notableProjects → Notable Projects Section
+publications → Publications Section
+
+If any field exists, it MUST be displayed professionally.
+
+==============================
+LAYOUT STRUCTURE RULE
+==============================
+- Header section at top.
+- Contact details below name.
+- Sections displayed using headings.
+- Use semantic HTML:
+  <section>, <h2>, <p>, <ul>, <li>
+- Maintain consistent spacing and alignment.
+
+==============================
+PAGE ${pageNum} DATA (USE ONLY THIS)
+==============================
 ${JSON.stringify(pageData, null, 2)}
+
+==============================
+FINAL VALIDATION RULE
+==============================
+If content not present in this page data is included, the output is INVALID.
+If any provided field is missing in output, the output is INVALID.
 `;
+
+
 
     const dummyHTML = (pageNum, data, showPhoto, totalPages) => `
     <!DOCTYPE html>
@@ -1771,63 +1873,115 @@ ${pageNum === totalPages ? `<div class="signature">Submitted by: ${pageOne.fullN
 
     let finalHTML = "";
 
-    for (let i = 1; i <= pagecount; i++) {
-      const pageData = i === 1 ? pageOne : i === 2 ? pageTwo : pageThree;
-    // const GEMINI_MODEL ="gemini-2.5-flash-lite";//"gemini-1.5-flash";//"gemini-2.5-flash-lite"; // safest stable
-    // const url = `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`;
+//     for (let i = 1; i <= pagecount; i++) {
+//       const pageData = i === 1 ? pageOne : i === 2 ? pageTwo : pageThree;
+//     // const GEMINI_MODEL ="gemini-2.5-flash-lite";//"gemini-1.5-flash";//"gemini-2.5-flash-lite"; // safest stable
+//     // const url = `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`;
 
-      try {
-        const response = await fetch(
- `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [
-                { role: "user", parts: [{ text: buildPrompt(i, pageData) }] }
-              ]
-            })
-          }
-        );
+//       try {
+//         const response = await fetch(
+//  `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
+//           {
+//             method: "POST",
+//             headers: { "Content-Type": "application/json" },
+//             body: JSON.stringify({
+//               contents: [
+//                 { role: "user", parts: [{ text: buildPrompt(i, pageData) }] }
+//               ]
+//             })
+//           }
+//         );
+for (let i = 1; i <= pagecount; i++) {
 
-        if (!response.ok) throw new Error("Gemini failed");
+  const pageData = i === 1 ? pageOne : i === 2 ? pageTwo : pageThree;
 
-        const result = await response.json();
-        let html = result?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  let html = "";
 
-        html = html.replace(/```html\n?/g, "").replace(/```\n?/g, "").trim();
-
-        if (!html.includes("<html")) throw new Error("Invalid HTML");
-
-        console.log(`✅ Gemini page ${i} OK`);
-        finalHTML += html;
-
-      } catch (err) {
-        console.warn(`⚠️ Gemini failed page ${i}, using dummy`);
-        finalHTML += dummyHTML(i, pageData, i === 1 && pageOne.photoUrl, pagecount);
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: buildPrompt(i, pageData, pagecount) }]
+            }
+          ]
+        })
       }
+    );
+
+    if (!response.ok) throw new Error("Gemini failed");
+
+    const result = await response.json();
+
+    html =
+      result?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    html = html.replace(/```html\n?/g, "").replace(/```\n?/g, "").trim();
+
+    if (!html.includes("<html")) throw new Error("Invalid HTML");
+
+    console.log(`✅ Gemini page ${i} OK`);
+
+  } catch (err) {
+    console.warn(`⚠️ Gemini failed page ${i}, using dummy`);
+    html = dummyHTML(i, pageData, i === 1 && pageOne.photoUrl, pagecount);
+  }
+
+  // ================= PHOTO FORCE INSERT =================
+  const photoURL =
+    pageOne.photoUrl ||
+    pageOne.photo ||
+    pageOne.photoBase64;
+
+  if (photoURL && i === 1) {
+    console.log("🔥 Forcing profile photo injection");
+
+    if (html.includes("PHOTO_PLACEHOLDER_URL")) {
+      html = html.replace(/PHOTO_PLACEHOLDER_URL/g, photoURL);
     }
+    else if (!html.includes("profile-photo")) {
+      html = html.replace(
+        /<body[^>]*>/i,
+        `$& 
+        <div class="resume-header">
+          <img src="${photoURL}" class="profile-photo" />
+        </div>`
+      );
+
+      console.log("✅ Photo manually injected");
+    }
+  }
+  // ======================================================
+
+  finalHTML += html;
+}
+
 
     // 🔥 AGGRESSIVE PHOTO REPLACEMENT
-    if (pageOne.photoUrl) {
-      console.log("🔥 Backend: Replacing photo with URL:", pageOne.photoUrl);
+    // if (pageOne.photoUrl) {
+    //   console.log("🔥 Backend: Replacing photo with URL:", pageOne.photoUrl);
 
-      finalHTML = finalHTML.replace(/PHOTO_PLACEHOLDER_URL/g, pageOne.photoUrl);
-      finalHTML = finalHTML.replace(
-        /<img\s+src=["']["']\s+class=["']profile-photo["']\s*\/?>/gi,
-        `<img src="${pageOne.photoUrl}" class="profile-photo" />`
-      );
-      finalHTML = finalHTML.replace(
-        /<img[^>]*class=["']profile-photo["'][^>]*>/gi,
-        `<img src="${pageOne.photoUrl}" class="profile-photo" />`
-      );
-      finalHTML = finalHTML.replace(
-        /<img\s+src=["'][^"']*["']\s+class=["']profile-photo["']\s*\/?>/gi,
-        `<img src="${pageOne.photoUrl}" class="profile-photo" />`
-      );
+    //   finalHTML = finalHTML.replace(/PHOTO_PLACEHOLDER_URL/g, pageOne.photoUrl);
+    //   finalHTML = finalHTML.replace(
+    //     /<img\s+src=["']["']\s+class=["']profile-photo["']\s*\/?>/gi,
+    //     `<img src="${pageOne.photoUrl}" class="profile-photo" />`
+    //   );
+    //   finalHTML = finalHTML.replace(
+    //     /<img[^>]*class=["']profile-photo["'][^>]*>/gi,
+    //     `<img src="${pageOne.photoUrl}" class="profile-photo" />`
+    //   );
+    //   finalHTML = finalHTML.replace(
+    //     /<img\s+src=["'][^"']*["']\s+class=["']profile-photo["']\s*\/?>/gi,
+    //     `<img src="${pageOne.photoUrl}" class="profile-photo" />`
+    //   );
 
-      console.log("✅ Backend: Photo replacement complete");
-    }
+    //   console.log("✅ Backend: Photo replacement complete");
+    // }
 
     res.json({
       success: true,
