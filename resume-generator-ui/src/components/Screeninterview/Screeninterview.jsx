@@ -1,5 +1,6 @@
-import { useRef, useState } from "react";
+import { useRef, useState ,useEffect} from "react";
 import "./Screeninterview.css";
+import API from "../../api"
 
 function Screeninterview() {
 
@@ -10,8 +11,24 @@ function Screeninterview() {
   const chunksRef = useRef([]);
 
   const [recordedVideo, setRecordedVideo] = useState(null);
-  const recognitionRef = useRef(null);
-  // // ▶ START CAMERA + RECORD
+  // const recognitionRef = useRef(null);
+
+  const [messages, setMessages] = useState([
+  { role: "ai", text: "Hello" },
+  { role: "user", text: "Hi" },
+  { role: "ai", text: "Explain useEffect" },
+  { role: "user", text: "I know React" },
+   { role: "ai", text: "Hello" },
+  { role: "user", text: "Hi" },
+  { role: "ai", text: "Explain useEffect" },
+  { role: "user", text: "I know React" }
+]);
+
+
+const recognitionRef = useRef(null);
+const isListeningRef=useRef(false)
+const [speechText, setSpeechText] = useState("");
+// // ▶ START CAMERA + RECORD
   // const startRecording = async () => {
   //   try {
 
@@ -156,7 +173,7 @@ mediaRecorder.start();
     
       console.log("Stopping interview...");
 
-   stopListening();
+  //  stopListening();
 
 
   // ⭐ 1. Stop recording (important)
@@ -182,60 +199,149 @@ mediaRecorder.start();
   // CHATBOT START
   const startChatbot = () => {
     console.log("Chatbot started");
+    const SpeechRecognition=
+window.SpeechRecognition || window.webkitSpeechRecognition;
+      console.log(SpeechRecognition);
+      const recognition = new SpeechRecognition();
+      // recognition.lang="en-US";
+      recognition.lang = "en-IN";
+      recognition.continuous = true;
+      recognition.interimResults = false;
+ recognition.onresult = (event) => {
+    const text =
+      event.results[event.resultIndex][0].transcript;
+console.log("your text:", text)
+    setSpeechText(text);
   };
 
+    // ✅ ADD USER MESSAGE TO CHAT
+
+  
+  // ⭐ AUTO RESTART LISTENING
+  recognition.onend = () => {
+    console.log("Recognition ended, restarting...");
+      if (isListeningRef.current) {
+    console.log("Restarting...");
+    recognition.start();
+  }
+  };
+    recognitionRef.current = recognition;
+     
+  };
+
+
+  useEffect(() => {
+  if (!speechText) return;
+
+  setMessages(prev => [
+    ...prev,
+    { role: "user", text: speechText }
+  ]);
+
+}, [speechText]);
   // MAIN FUNCTION
   const startInterview = () => {
     startCamera();   // function 1
-    startChatbot(); 
-    startListening(); // function 2
+    startChatbot();
+    isListeningRef.current = true;
+    recognitionRef.current?.start();
+    
+    // startListening(); // function 2
   };
   const stopinterview=()=>{
     stopcamara();
+    isListeningRef.current = false;
+    recognitionRef.current?.stop();
+    
 
 
   }
 
 
 
-  const startListening = () => {
+//   const startListening = () => {
 
-  const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
+//   const SpeechRecognition =
+//     window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  if (!SpeechRecognition) {
-    alert("Speech Recognition not supported");
-    return;
+//   if (!SpeechRecognition) {
+//     alert("Speech Recognition not supported");
+//     return;
+//   }
+
+//   const recognition = new SpeechRecognition();
+
+//   // ⭐ FAST SETTINGS
+//   recognition.continuous = true;      // stop ஆகாம listen
+//   recognition.interimResults = true;  // LIVE text (fast)
+//   recognition.lang = "en-US";
+
+//   recognitionRef.current = recognition;
+
+//   recognition.onresult = (event) => {
+
+//     let liveText = "";
+
+//     // latest speech collect
+//     for (let i = event.resultIndex; i < event.results.length; i++) {
+//       liveText += event.results[i][0].transcript;
+//     }
+
+//     console.log("Live:", liveText);
+//   };
+
+//   recognition.start();
+// };
+// const stopListening = () => {
+//   if (recognitionRef.current) {
+//     recognitionRef.current.stop();
+//   }
+// };
+
+
+
+
+useEffect(() => {
+
+  if (messages.length === 0) return;
+
+  // last message
+  const lastMessage = messages[messages.length - 1];
+
+  // only user message send
+  if (lastMessage.role === "user") {
+    usertextsend(lastMessage);
   }
 
-  const recognition = new SpeechRecognition();
+}, [messages]);
 
-  // ⭐ FAST SETTINGS
-  recognition.continuous = true;      // stop ஆகாம listen
-  recognition.interimResults = true;  // LIVE text (fast)
-  recognition.lang = "en-US";
 
-  recognitionRef.current = recognition;
 
-  recognition.onresult = (event) => {
 
-    let liveText = "";
-
-    // latest speech collect
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      liveText += event.results[i][0].transcript;
-    }
-
-    console.log("Live:", liveText);
-  };
-
-  recognition.start();
-};
-const stopListening = () => {
-  if (recognitionRef.current) {
-    recognitionRef.current.stop();
+const usertextsend = async(message)=>{
+  try{
+       const res = await API.post("/interview-user",message);
+       console.log("Backend response:", res.data);
   }
-};
+  catch(error){
+console.error("interview user text send error :", error);
+  }
+    
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -295,7 +401,34 @@ const stopListening = () => {
 
         {/* Right → Chatbot */}
         <div className="chatbot-container">
-          Chatbot Area
+          
+            <div className="chatbot-header">
+   
+    <div className="ai-speak-robo">
+   
+    </div>
+        <h1>🎙 AI Interview Assistant</h1>
+  </div>
+
+
+          <div className="chatbot-messages">
+  {messages.map((msg, index) => (
+    <div
+      key={index}
+      className={msg.role === "ai" ? "ai-message" : "user-message"}
+    >
+      {msg.text}
+    </div>
+  ))}
+</div>
+
+         
+
+        <div className="chatbot-controls">
+    <button className="mic-btn">Start Talking</button>
+  </div>
+
+
         </div>
         {recordedVideo && (  <div className="prview-video-container">
           {recordedVideo && (
@@ -303,6 +436,7 @@ const stopListening = () => {
   )}
 
           <button className="preview-video-download-btn">download</button>
+           <button className="preview-video-save-btn">save video</button>
        
         </div>  )}
 

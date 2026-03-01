@@ -2759,3 +2759,58 @@ exports.getResumeHTML  = async (req, res) => {
     });
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+////mock interview sgtart here 
+exports.interviewUser = async (req, res) => {
+  try {
+
+    const { role, text } = req.body;
+
+    console.log("User Message Received:");
+    console.log("Role:", role);
+    console.log("Text:", text);
+
+    res.json({
+      success: true,
+      message: "Message received"
+    });
+
+  } catch (error) {
+    console.error("Controller error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};

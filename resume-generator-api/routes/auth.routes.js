@@ -99,6 +99,7 @@ const {
   updateResumeTitle,
   deleteResumeTitle,
   getResumeHTML,
+  interviewUser,
                       // 🔥 NEW: Photo upload handler
 } = require("../controllers/auth.controller");
 
@@ -131,6 +132,28 @@ router.get(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+router.post("/interview-user",interviewUser )
 
 router.get(
   "/get-resume-html/:id",
