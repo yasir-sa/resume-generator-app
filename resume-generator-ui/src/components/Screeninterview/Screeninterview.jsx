@@ -28,6 +28,11 @@ function Screeninterview() {
 const recognitionRef = useRef(null);
 const isListeningRef=useRef(false)
 const [speechText, setSpeechText] = useState("");
+const [isProcessing, setIsProcessing] = useState(false);
+const messagesEndRef = useRef(null);
+const messagesContainerRef = useRef(null);
+
+
 // // ▶ START CAMERA + RECORD
   // const startRecording = async () => {
   //   try {
@@ -230,15 +235,96 @@ console.log("your text:", text)
   };
 
 
-  useEffect(() => {
+ useEffect(() => {
   if (!speechText) return;
+  if (isProcessing) return;
 
-  setMessages(prev => [
-    ...prev,
-    { role: "user", text: speechText }
-  ]);
+  const timer = setTimeout(() => {
+
+    setMessages(prev => [
+      ...prev,
+      { role: "user", text: speechText }
+    ]);
+
+    sendMessageToBackend(speechText);
+
+  }, 400); // small delay
+
+  return () => clearTimeout(timer);
 
 }, [speechText]);
+
+// useEffect(() => {
+//   messagesEndRef.current?.scrollIntoView({
+//     behavior: "smooth"
+//   });
+// }, [messages]);
+
+
+useEffect(() => {
+  const container = messagesContainerRef.current;
+  if (!container) return;
+
+  container.scrollTop = container.scrollHeight;
+}, [messages]);
+
+
+const sendMessageToBackend =async(text)=>{
+ try{
+     setIsProcessing(true);
+     const response=await API.post("/interview/chat",{
+      message:text
+     })
+
+
+     const aiReply=response.data.reply;
+     setMessages(prev=>[
+      ...prev,
+      {role:"ai",text:aiReply}
+     ])
+      speakAI(aiReply);
+
+ }   
+ catch(error){
+console.error("interview chat send error: ",error);
+ }
+finally {
+    setIsProcessing(false);
+  }
+}
+const speakAI = (text) => {
+
+  if (!window.speechSynthesis) return;
+  if (!text?.trim()) return;
+
+  // ⭐ STOP LISTENING
+  recognitionRef.current?.stop();
+
+  speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "en-US";
+  utterance.rate = 1;
+  utterance.pitch = 1;
+
+  // ⭐ AFTER AI FINISH → START LISTENING AGAIN
+  utterance.onend = () => {
+    console.log("AI finished speaking");
+
+    if (isListeningRef.current) {
+      recognitionRef.current?.start();
+    }
+  };
+
+  speechSynthesis.speak(utterance);
+};
+
+
+
+
+
+
+
   // MAIN FUNCTION
   const startInterview = () => {
     startCamera();   // function 1
@@ -411,7 +497,8 @@ console.error("interview user text send error :", error);
   </div>
 
 
-          <div className="chatbot-messages">
+          <div className="chatbot-messages"
+           ref={messagesContainerRef}>
   {messages.map((msg, index) => (
     <div
       key={index}
@@ -420,6 +507,8 @@ console.error("interview user text send error :", error);
       {msg.text}
     </div>
   ))}
+
+  <div ref={messagesEndRef}></div>
 </div>
 
          

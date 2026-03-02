@@ -100,6 +100,7 @@ const {
   deleteResumeTitle,
   getResumeHTML,
   interviewUser,
+  sendinterviewchat,
                       // 🔥 NEW: Photo upload handler
 } = require("../controllers/auth.controller");
 
@@ -151,7 +152,7 @@ router.get(
 
 
 
-
+router.post("/interview/chat",sendinterviewchat)
 
 router.post("/interview-user",interviewUser )
 

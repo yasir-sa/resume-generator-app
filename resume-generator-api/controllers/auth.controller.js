@@ -806,6 +806,26 @@ exports.sendMessage = async (req, res) => {
       })
     });
 
+
+
+
+    //  const GEMINI_MODEL = "google/gemma-3-27b-it:free";//"gemini-2.5-flash-lite,gemini-1.5-flash";//"gemini-2.5-flash-lite"; // safest stable
+    // const url = `https://openrouter.ai/api/v1/chat/completions`;
+
+    // // 4️⃣ API Call
+    // const response = await fetch(url, {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //     "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`//${process.env.GEMINI_API_KEY}
+    //   },
+    //   body: JSON.stringify({
+    //     model: GEMINI_MODEL,
+    //    messages: messages, // messages,
+    //     temperature: 0.7
+    //   })
+    // });
+
     if (!response.ok) {
       const errText = await response.text();
       console.error("Gemini Error:", response.status, errText);
@@ -2814,3 +2834,44 @@ exports.interviewUser = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+
+
+
+exports.sendinterviewchat =async(req,res)=>{
+   try{
+     const {message}=req.body;
+
+     console.log("this is user request:",message)
+
+
+
+
+      return res.status(200).json({
+      reply: "Backend received: " + message
+    });
+   }
+   catch(error){
+    console.error("interview chat error:",error)
+    return res.status(500).json({
+      message:"interview chat Server error"
+    })
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//this is for send interview chat to lm model and get response to send ui 
