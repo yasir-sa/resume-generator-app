@@ -1,6 +1,7 @@
 import { useRef, useState ,useEffect} from "react";
 import "./Screeninterview.css";
 import API from "../../api"
+import Robot from "../robot/Robot"
 
 function Screeninterview() {
 
@@ -491,7 +492,7 @@ console.error("interview user text send error :", error);
             <div className="chatbot-header">
    
     <div className="ai-speak-robo">
-   
+     <Robot />
     </div>
         <h1>🎙 AI Interview Assistant</h1>
   </div>
