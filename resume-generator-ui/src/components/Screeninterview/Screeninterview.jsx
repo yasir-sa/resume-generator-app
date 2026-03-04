@@ -32,7 +32,7 @@ const [speechText, setSpeechText] = useState("");
 const [isProcessing, setIsProcessing] = useState(false);
 const messagesEndRef = useRef(null);
 const messagesContainerRef = useRef(null);
-
+const [voices, setVoices] = useState([]);
 
 // // ▶ START CAMERA + RECORD
   // const startRecording = async () => {
@@ -293,25 +293,71 @@ finally {
     setIsProcessing(false);
   }
 }
+// const speakAI = (text) => {
+
+//   if (!window.speechSynthesis) return;
+//   if (!text?.trim()) return;
+
+//   // ⭐ STOP LISTENING
+//   recognitionRef.current?.stop();
+
+//   speechSynthesis.cancel();
+
+//   const utterance = new SpeechSynthesisUtterance(text);
+//   utterance.lang = "en-US";
+//   utterance.rate = 1;
+//   utterance.pitch = 1;
+
+//   // ⭐ AFTER AI FINISH → START LISTENING AGAIN
+//   utterance.onend = () => {
+//     console.log("AI finished speaking");
+
+//     if (isListeningRef.current) {
+//       recognitionRef.current?.start();
+//     }
+//   };
+
+//   speechSynthesis.speak(utterance);
+// };
+
+
+
+useEffect(() => {
+  const loadVoices = () => {
+    const voiceList = speechSynthesis.getVoices();
+    setVoices(voiceList);
+    console.log("Available voices:", voiceList);
+  };
+
+  loadVoices();
+
+  speechSynthesis.onvoiceschanged = loadVoices;
+
+}, []);
 const speakAI = (text) => {
 
   if (!window.speechSynthesis) return;
   if (!text?.trim()) return;
 
-  // ⭐ STOP LISTENING
   recognitionRef.current?.stop();
-
   speechSynthesis.cancel();
 
   const utterance = new SpeechSynthesisUtterance(text);
+
+  // ⭐ female voice select (exact name console-la check pannunga)
+  const femaleVoice = voices.find(
+    (voice) => voice.name.includes("Zira") // or exact name
+  );
+
+  if (femaleVoice) {
+    utterance.voice = femaleVoice;
+  }
+
   utterance.lang = "en-US";
   utterance.rate = 1;
-  utterance.pitch = 1;
+  utterance.pitch = 1.2;
 
-  // ⭐ AFTER AI FINISH → START LISTENING AGAIN
   utterance.onend = () => {
-    console.log("AI finished speaking");
-
     if (isListeningRef.current) {
       recognitionRef.current?.start();
     }
@@ -319,8 +365,6 @@ const speakAI = (text) => {
 
   speechSynthesis.speak(utterance);
 };
-
-
 
 
 
