@@ -224,15 +224,32 @@ console.log("your text:", text)
 
   
   // ⭐ AUTO RESTART LISTENING
-  recognition.onend = () => {
-    console.log("Recognition ended, restarting...");
-      if (isListeningRef.current) {
-    console.log("Restarting...");
-    recognition.start();
-  }
+ recognition.onend = () => {
+    console.log("Recognition ended, checking for restart...");
+    
+    // Safety check: isListeningRef true-va irundha mattum restart pannu
+    if (isListeningRef.current) {
+      setTimeout(() => {
+        try {
+          // Check if it's already running before starting
+          recognition.start();
+          console.log("Restarted successfully");
+        } catch (err) {
+          // Inga error vandha "Already started"-nu artham, so ignore pannidalam
+          console.log("Recognition is already running, no need to restart.");
+        }
+      }, 300); // 300ms gap kodunga, browser clear aaga time venum
+    }
   };
+
+  // Initial Start-kum try-catch podunga
+  try {
+    recognition.start();
+  } catch (e) {
+    console.log("Initial start failed or already active:", e);
+  }
     recognitionRef.current = recognition;
-     
+    
   };
 
 
