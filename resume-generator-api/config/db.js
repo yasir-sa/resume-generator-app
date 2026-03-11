@@ -40,7 +40,6 @@
 
 // module.exports = pool;
 
-
 const { Pool } = require("pg");
 require("dotenv").config();
 
@@ -51,21 +50,22 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT,
   ssl: {
-    rejectUnauthorized: false, // Keep this false for Neon unless using custom CA
+    rejectUnauthorized: false, // Neon-க்கு இது மிகவும் முக்கியம்
   },
-  // Adding these helps manage serverless "idling"
-  connectionTimeoutMillis: 5000,
+  // Pooler பயன்படுத்துவதால் இவை கூடுதல் பாதுகாப்பு தரும்
+  max: 10,
   idleTimeoutMillis: 30000,
 });
 
-// CRITICAL: This prevents the app from crashing if a connection drops
 pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-  // Don't exit the process; the pool will try to create a new client on the next request
+  console.error('Unexpected error on idle client', err.message);
 });
 
-pool.connect()
+// எளிய Query மூலம் இணைப்பை உறுதி செய்தல்
+pool.query('SELECT NOW()')
   .then(() => console.log("Connected to Neon DB ✅"))
-  .catch(err => console.error("Connection error to Neon DB ❌", err));
+  .catch(err => console.error("Connection error to Neon DB ❌", err.message));
 
-module.exports = pool;
+module.exports = {
+  query: (text, params) => pool.query(text, params),
+};

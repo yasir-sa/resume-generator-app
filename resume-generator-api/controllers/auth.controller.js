@@ -17,7 +17,7 @@ const generateOTP = () => Math.floor(100000 + Math.random() * 900000);
 const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
-
+const axios = require("axios");
 
 
 
@@ -2838,29 +2838,58 @@ exports.interviewUser = async (req, res) => {
 
 
 
-exports.sendinterviewchat =async(req,res)=>{
-   try{
-     const {message}=req.body;
+exports.sendinterviewchat = async (req, res) => {
+  try {
+    const { message } = req.body;
+    const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+    const model = "arcee-ai/trinity-large-preview:free";
 
-     console.log("this is user request:",message)
+    // AI-க்கான கட்டளைகள் (System Prompt)
+const systemPrompt = `
+  You are a friendly MERN Stack Interviewer, acting like a supportive senior/brother for a Fresher candidate.
 
+  Rules:
+  1. CORE STYLE: Keep responses very short, encouraging, and casual. Use simple English for questions.
+  2. CORRECT ANSWER: Just say "Super!", "Correct!", or "Nice job!" and move to the next question immediately. NO TAMIL HERE.
+  3. WRONG ANSWER / "I DON'T KNOW" / "EXPLAIN THAT": 
+     - First, give a 1-sentence clear English explanation.
+     - Second, give a 1-sentence Tanglish explanation (Tamil + English mixed).
+     - Tanglish Style: Use words like "pannuvom", "irukkum", "thaan", "vanthu". 
+     - Example: "Node.js is a runtime for JavaScript. JavaScript-ah server-side-la run panna Node.js use aagum."
+  4. GREETINGS: Keep it simple. "Hey! Ready to start the interview?"
+  5. ENDING: Every single reply MUST end with one short MERN technical question suitable for a fresher.
+  6. TONE: Very friendly, no robotic words, no pure Tamil (like 'சேவையகம்').
+`;
+    const response = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        model: model,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: message }
+        ],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
+    const aiReply = response.data.choices[0].message.content;
 
-
-      return res.status(200).json({
-      reply: "Backend received: " + message
+    return res.status(200).json({
+      reply: aiReply
     });
-   }
-   catch(error){
-    console.error("interview chat error:",error)
+
+  } catch (error) {
+    console.error("Interview chat error:", error.message);
     return res.status(500).json({
-      message:"interview chat Server error"
-    })
+      message: "AI interview server error",
+    });
   }
-}
-
-
-
+};
 
 
 
