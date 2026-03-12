@@ -33,7 +33,7 @@ const [isProcessing, setIsProcessing] = useState(false);
 const messagesEndRef = useRef(null);
 const messagesContainerRef = useRef(null);
 const [voices, setVoices] = useState([]);
-
+const [isSpeaking, setIsSpeaking] = useState(false);
 // // ▶ START CAMERA + RECORD
   // const startRecording = async () => {
   //   try {
@@ -351,39 +351,54 @@ useEffect(() => {
   speechSynthesis.onvoiceschanged = loadVoices;
 
 }, []);
+// 1. ஒரு புதிய State-ஐ உங்கள் Component-க்குள் சேர்க்கவும்
 const speakAI = (text) => {
+  if (!window.speechSynthesis || !text?.trim()) return;
 
-  if (!window.speechSynthesis) return;
-  if (!text?.trim()) return;
-
+  // மைக்ரோபோனை நிறுத்துகிறோம்
   recognitionRef.current?.stop();
   speechSynthesis.cancel();
 
   const utterance = new SpeechSynthesisUtterance(text);
 
-  // ⭐ female voice select (exact name console-la check pannunga)
-  const femaleVoice = voices.find(
-    (voice) => voice.name.includes("Zira") // or exact name
-  );
-
+  // 1. குரலைத் தேர்ந்தெடுத்தல் (Voices இன்னும் வரவில்லை என்றால் default எடுக்கும்)
+  const femaleVoice = voices.find((v) => v.name.includes("Zira") || v.name.includes("Google US English"));
   if (femaleVoice) {
     utterance.voice = femaleVoice;
   }
-
+  
   utterance.lang = "en-US";
   utterance.rate = 1;
   utterance.pitch = 1.2;
 
+  // 2. ⭐ முக்கியமான மாற்றம்: speak() செய்யுமுன் events-ஐ செட் பண்ணவும்
+  utterance.onstart = () => {
+    console.log("AI starts speaking... Animation should start");
+    setIsSpeaking(true); // இது Robot.jsx-க்கு சிக்னல் அனுப்பும்
+  };
+
   utterance.onend = () => {
+    console.log("AI finished speaking.");
+    setIsSpeaking(false); // வாய் அசைப்பதை நிறுத்தும்
+    
+    // AI பேசி முடித்ததும் மீண்டும் மைக் ஆன் ஆக வேண்டும்
     if (isListeningRef.current) {
-      recognitionRef.current?.start();
+      try {
+        recognitionRef.current?.start();
+      } catch (e) {
+        console.log("Recognition restart ignored");
+      }
     }
   };
 
+  utterance.onerror = (event) => {
+    console.error("SpeechSynthesis error:", event.error);
+    setIsSpeaking(false);
+  };
+
+  // 3. இப்போது பேசச் சொல்லுங்கள்
   speechSynthesis.speak(utterance);
 };
-
-
 
 
 
@@ -553,8 +568,9 @@ console.error("interview user text send error :", error);
             <div className="chatbot-header">
    
     <div className="ai-speak-robo">
-     <Robot />
-    </div>
+  
+  <Robot isSpeaking={isSpeaking} />
+</div>
         <h1>🎙 AI Interview Assistant</h1>
   </div>
 
