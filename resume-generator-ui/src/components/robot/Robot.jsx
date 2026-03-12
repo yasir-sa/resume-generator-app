@@ -99,7 +99,7 @@ useEffect(() => {
     }
   });
 
-  return <primitive object={scene} scale={9.0} position={[0, -12.5, 0]} />;
+  return <primitive object={scene} scale={10.5} position={[0, -15.5, 0]} />;
 }
 
 // 2. Main Robot Component
@@ -108,17 +108,19 @@ function Robot({ isSpeaking }) {
   useEffect(() => {
     console.log("%c [Robot Prop Change] ", "background: #1a1a1a; color: #a5d6a7", "isSpeaking =", isSpeaking);
   }, [isSpeaking]);
+return (
+  <Canvas camera={{ position: [0, 0, 5] }}>
+    <ambientLight intensity={1.5} />
+    <directionalLight position={[2, 2, 2]} />
 
-  return (
-    
-           <Canvas camera={{ position: [0, 0, 5] }}>
-      <ambientLight intensity={1.5} />
-      <directionalLight position={[2, 2, 2]} />
-     <Model isSpeaking={isSpeaking} />
-      <OrbitControls enableZoom={false} />
-    </Canvas>
+    <Model isSpeaking={isSpeaking} />
 
-  );
+    <OrbitControls 
+      enableZoom={false}
+      target={[0, 0, 0]}
+    />
+  </Canvas>
+);
 }
 
 // 3. ⚠️ IMPORTANT: இதுதான் அந்த Build Error-ஐ சரி செய்யும்
