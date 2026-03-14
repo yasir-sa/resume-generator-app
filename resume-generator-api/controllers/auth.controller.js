@@ -2838,35 +2838,93 @@ exports.interviewUser = async (req, res) => {
 
 
 
+// exports.sendinterviewchat = async (req, res) => {
+//   try {
+//     const { message } = req.body;
+//     const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+//     const model = "arcee-ai/trinity-large-preview:free";
+
+//     // AI-க்கான கட்டளைகள் (System Prompt)
+// const systemPrompt = `
+//   You are a friendly MERN Stack Interviewer, acting like a supportive senior/brother for a Fresher candidate.
+
+//   Rules:
+//   1. CORE STYLE: Keep responses very short, encouraging, and casual. Use simple English for questions.
+//   2. CORRECT ANSWER: Just say "Super!", "Correct!", or "Nice job!" and move to the next question immediately. NO TAMIL HERE.
+//   3. WRONG ANSWER / "I DON'T KNOW" / "EXPLAIN THAT": 
+//      - First, give a 1-sentence clear English explanation.
+//      - Second, give a 1-sentence Tanglish explanation (Tamil + English mixed).
+//      - Tanglish Style: Use words like "pannuvom", "irukkum", "thaan", "vanthu". 
+//      - Example: "Node.js is a runtime for JavaScript. JavaScript-ah server-side-la run panna Node.js use aagum."
+//   4. GREETINGS: Keep it simple. "Hey! Ready to start the interview?"
+//   5. ENDING: Every single reply MUST end with one short MERN technical question suitable for a fresher.
+//   6. TONE: Very friendly, no robotic words, no pure Tamil (like 'சேவையகம்').
+// `;
+//     const response = await axios.post(
+//       "https://openrouter.ai/api/v1/chat/completions",
+//       {
+//         model: model,
+//         messages: [
+//           { role: "system", content: systemPrompt },
+//           { role: "user", content: message }
+//         ],
+//       },
+//       {
+//         headers: {
+//           Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+//           "Content-Type": "application/json",
+//         },
+//       }
+//     );
+
+//     const aiReply = response.data.choices[0].message.content;
+
+//     return res.status(200).json({
+//       reply: aiReply
+//     });
+
+//   } catch (error) {
+//     console.error("Interview chat error:", error.message);
+//     return res.status(500).json({
+//       message: "AI interview server error",
+//     });
+//   }
+// };
+
+
 exports.sendinterviewchat = async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, oldData } = req.body; 
     const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
     const model = "arcee-ai/trinity-large-preview:free";
 
-    // AI-க்கான கட்டளைகள் (System Prompt)
 const systemPrompt = `
-  You are a friendly MERN Stack Interviewer, acting like a supportive senior/brother for a Fresher candidate.
+  Role: You are 'Anna', a friendly and supportive MERN senior brother.
 
-  Rules:
-  1. CORE STYLE: Keep responses very short, encouraging, and casual. Use simple English for questions.
-  2. CORRECT ANSWER: Just say "Super!", "Correct!", or "Nice job!" and move to the next question immediately. NO TAMIL HERE.
-  3. WRONG ANSWER / "I DON'T KNOW" / "EXPLAIN THAT": 
-     - First, give a 1-sentence clear English explanation.
-     - Second, give a 1-sentence Tanglish explanation (Tamil + English mixed).
-     - Tanglish Style: Use words like "pannuvom", "irukkum", "thaan", "vanthu". 
-     - Example: "Node.js is a runtime for JavaScript. JavaScript-ah server-side-la run panna Node.js use aagum."
-  4. GREETINGS: Keep it simple. "Hey! Ready to start the interview?"
-  5. ENDING: Every single reply MUST end with one short MERN technical question suitable for a fresher.
-  6. TONE: Very friendly, no robotic words, no pure Tamil (like 'சேவையகம்').
+  STRICT FLOW & RULES:
+  1. FIRST STEP (MUST): Your very first reply MUST be: "Hi! I am Anna, your interviewer. Unga per enna? Please introduce yourself."
+  2. LENGTH: Each reply must be between 10 to 20 words only. Be very concise.
+  3. MANDATORY ENDING: Every single reply MUST end with exactly one question.
+  4. LANGUAGE: Use simple English mixed with basic Tanglish (e.g., "pannunga", "irukka"). No local slang.
+  5. INTERVIEW START: Only after the user introduces themselves, say "Nice! Let's start the interview" and ask the first MERN technical question.
+  6. FOCUS: If the user talks about other things, say "[User Name], let's concentrate on the interview" and ask a technical question.
+  7. TONE: Be encouraging and supportive like a real elder brother.
 `;
+    // 1. OldData format-ah map panni oru array-la vechupom
+    const formattedHistory = (oldData || []).map(msg => ({
+      role: msg.role === "ai" ? "assistant" : "user",
+      content: msg.text,
+    }));
+
+    // 2. Axios post-kulla direct-ah ellathaiyum "spread" panni anupalam
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
         model: model,
         messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: message }
+          { role: "system", content: systemPrompt }, // (1) Seperated System Prompt
+          ...formattedHistory,                       // (2) Seperated Old Data (spread operator)
+          { role: "user", content: message }         // (3) Seperated Current Message
         ],
       },
       {
@@ -2879,18 +2937,13 @@ const systemPrompt = `
 
     const aiReply = response.data.choices[0].message.content;
 
-    return res.status(200).json({
-      reply: aiReply
-    });
+    return res.status(200).json({ reply: aiReply });
 
   } catch (error) {
     console.error("Interview chat error:", error.message);
-    return res.status(500).json({
-      message: "AI interview server error",
-    });
+    return res.status(500).json({ message: "AI interview server error" });
   }
 };
-
 
 
 

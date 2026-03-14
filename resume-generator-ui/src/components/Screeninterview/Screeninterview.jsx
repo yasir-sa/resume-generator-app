@@ -291,7 +291,8 @@ const sendMessageToBackend =async(text)=>{
  try{
      setIsProcessing(true);
      const response=await API.post("/interview/chat",{
-      message:text
+      message:text,
+      oldData: messages
      })
 
 
