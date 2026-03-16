@@ -376,15 +376,25 @@ button {
   border-radius: 10px;
 }
 
-/* ===== CHAT BUBBLES ===== */
-.ai-message,
+/* ===== CHAT BUBBLES ===== */.ai-message,
 .user-message {
-  max-width: 75%;
+  max-width: 85%; /* 75% irundha innum konjam increase pannalaam */
   padding: 10px 14px;
   border-radius: 14px;
   font-size: 14px;
   line-height: 1.5;
   word-wrap: break-word;
+  
+  display: flex;          /* Flex use pannunga */
+  align-items: flex-start; /* Icon top-la align aaga 'flex-start' best */
+  gap: 10px;              /* Text-kum icon-kum idaiyila gap */
+}
+
+/* Speaker icon-oda size shrink aagaama irukka idhu dhaan mukkiyam */
+.speaker-icon {
+  flex-shrink: 0; 
+  cursor: pointer;
+  margin-top: 3px; /* Text line-oda align aaga chinna adjustment */
 }
 
 .ai-message {
@@ -399,8 +409,8 @@ button {
   background: #2563eb;
   color: white;
   margin-right: 10px;
+  flex-direction: row-reverse; /* User message-la icon munnadi vara optional */
 }
-
 /* ===== CONTROLS ===== */
 .chatbot-controls {
   padding: 12px;

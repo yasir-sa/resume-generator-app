@@ -2,6 +2,7 @@ import { useRef, useState ,useEffect} from "react";
 import "./Screeninterview.css";
 import API from "../../api"
 import Robot from "../robot/Robot"
+import { Volume2 } from 'lucide-react';
 
 function Screeninterview() {
 
@@ -34,6 +35,8 @@ const messagesEndRef = useRef(null);
 const messagesContainerRef = useRef(null);
 const [voices, setVoices] = useState([]);
 const [isSpeaking, setIsSpeaking] = useState(false);
+const [activeSpeakingIndex, setActiveSpeakingIndex] = useState(null);
+const [userListening, setUserListening] = useState(false);
 // // ▶ START CAMERA + RECORD
   // const startRecording = async () => {
   //   try {
@@ -214,12 +217,17 @@ window.SpeechRecognition || window.webkitSpeechRecognition;
       recognition.continuous = true;
       recognition.interimResults = false;
  recognition.onresult = (event) => {
-    const text =
-      event.results[event.resultIndex][0].transcript;
-console.log("your text:", text)
-    setSpeechText(text);
-  };
+  // ⭐ AI pesitu irundha (isListeningRef false-ah irundha) 
+  // mic vanguva data-va accept panna koodathu.
+  if (!isListeningRef.current) {
+    console.log("AI is speaking, ignoring result...");
+    return; 
+  }
 
+  const text = event.results[event.resultIndex][0].transcript;
+  console.log("your text:", text);
+  setSpeechText(text);
+};
     // ✅ ADD USER MESSAGE TO CHAT
 
   
@@ -252,26 +260,33 @@ console.log("your text:", text)
     
   };
 
-
- useEffect(() => {
+useEffect(() => {
   if (!speechText) return;
   if (isProcessing) return;
 
-  const timer = setTimeout(() => {
+  // ⭐ AI pesikittu irundha (userListening true), indha function-ah execute pannaadhu
+  if (userListening) {
+    console.log("AI is speaking, so ignoring this speech input.");
+    return;
+  }
 
+  const timer = setTimeout(() => {
     setMessages(prev => [
       ...prev,
       { role: "user", text: speechText }
     ]);
 
     sendMessageToBackend(speechText);
+    
+    // Message anupuna apuram speechText-ah clear pannanum
+    // Illana userListening false aanavudan thirumba old text anuppa vaaippu iruku
+    setSpeechText(""); 
 
-  }, 400); // small delay
+  }, 400);
 
   return () => clearTimeout(timer);
 
-}, [speechText]);
-
+}, [speechText, userListening]); // userListening dependency-ah add pannunga
 // useEffect(() => {
 //   messagesEndRef.current?.scrollIntoView({
 //     behavior: "smooth"
@@ -496,19 +511,60 @@ console.error("interview user text send error :", error);
 
 
 
+const clikaispeak = (text, index) => {
+  if (!window.speechSynthesis || !text?.trim()) return;
 
+  window.speechSynthesis.cancel();
+  
+  setUserListening(true);
+  isListeningRef.current = false;
 
+  const utterance = new SpeechSynthesisUtterance(text);
 
+  // 🎤 Female Voice Selection Logic
+  const allVoices = window.speechSynthesis.getVoices();
+  
+  // 1. First choice: Microsoft Zira (Clean Female Voice)
+  // 2. Second choice: Google US English (Female)
+  // 3. Third choice: Any voice that contains "female" in its name
+  let selectedVoice = allVoices.find(v => v.name.includes("Zira")) || 
+                      allVoices.find(v => v.name.includes("Google US English") && v.name.includes("Female")) ||
+                      allVoices.find(v => v.name.toLowerCase().includes("female"));
 
+  if (selectedVoice) {
+    utterance.voice = selectedVoice;
+  }
 
+  // Female voice-ku pitch konjam adhigama irundha nalla irukkum
+  utterance.pitch = 1.3; 
+  utterance.rate = 1.0;
+  utterance.lang = "en-US";
 
+  utterance.onstart = () => {
+    setIsSpeaking(true);
+    setActiveSpeakingIndex(index);
+    if (recognitionRef.current) {
+       recognitionRef.current.stop();
+    }
+  };
 
+  utterance.onend = () => {
+    setIsSpeaking(false);
+    setActiveSpeakingIndex(null);
+    isListeningRef.current = true;
+    setUserListening(false);
 
+    setTimeout(() => {
+      if (recognitionRef.current && isListeningRef.current) {
+        try {
+          recognitionRef.current.start();
+        } catch (err) { console.log("Restart failed:", err); }
+      }
+    }, 500); 
+  };
 
-
-
-
-
+  window.speechSynthesis.speak(utterance);
+};
   return (
     // <div className="interview-screen">
 
@@ -582,8 +638,17 @@ console.error("interview user text send error :", error);
     <div
       key={index}
       className={msg.role === "ai" ? "ai-message" : "user-message"}
+      // onClick={() => clikaispeak(msg.text)}
     >
       {msg.text}
+ 
+<Volume2 
+    className="speaker-icon" // CSS class inga add pannunga
+    size={20} 
+    color={activeSpeakingIndex === index ? "#22c55e" : "#888"} 
+    onClick={() => clikaispeak(msg.text, index)}
+  />
+   
     </div>
   ))}
 
