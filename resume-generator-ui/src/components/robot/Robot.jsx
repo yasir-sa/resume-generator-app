@@ -1,115 +1,100 @@
-
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, useGLTF } from "@react-three/drei";
+import { OrbitControls, useGLTF, useAnimations, useFBX } from "@react-three/drei";
 import * as THREE from "three";
 
-// 1. Model Component - இது 3D மாடலை அனிமேட் செய்யும்
 function Model({ isSpeaking }) {
-  const { scene } = useGLTF("/models/female2.glb");
-  const headMeshRef = useRef(null);
-  const [mouthIndices, setMouthIndices] = useState([]);
+  // 1. மெயின் GLB மாடல்
+  const { scene } = useGLTF("/models/female5.glb"); 
+  
+  // 2. FBX அனிமேஷன் ஃபைல் (பெயர் மாற்றப்பட்டுள்ளது)
+  const idleFbx = useFBX("/models/Standing Idle (2).fbx"); 
 
-useEffect(() => {
-  console.log("%c [Model] Loading Phase Started ", "background:#333;color:#4fc3f7");
+  const animatedMeshesRef = useRef([]);
+  const mouthRef = useRef([]);
+  
+  // FBX-ல் உள்ள அனிமேஷன்களை scene-உடன் இணைக்கிறோம்
+  const { actions, mixer } = useAnimations(idleFbx.animations, scene);
 
-  scene.traverse((obj) => {
-
-    if (!obj.isMesh) return;
-
-    console.log(`[Mesh Found]: ${obj.name}`);
-
-    // ⭐ Only head mesh select
-    if (obj.name === "Wolf3D_Head" && obj.morphTargetDictionary) {
-
-      console.log("🎯 Morph Targets found on HEAD:", obj.name);
-
-      const indices = [];
-
-      Object.keys(obj.morphTargetDictionary).forEach((key) => {
-
-        const lower = key.toLowerCase();
-
-        if (
-          lower.includes("viseme") ||
-          lower.includes("mouth") ||
-          lower.includes("jaw")
-        ) {
-          indices.push(obj.morphTargetDictionary[key]);
-        }
-
-      });
-
-      if (indices.length > 0) {
-
-        headMeshRef.current = obj;
-        setMouthIndices(indices);
-
-        console.log(
-          "✅ Mouth animation linked ONLY to HEAD:",
-          obj.name,
-          indices
-        );
-
-      } else {
-
-        console.warn("⚠️ Head found but no mouth morph targets");
-
-      }
-
-    }
-
-  });
-
-  if (!headMeshRef.current) {
-    console.error("❌ Could not find Wolf3D_Head mesh");
-  }
-
-}, [scene]);
-
-  useFrame((state) => {
-    if (!headMeshRef.current || mouthIndices.length === 0) return;
-
-    if (isSpeaking) {
-      const time = state.clock.getElapsedTime();
-      // இது வாயை 0 முதல் 0.8 வரை திறந்து மூடும்
-      const targetValue = (Math.sin(time * 25) + 1) / 2 * 0.8;
-
-      // ஒவ்வொரு 2 வினாடிக்கும் ஒருமுறை வேல்யூவை காட்டும் (கன்சோல் குப்பை ஆகாமல் இருக்க)
-      if (Math.floor(time) % 2 === 0 && Math.floor(time * 60) % 60 === 0) {
-        console.log(`🎤 %c AI Speaking... Mouth Value: ${targetValue.toFixed(2)}`, "color: #ba68c8");
-      }
-
-      mouthIndices.forEach(index => {
-        headMeshRef.current.morphTargetInfluences[index] = THREE.MathUtils.lerp(
-          headMeshRef.current.morphTargetInfluences[index],
-          targetValue,
-          0.25
-        );
-      });
-    } else {
-      // AI பேசாத போது வாயை மெதுவாக மூடும்
-      mouthIndices.forEach(index => {
-        headMeshRef.current.morphTargetInfluences[index] = THREE.MathUtils.lerp(
-          headMeshRef.current.morphTargetInfluences[index],
-          0,
-          0.2
-        );
+  // 3. Bone Mapping & Position Filtering
+  useMemo(() => {
+    if (idleFbx.animations) {
+      idleFbx.animations.forEach((clip) => {
+        // மாடல் மறைவதைத் தடுக்க position டிராக்குகளை நீக்குகிறோம்
+        clip.tracks = clip.tracks.filter(track => !track.name.includes('.position'));
+        
+        clip.tracks.forEach((track) => {
+          // Mixamo எலும்புப் பெயர்களை மாற்றுதல்
+          track.name = track.name.replace("mixamorig", "");
+        });
       });
     }
-  });
+  }, [idleFbx]);
 
-  return <primitive object={scene} scale={10.5} position={[0, -15.5, 0]} />;
-}
-
-// 2. Main Robot Component
-function Robot({ isSpeaking }) {
-  // Screeninterview-லிருந்து Prop வருகிறதா என செக் செய்கிறோம்
   useEffect(() => {
-    console.log("%c [Robot Prop Change] ", "background: #1a1a1a; color: #a5d6a7", "isSpeaking =", isSpeaking);
-  }, [isSpeaking]);
-return (
-  <Canvas camera={{ position: [0, 0, 5] }}>
+    // அனிமேஷனை பிளே செய்தல்
+    if (actions) {
+      const firstAction = Object.keys(actions)[0];
+      if (actions[firstAction]) {
+        actions[firstAction].reset().fadeIn(0.5).play();
+      }
+    }
+
+    const meshes = [];
+    const mouths = [];
+    scene.traverse((obj) => {
+      if (obj.isMesh && obj.morphTargetDictionary) {
+        meshes.push(obj);
+        const dict = obj.morphTargetDictionary;
+        if (dict["jawOpen"] !== undefined) {
+          mouths.push({ mesh: obj, index: dict["jawOpen"] });
+        } else if (dict["mouthOpen"] !== undefined) {
+          mouths.push({ mesh: obj, index: dict["mouthOpen"] });
+        }
+      }
+    });
+    animatedMeshesRef.current = meshes;
+    mouthRef.current = mouths;
+  }, [scene, actions]);
+
+  useFrame((state, delta) => {
+    if (mixer) mixer.update(delta);
+    
+    const time = state.clock.getElapsedTime();
+
+    // 🎤 Mouth Sync (பேசும்போது வாய் அசைவு)
+    const mouthValue = isSpeaking ? (Math.sin(time * 18) + 1) / 2 * 0.45 : 0;
+    mouthRef.current.forEach(({ mesh, index }) => {
+      mesh.morphTargetInfluences[index] = THREE.MathUtils.lerp(
+        mesh.morphTargetInfluences[index],
+        mouthValue,
+        0.15 
+      );
+    });
+
+    // 👀 Eye Blink
+    const blinkCycle = time % 5;
+    const targetBlink = blinkCycle > 4.8 ? 1 : 0;
+    animatedMeshesRef.current.forEach((mesh) => {
+      const dict = mesh.morphTargetDictionary;
+      const eyeIndex = dict["eyeBlinkLeft"] || dict["eyeClosed"] || dict["blink"];
+      if (eyeIndex !== undefined) {
+        mesh.morphTargetInfluences[eyeIndex] = THREE.MathUtils.lerp(mesh.morphTargetInfluences[eyeIndex], targetBlink, 0.5);
+      }
+    });
+  });
+
+    
+
+  return <primitive object={scene} scale={60.5} position={[0, -35.5, 0]} />;
+}
+// ... (Model component அப்படியே இருக்கட்டும்)
+
+function Robot({ isSpeaking }) {
+  return (
+    // Camera-வை இன்னும் கொஞ்சம் பின்னால் நகர்த்தியுள்ளேன் [0, 0, 15] 
+    // ஏனெனில் உங்கள் scale 50.5 என்பது மிக அதிகம்.
+   <Canvas camera={{ position: [0, 0, 10],fov: 30 }}>
     <ambientLight intensity={1.5} />
     <directionalLight position={[2, 2, 2]} />
 
@@ -118,18 +103,10 @@ return (
     <OrbitControls 
       enableZoom={false}
       target={[0, 0, 0]}
+      enableRotate={false}
+      enablePan={false}
     />
   </Canvas>
-);
+  );
 }
-
-// 3. ⚠️ IMPORTANT: இதுதான் அந்த Build Error-ஐ சரி செய்யும்
 export default Robot;
-//     <Canvas camera={{ position: [0, 0, 5] }}>
-//       <ambientLight intensity={1.5} />
-//       <directionalLight position={[2, 2, 2]} />
-//       <Model />
-//       <OrbitControls enableZoom={false} />
-//     </Canvas>
-// </>
-//     )
