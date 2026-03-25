@@ -37,6 +37,12 @@ const [voices, setVoices] = useState([]);
 const [isSpeaking, setIsSpeaking] = useState(false);
 const [activeSpeakingIndex, setActiveSpeakingIndex] = useState(null);
 const [userListening, setUserListening] = useState(false);
+
+
+
+
+const [animationMessage, setAnimationMessage] = useState("hi_animation");
+
 // // ▶ START CAMERA + RECORD
   // const startRecording = async () => {
   //   try {
@@ -626,7 +632,7 @@ const clikaispeak = (text, index) => {
    
     <div className="ai-speak-robo">
   
-  <Robot isSpeaking={isSpeaking} />
+  <Robot isSpeaking={isSpeaking}    animationMessage={animationMessage}/>
 </div>
         <h1>🎙 AI Interview Assistant</h1>
   </div>
