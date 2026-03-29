@@ -1,9 +1,9 @@
 import { useRef, useState ,useEffect} from "react";
 import "./Screeninterview.css";
 import API from "../../api"
-import Robot from "../robot/Robot"
+// import Robot from "../robot/Robot"
 import { Volume2 } from 'lucide-react';
-
+import { init, showModel, hideModel, setSpeaking } from "../script/script.js"
 function Screeninterview() {
 
   const videoRef = useRef(null);
@@ -37,12 +37,25 @@ const [voices, setVoices] = useState([]);
 const [isSpeaking, setIsSpeaking] = useState(false);
 const [activeSpeakingIndex, setActiveSpeakingIndex] = useState(null);
 const [userListening, setUserListening] = useState(false);
-
+const roboContainerRef = useRef(null);
 
 
 
 const [animationMessage, setAnimationMessage] = useState("hi_animation");
 
+
+
+
+
+useEffect(() => {
+    if (roboContainerRef.current) {
+      init(roboContainerRef.current);
+    }
+  }, []);
+  // 🔴 isSpeaking மாறும்போது 3D மாடலுக்குத் தகவல் அனுப்புகிறோம்
+  useEffect(() => {
+    setSpeaking(isSpeaking);
+  }, [isSpeaking]);
 // // ▶ START CAMERA + RECORD
   // const startRecording = async () => {
   //   try {
@@ -426,19 +439,23 @@ const speakAI = (text) => {
 
   // MAIN FUNCTION
   const startInterview = () => {
+     showModel();
     startCamera();   // function 1
     startChatbot();
     isListeningRef.current = true;
     recognitionRef.current?.start();
     
     // startListening(); // function 2
+   
   };
   const stopinterview=()=>{
+     hideModel();
     stopcamara();
     isListeningRef.current = false;
     recognitionRef.current?.stop();
     
 
+   
 
   }
 
@@ -516,61 +533,61 @@ console.error("interview user text send error :", error);
 
 
 
-
 const clikaispeak = (text, index) => {
   if (!window.speechSynthesis || !text?.trim()) return;
 
+  // 1. ஏற்கனவே பேசிக்கொண்டிருந்தால் அதை நிறுத்தவும்
   window.speechSynthesis.cancel();
   
-  setUserListening(true);
-  isListeningRef.current = false;
+  // 2. கிளிக் செய்தவுடன் Listen செய்வதை நிறுத்தவும்
+  setUserListening(false); // UI-ல் மைக் ஆஃப் ஆகும்
+  isListeningRef.current = false; // Logic-ல் Listen செய்வது தடுக்கப்படும்
+
+  if (recognitionRef.current) {
+    try {
+      recognitionRef.current.stop(); // மைக்ரோபோனை உடனடியாக நிறுத்தவும்
+    } catch (err) {
+      console.log("Stop failed:", err);
+    }
+  }
 
   const utterance = new SpeechSynthesisUtterance(text);
 
-  // 🎤 Female Voice Selection Logic
+  // 🎤 Female Voice Selection
   const allVoices = window.speechSynthesis.getVoices();
-  
-  // 1. First choice: Microsoft Zira (Clean Female Voice)
-  // 2. Second choice: Google US English (Female)
-  // 3. Third choice: Any voice that contains "female" in its name
   let selectedVoice = allVoices.find(v => v.name.includes("Zira")) || 
                       allVoices.find(v => v.name.includes("Google US English") && v.name.includes("Female")) ||
                       allVoices.find(v => v.name.toLowerCase().includes("female"));
 
-  if (selectedVoice) {
-    utterance.voice = selectedVoice;
-  }
-
-  // Female voice-ku pitch konjam adhigama irundha nalla irukkum
+  if (selectedVoice) utterance.voice = selectedVoice;
   utterance.pitch = 1.3; 
   utterance.rate = 1.0;
   utterance.lang = "en-US";
 
+  // AI பேசத் தொடங்கும் போது
   utterance.onstart = () => {
-    setIsSpeaking(true);
+    setIsSpeaking(true); // 3D மாடல் வாய் அசையத் தொடங்கும்
     setActiveSpeakingIndex(index);
-    if (recognitionRef.current) {
-       recognitionRef.current.stop();
-    }
   };
 
+  // 💡 AI பேசி முடித்த பிறகு
   utterance.onend = () => {
-    setIsSpeaking(false);
+    setIsSpeaking(false); // 3D மாடல் வாய் அசைவு நிற்கும்
     setActiveSpeakingIndex(null);
-    isListeningRef.current = true;
+    
+    // 🛑 முக்கிய மாற்றம்: இங்கே Listen-ஐ மீண்டும் ஸ்டார்ட் செய்ய வேண்டாம்.
+    // பயனர் தானாக மைக்கைத் தட்டினால் மட்டுமே Listen செய்ய வேண்டும்.
+    isListeningRef.current = false; 
     setUserListening(false);
-
-    setTimeout(() => {
-      if (recognitionRef.current && isListeningRef.current) {
-        try {
-          recognitionRef.current.start();
-        } catch (err) { console.log("Restart failed:", err); }
-      }
-    }, 500); 
+    
+    console.log("AI speech finished. Listening remains OFF.");
   };
 
   window.speechSynthesis.speak(utterance);
 };
+
+
+
   return (
     // <div className="interview-screen">
 
@@ -630,9 +647,9 @@ const clikaispeak = (text, index) => {
           
             <div className="chatbot-header">
    
-    <div className="ai-speak-robo">
+    <div className="ai-speak-robo" ref={roboContainerRef}>
   
-  <Robot isSpeaking={isSpeaking}    animationMessage={animationMessage}/>
+  {/* <Robot isSpeaking={isSpeaking}    animationMessage={animationMessage}/> */}
 </div>
         <h1>🎙 AI Interview Assistant</h1>
   </div>

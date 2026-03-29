@@ -355,17 +355,25 @@ button {
 
 
 .ai-speak-robo {
-  width: 150px;
-  height: 150px;
-  border-radius: 10px;
+  width: 250px;   /* அளவை சற்றே உயர்த்தியுள்ளேன் */
+  height: 250px;
+  border-radius: 12px;
   background: linear-gradient(135deg, #1e293b, #0f172a);
   border: 1px solid #334155;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  overflow: hidden; /* ⭐ இதைச் சேர்க்கவும் */
+  
+  /* முக்கியமானவை */
   position: relative;
+  overflow: hidden;
+  
+  /* 3D Canvas சரியாகப் பொருந்த இது அவசியம் */
+  display: block; 
+}
+
+/* உள்ளே வரும் Canvas-க்கான செட்டிங் */
+.ai-speak-robo canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
 }
 /* ===== MESSAGE AREA ===== */
 .chatbot-messages {
