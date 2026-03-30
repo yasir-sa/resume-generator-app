@@ -5,11 +5,33 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 let modelDiv;
 let scene, camera, renderer, mixer; 
 let animatedMeshes = []; 
-let speakingStatus = false; // 🔴 வாய் அசைவைக் கட்டுப்படுத்த
+let speakingStatus = false; 
 
-// 🔴 React-லிருந்து isSpeaking நிலையைப் பெற இந்த பங்க்ஷன் உதவும்
+// 🔴 அனிமேஷன்களைச் சேமிக்க
+let actions = {}; 
+let currentActionName = "idle"; 
+
 export const setSpeaking = (status) => {
     speakingStatus = status;
+};
+
+// 🔴 React-ல் இருந்து வரும் பெயரைப் பொறுத்து அனிமேஷனை மாற்றும் பங்க்ஷன்
+export const setAnimation = (name) => {
+    // ஒருவேளை பெயர் காலியாக (empty string) வந்தால், அதை இயக்க வேண்டாம்
+    if (!name) return;
+
+    // நாம் அனுப்பும் பெயர் (talk, hi அல்லது idle) நம்மிடம் இருக்கிறதா என்று பார்க்கிறோம்
+    if (actions[name] && currentActionName !== name) {
+        const nextAction = actions[name];
+        const prevAction = actions[currentActionName];
+
+        if (prevAction) {
+            prevAction.fadeOut(0.5); // பழைய அனிமேஷன் மெதுவாக மறையும்
+        }
+
+        nextAction.reset().fadeIn(0.5).play(); // புதிய அனிமேஷன் மெதுவாகத் தொடங்கும்
+        currentActionName = name;
+    }
 };
 
 export const init = (containerElement) => {
@@ -28,6 +50,8 @@ export const init = (containerElement) => {
     const height = containerElement.clientHeight || 150;
     camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(0, 1.2, 2.5); 
+    // 🔴 கன்சோலில் செக் செய்ய
+    window.camera = camera;
 
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
@@ -57,15 +81,35 @@ export const init = (containerElement) => {
         });
 
         model.position.y = -2.5; 
+        model.position.x = -0.1;
+
         model.scale.set(2.5, 2.5, 2.5);
         scene.add(model);
 
+        mixer = new THREE.AnimationMixer(model);
+
+        // 1. Idle Animation லோட்
         fbxLoader.load('/models/standingidle.fbx', (fbx) => {
-            mixer = new THREE.AnimationMixer(model); 
-            const idleAnim = fbx.animations[0];
-            if (idleAnim) {
-                const action = mixer.clipAction(idleAnim);
-                action.play(); 
+            const anim = fbx.animations[0];
+            if (anim) {
+                actions['idle'] = mixer.clipAction(anim);
+                actions['idle'].play(); 
+            }
+        });
+
+        // 2. Talking Animation லோட்
+        fbxLoader.load('/models/Talking (4).fbx', (fbx) => {
+            const anim = fbx.animations[0];
+            if (anim) {
+                actions['talk'] = mixer.clipAction(anim);
+            }
+        });
+
+        // 🔴 3. Hi Animation லோட் (புதிதாக சேர்க்கப்பட்டது)
+        fbxLoader.load('/models/hi.fbx', (fbx) => {
+            const anim = fbx.animations[0];
+            if (anim) {
+                actions['hi'] = mixer.clipAction(anim);
             }
         });
     });
@@ -82,11 +126,9 @@ export const init = (containerElement) => {
             animatedMeshes.forEach((mesh) => {
                 const dict = mesh.morphTargetDictionary;
 
-                // 👀 1. கண் சிமிட்டும் லாஜிக் (ஏற்கனவே உள்ளது)
                 const blinkCycle = time % 5; 
                 const isBlinking = blinkCycle > 4.8; 
                 const targetBlink = isBlinking ? 1 : 0;
-
                 const leftEye = dict["eyeBlinkLeft"];
                 const rightEye = dict["eyeBlinkRight"];
 
@@ -101,22 +143,15 @@ export const init = (containerElement) => {
                     );
                 }
 
-                // 👄 2. வாய் அசைவு லாஜிக் (Mouth Action)
-                // speakingStatus உண்மையாக இருந்தால் மட்டும் வாய் அசையும்
                 const mouthIndex = dict["mouthOpen"] || dict["jawOpen"]; 
                 if (mouthIndex !== undefined) {
-                    // Math.sin பயன்படுத்தி வாய் ஏறி இறங்குவது போன்ற அசைவு தருகிறோம்
                     const mouthValue = speakingStatus ? (Math.sin(time * 18) + 1) / 2 * 0.45 : 0;
-                    
                     mesh.morphTargetInfluences[mouthIndex] = THREE.MathUtils.lerp(
-                        mesh.morphTargetInfluences[mouthIndex],
-                        mouthValue,
-                        0.15 
+                        mesh.morphTargetInfluences[mouthIndex], mouthValue, 0.15 
                     );
                 }
             });
         }
-        
         renderer.render(scene, camera);
     };
     animate();

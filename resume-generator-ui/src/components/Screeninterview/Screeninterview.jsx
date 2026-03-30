@@ -3,7 +3,8 @@ import "./Screeninterview.css";
 import API from "../../api"
 // import Robot from "../robot/Robot"
 import { Volume2 } from 'lucide-react';
-import { init, showModel, hideModel, setSpeaking } from "../script/script.js"
+
+import { init, showModel, hideModel, setSpeaking, setAnimation } from "../script/script.js";
 function Screeninterview() {
 
   const videoRef = useRef(null);
@@ -42,7 +43,8 @@ const roboContainerRef = useRef(null);
 
 
 const [animationMessage, setAnimationMessage] = useState("hi_animation");
-
+// const [animationName, setAnimationName] = useState("talk");
+const [animationName, setAnimationName] = useState("hi");
 
 
 
@@ -53,9 +55,15 @@ useEffect(() => {
     }
   }, []);
   // 🔴 isSpeaking மாறும்போது 3D மாடலுக்குத் தகவல் அனுப்புகிறோம்
-  useEffect(() => {
+
+useEffect(() => {
     setSpeaking(isSpeaking);
-  }, [isSpeaking]);
+    
+    if (typeof setAnimation === "function") {
+        // 🔴 பேசும்போது State-ல் உள்ள "talk" செல்லும், பேசாதபோது "idle" செல்லும்
+        setAnimation(isSpeaking ? animationName : "idle");
+    }
+}, [isSpeaking, animationName]);
 // // ▶ START CAMERA + RECORD
   // const startRecording = async () => {
   //   try {
