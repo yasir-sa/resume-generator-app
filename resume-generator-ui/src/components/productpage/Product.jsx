@@ -354,49 +354,57 @@ const handleChange = (e) => {
   }
 };
 
-// 4. Validation & Navigation Logic
 const handleStartInterview = () => {
-  const { skills, resume, projectResume, notes } = formData;
+  // 1. டேட்டாவை எடுக்கிறோம்
+  const skills = formData.skills || "";
+  const resume = formData.resume;
+  const projectResume = formData.projectResume;
+  const notes = formData.notes || "";
 
-  // 🔴 CONDITION A: இரண்டு வகையான ரெஸ்யூமையும் கொடுத்திருந்தால்
-  if (resume && projectResume) {
-    alert("Please select only ONE resume source (Computer OR Project)!");
+  // 2. Boolean செக் (டேட்டா இருக்கிறதா இல்லையா?)
+  const hasComputerResume = !!resume; 
+  const hasProjectResume = !!projectResume; 
+  const hasSkills = skills.trim().length > 0;
+  const hasNotes = notes.trim().length > 0;
+
+  console.log("Validation Status:", { hasComputerResume, hasProjectResume, hasSkills });
+
+  // --- 🔴 CONDITION 1: மூன்றுமே (All 3) இருந்தால் ---
+  if (hasComputerResume && hasProjectResume && hasSkills) {
+    alert("❌ Error: You have filled everything! Please provide only ONE: Upload Resume, Select Project, OR Type Skills.");
     return;
   }
 
-  // 🔴 CONDITION B: ரெஸ்யூம் (எந்த வகை என்றாலும்) + மேனுவல் ஸ்கில்ஸ் - ரெண்டையும் கொடுத்தால்
-  if ((resume || projectResume) && skills.trim()) {
-    alert("Resume detected! Please clear the 'Core Skills' field or remove the resume to proceed.");
+  // --- 🔴 CONDITION 2: இரண்டு வகையான ரெஸ்யூமும் இருந்தால் (இதுதான் உங்கள் மெயின் பிரச்சனை) ---
+  if (hasComputerResume && hasProjectResume) {
+    alert("❌ Please select only ONE resume source: Either Computer Upload OR Project Selection!");
     return;
   }
 
-  // 🔴 CONDITION C: எதுவுமே கொடுக்கவில்லை என்றால்
-  if (!resume && !projectResume && !skills.trim()) {
-    alert("Please provide a resume OR enter your core skills!");
+  // --- 🔴 CONDITION 3: ரெஸ்யூம் + ஸ்கில்ஸ் இரண்டும் இருந்தால் ---
+  if ((hasComputerResume || hasProjectResume) && hasSkills) {
+    alert("❌ Resume detected! Please clear the 'Core Skills' field or remove the resume to proceed.");
     return;
   }
 
-  // 🔴 CONDITION D: ரெஸ்யூம் இல்லை என்றால் நோட்ஸ் கட்டாயம் (Notes Mandatory)
-  if (!resume && !projectResume && !notes.trim()) {
-    alert("Notes are mandatory if you are not providing a resume!");
+  // --- 🔴 CONDITION 4: எதுவுமே கொடுக்கவில்லை என்றால் ---
+  if (!hasComputerResume && !hasProjectResume && !hasSkills) {
+    alert("⚠️ Action Required: Please provide a resume OR enter your core skills!");
     return;
   }
 
-  // --- VALIDATION SUCCESS ---
-  console.log("--- Validation Passed Successfully ✅ ---");
-  console.log("Final Form Data:", formData);
-
-  if (resume || projectResume) {
-    const fileName = resume ? resume.name : projectResume.name;
-    console.log(`Mode: Resume Interview (${fileName})`);
-  } else {
-    console.log("Mode: Manual Entry Interview");
+  // --- 🔴 CONDITION 5: ரெஸ்யூம் இல்லாதபோது நோட்ஸ் கட்டாயம் ---
+  if (!hasComputerResume && !hasProjectResume && !hasNotes) {
+    alert("📝 Notes are mandatory if you are not providing a resume!");
+    return;
   }
 
-  // 🔴 Navigate to Screeninterview.jsx
+  // --- ✅ எல்லா செக்கிலும் பாஸ் ஆகிவிட்டது ---
+  console.log("--- Validation Passed ✅ ---");
+  
+  // அடுத்த ஸ்கிரீனுக்கு அனுப்புகிறோம்
   navigate("/interview-screen", { state: formData });
 };
-
 
 
 
