@@ -2964,3 +2964,80 @@ const systemPrompt = `
 
 
 //this is for send interview chat to lm model and get response to send ui 
+
+
+
+/// this is for start to mock interview resume get functjionla erunthu start aguthu 
+
+
+
+
+
+
+
+exports.getresumesformock = async (req, res) => {
+  try {
+    // 🔴 1. JWT-லிருந்து யூசர் ஐடி எடுக்கிறோம்
+    const userId = req.user.id; 
+
+    console.log(`--- Fetching Resumes for User ID: ${userId} ---`);
+
+    // 🔴 2. SQL Query (userId அடிப்படையில் மட்டும்)
+    const queryText = `
+      SELECT title_id, title_name, html_codes, created_time 
+      FROM user_all_resumes 
+      WHERE user_id = $1 
+      ORDER BY created_time DESC
+    `;
+
+    // 🔴 3. pool.query மூலம் டேட்டாவை எடுக்கிறோம்
+    const result = await pool.query(queryText, [userId]);
+
+    // 🔴 4. Backend Console Logging (HTML தவிர்த்து மற்றவை)
+    if (result.rows.length > 0) {
+      console.log(`✅ Found ${result.rows.length} resumes for user: ${userId}`);
+      
+      // கன்சோலில் டேபிள் வடிவில் காட்ட (HTML code நீக்கிவிட்டு)
+      const tableDisplay = result.rows.map(row => ({
+        ID: row.title_id,
+        Title: row.title_name,
+        Date: row.created_time
+      }));
+      
+      console.table(tableDisplay); // இது பேக்கெண்ட் டெர்மினலில் அழகாகத் தெரியும்
+    } else {
+      console.log(`⚠️ No resumes found for user ID: ${userId}`);
+    }
+
+    // 🔴 5. டேட்டாவை ஃப்ரண்ட்-எண்டிற்கு அனுப்புகிறோம்
+    return res.status(200).json(result.rows);
+
+  } catch (error) {
+    console.error("❌ Database Error in getresumesformock:", error.message);
+    return res.status(500).json({
+      message: "Internal Server Error while fetching resumes"
+    });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

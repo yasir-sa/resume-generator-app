@@ -1,5 +1,6 @@
 import { useRef, useState ,useEffect} from "react";
 import "./Screeninterview.css";
+import { useLocation } from 'react-router-dom';
 import API from "../../api"
 // import Robot from "../robot/Robot"
 import { Volume2 } from 'lucide-react';
@@ -593,6 +594,52 @@ const clikaispeak = (text, index) => {
 
   window.speechSynthesis.speak(utterance);
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const location = useLocation();
+  const interviewData = location.state;
+
+  useEffect(() => {
+    // 🔴 2. டேட்டா வந்துவிட்டதா என்று செக் செய்கிறோம்
+    if (interviewData) {
+      console.log("--- Screeninterview.jsx ---");
+      console.log("✅ Data received successfully!");
+      console.log("Received Interview Object:", interviewData);
+      
+      // ஒருவேளை ரெஸ்யூம் இருந்தால் அதையும் செக் செய்யலாம்
+      if (interviewData.resume) {
+        console.log("Resume File Found:", interviewData.resume.name);
+      }
+    } else {
+      console.warn("⚠️ No data received from Home page!");
+    }
+  }, [interviewData]); 
+
+
+
+
+
+
 
 
 

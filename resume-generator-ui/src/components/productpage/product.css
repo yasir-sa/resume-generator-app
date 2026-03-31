@@ -497,6 +497,122 @@
 
 
 
+
+
+
+
+
+
+
+/* மெயின் கண்டெய்னர் */
+.home-container {
+  transition: filter 0.3s ease;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 🔴 பேஜ் பிளர் (Blur) ஆகும் கிளாஸ் */
+.blur-bg {
+  filter: blur(8px);
+  pointer-events: none; /* பிளர் ஆகும்போது பின்னால் இருப்பவற்றை கிளிக் செய்ய முடியாது */
+}
+
+/* 🔴 அடுக்கின் மேல் வரும் திரை (Overlay) */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* லேசான கருப்பு நிறம் */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  pointer-events: all; /* ஓவர்லே கிளிக் செய்ய அனுமதிக்கும் */
+}
+
+/* 🔴 வெள்ளை நிற மாக் இன்டர்வியூ பாக்ஸ் */
+.mock-modal {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  width: 400px;
+  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-around;
+}
+
+.start-btn {
+  background-color: #4caf50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.close-btn {
+  background-color: #f44336;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* ===== Preview Overlay ===== */
 .resume-preview-page {
   position: fixed;
@@ -581,3 +697,333 @@
 .resume-page {
   line-height: normal;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Modal உள்ளே இருக்கும் ஃபார்ம் பகுதி */
+.form-content {
+  position: relative; /* 🔴 மிக முக்கியம்: இது இருந்தால் தான் z-index வேலை செய்யும் */
+  z-index: 10; 
+  text-align: left;
+  margin-top: 15px;
+  max-height: 400px;
+  overflow-y: auto; /* 🟢 உள்ளே இருக்கும் கன்டென்ட் அதிகமாக இருந்தால் ஸ்க்ரோல் ஆகும் */
+  padding: 10px 15px;
+  background: #ffffff;
+  border-radius: 8px;
+}/* 🔴 ஏற்கனவே இருந்த .overlay-ஐ இப்படி மாற்றவும் */
+.overlay-interview {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75); /* கொஞ்சம் இருட்டாக இருந்தால் தான் முன்னால் இருக்கும் பாக்ஸ் பளிச்சென்று தெரியும் */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000; /* 🔴 இது மிக அதிகம் இருக்க வேண்டும் */
+  backdrop-filter: blur(4px); /* 🟢 பேக்ரவுண்ட் மங்கலாகத் தெரிய (Optional) */
+}
+
+.mock-modal {
+  background: white;
+  width: 450px;
+  border-radius: 20px;
+  padding: 30px;
+  position: relative; /* 🔴 z-index வேலை செய்ய இது அவசியம் */
+  z-index: 10001; 
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+}
+/* Scrollbar ஸ்டைல் */
+.form-content::-webkit-scrollbar {
+  width: 4px;
+}
+.form-content::-webkit-scrollbar-thumb {
+  background: #e0e0e0;
+  border-radius: 10px;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  font-weight: 700;
+  font-size: 12px;
+  color: #555;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+/* Inputs, Select & Textarea */
+.input-group input[type="text"], 
+.input-group select,
+.input-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1.5px solid #ececec;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  background: #fdfdfd;
+}
+
+.input-group input:focus, .input-group select:focus {
+  border-color: #4caf50;
+  background: #fff;
+}
+
+/* Level Slider (Volume Style) */
+.level-slider {
+  width: 100%;
+  cursor: pointer;
+  accent-color: #4caf50;
+}
+
+.level-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 5px;
+  font-size: 10px;
+  color: #999;
+  margin-top: 5px;
+}
+
+/* Upload Button Style */
+.upload-label {
+  display: block;
+  padding: 15px;
+  background: #f8f9fa;
+  border: 2px dashed #d1d1d1;
+  border-radius: 10px;
+  text-align: center;
+  cursor: pointer;
+  color: #777;
+  font-size: 13px;
+}
+
+.upload-label:hover {
+  border-color: #4caf50;
+  color: #4caf50;
+  background: #f0fdf4;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.all-project-resume-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8); /* கொஞ்சம் அதிக இருட்டாக */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 20000; /* இது எல்லாத்துக்கும் மேலே இருக்க வேண்டும் */
+}
+
+.all-project-resume-modal {
+  background: #fff;
+  width: 400px;
+  max-height: 500px;
+  border-radius: 15px;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.project-resume-btn {
+  padding: 12px;
+  background: #f0f7ff;
+  border: 1px dashed #007bff;
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  color: #007bff;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.project-resume-btn:hover {
+  background: #e0eeff;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.resume-list-container {
+  max-height: 300px; /* ஒரு குறிப்பிட்ட உயரத்திற்கு மேல் போனால் ஸ்க்ரோல் வரும் */
+  overflow-y: auto;
+  margin-top: 15px;
+  padding: 10px;
+}
+
+.resume-item-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.resume-item-card:hover {
+  background: #eef6ff;
+  border-color: #007bff;
+}
+
+/* செலக்ட் செய்யப்பட்ட கார்டுக்கு மட்டும் நீல நிற பார்டர் */
+.resume-item-card.active {
+  background: #eef6ff;
+  border: 2px solid #007bff;
+}
+
+.resume-name {
+  font-weight: 500;
+  color: #333;
+  margin-left: 10px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

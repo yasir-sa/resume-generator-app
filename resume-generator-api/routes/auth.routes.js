@@ -101,6 +101,7 @@ const {
   getResumeHTML,
   interviewUser,
   sendinterviewchat,
+   getresumesformock,
                       // 🔥 NEW: Photo upload handler
 } = require("../controllers/auth.controller");
 
@@ -151,7 +152,7 @@ router.get(
 
 
 
-
+router.get("/getresumeformock", verifyToken, getresumesformock);
 router.post("/interview/chat",sendinterviewchat)
 
 router.post("/interview-user",interviewUser )
