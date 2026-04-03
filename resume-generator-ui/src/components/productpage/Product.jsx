@@ -444,8 +444,8 @@ const confirmSelection = () => {
     setFormData((prev) => ({
       ...prev,
       projectResume: selectedTempResume, // முழு டேட்டாவும் (html_codes உட்பட) இங்கே சேரும்
-      resume: null, // கம்ப்யூட்டர் அப்லோடு இருந்தால் அதை நீக்கிவிடுவோம்
-      skills: ''    // ரெஸ்யூம் இருப்பதால் மேனுவல் ஸ்கில்ஸை காலியாக்குகிறோம்
+      // resume: null, // கம்ப்யூட்டர் அப்லோடு இருந்தால் அதை நீக்கிவிடுவோம்
+      // skills: ''    // ரெஸ்யூம் இருப்பதால் மேனுவல் ஸ்கில்ஸை காலியாக்குகிறோம்
     }));
     
     setOpenProjectResume(false); // பாப்-அப் மூடுகிறோம்

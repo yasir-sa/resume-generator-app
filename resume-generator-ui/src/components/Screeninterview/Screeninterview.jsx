@@ -4,8 +4,17 @@ import { useLocation } from 'react-router-dom';
 import API from "../../api"
 // import Robot from "../robot/Robot"
 import { Volume2 } from 'lucide-react';
+import * as pdfjsLib from "pdfjs-dist";
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url,
+).toString();
+
 
 import { init, showModel, hideModel, setSpeaking, setAnimation } from "../script/script.js";
+import Tesseract from 'tesseract.js';
+
+
 function Screeninterview() {
 
   const videoRef = useRef(null);
@@ -46,7 +55,9 @@ const roboContainerRef = useRef(null);
 const [animationMessage, setAnimationMessage] = useState("hi_animation");
 // const [animationName, setAnimationName] = useState("talk");
 const [animationName, setAnimationName] = useState("hi");
-
+const [manualType, setManualType] = useState([]);      // Type 1: Typed Skills
+  const [uploadedResume, setUploadedResume] = useState([]); // Type 2: PDF Text
+  const [htmlResume, setHtmlResume] = useState([]);
 
 
 
@@ -611,34 +622,175 @@ const clikaispeak = (text, index) => {
 
 
 
-
-
-
-
-
 const location = useLocation();
-  const interviewData = location.state;
+const interviewData = location.state;
 
-  useEffect(() => {
-    // 🔴 2. டேட்டா வந்துவிட்டதா என்று செக் செய்கிறோம்
-    if (interviewData) {
-      console.log("--- Screeninterview.jsx ---");
-      console.log("✅ Data received successfully!");
-      console.log("Received Interview Object:", interviewData);
+useEffect(() => {
+
+
+const extractPdfText = async (file) => {
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    // 🔴 PDFJS மூலம் பிடிஎஃப்-ஐ லோடு செய்கிறோம்
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = "";
+
+    console.log(`PDF loaded. Total pages: ${pdf.numPages}. Improving Quality for Full Extraction...`);
+
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
       
-      // ஒருவேளை ரெஸ்யூம் இருந்தால் அதையும் செக் செய்யலாம்
-      if (interviewData.resume) {
-        console.log("Resume File Found:", interviewData.resume.name);
-      }
-    } else {
-      console.warn("⚠️ No data received from Home page!");
+      // 🔴 மாற்றப்பட்டது: Scale 3 (இது படத்தை இன்னும் தெளிவாக மாற்றும், அதனால் சின்ன எழுத்துக்களும் ஸ்கேன் ஆகும்)
+      const viewport = page.getViewport({ scale: 3 }); 
+      
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      // 🔴 கன்வாஸில் பக்கத்தை வரைகிறோம்
+      await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+      // 🔴 Tesseract OCR - Advanced Settings
+      const { data: { text } } = await Tesseract.recognize(
+        canvas.toDataURL("image/png"),
+        'eng', 
+        { 
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              console.log(`Page ${i} Progress: ${(m.progress * 100).toFixed(2)}%`);
+            }
+          },
+          // 🔴 இந்த செட்டிங் பிடிஎஃப்-ல் உள்ள காலம் மற்றும் வரிகளைச் சரியாகப் பிரிக்கும்
+          tessedit_pageseg_mode: '3' 
+        }
+      );
+
+      fullText += `--- Page ${i} ---\n` + text + "\n";
     }
-  }, [interviewData]); 
+
+    // 🔴 செக் பாயிண்ட்: முழு டெக்ஸ்ட்டையும் கன்சோலில் பிரிண்ட் செய்கிறோம்
+    console.log("COMPLETE RESUME DATA:", fullText);
+
+    const combinedData = {
+      resumeContent: fullText.trim(),
+      interviewType: interviewData.interviewType || "",
+      domain: interviewData.domain || "",
+      difficulty: interviewData.difficulty || "" || "3",
+      notes: interviewData.notes || ""
+    };
+
+    setUploadedResume([combinedData]);
+    console.log("✅ Full OCR extraction finished successfully!");
+
+  } catch (error) {
+    console.error("❌ Extraction Error:", error);
+  }
+};
 
 
 
 
 
+
+
+
+
+
+
+    if (interviewData) {
+      console.log("--- Starting Data Storage Process ---");
+
+      // 🔵 TASK 1: Manual Type Data (இன்றைய முதல் வேலை)
+      if (interviewData.skills && interviewData.skills.trim() !== "") {
+        console.log("Saving to manualType array...");
+        // ஸ்கில்ஸை ஒரு அரேவில் சேமிக்கிறோம்
+        setManualType([interviewData.skills]);
+      }
+
+      // 🔵 TASK 2: Uploaded Resume (PDF) - அடுத்த கட்டம்
+// 🔵 TASK 2: Uploaded Resume (PDF with OCR) - திருத்தப்பட்ட பகுதி
+      else if (interviewData.resume) {
+        console.log("Detected PDF (Image/Scanned). Initializing OCR Engine...");
+        
+        // இப்போதைக்கு ஒரு தற்காலிக மெசேஜ் காண்பிக்கிறோம் (Optional)
+        setUploadedResume([{ 
+          resumeContent: "Processing PDF... Please wait for a few seconds.",
+          status: "loading" 
+        }]);
+
+        // OCR மூலம் டெக்ஸ்ட் எடுக்கும் அந்த அட்வான்ஸ் ஃபங்க்ஷனை அழைக்கிறோம்
+        extractPdfText(interviewData.resume);
+      }
+
+      // 🔵 TASK 3: Project Resume (HTML) - அதற்கடுத்த கட்டம்
+   // 🔵 TASK 3: Project Resume (HTML - Multiple Pages)
+    // 🔵 TASK 3: Project Resume (HTML - Multiple Pages with Style Cleaner)
+      else if (interviewData.projectResume) {
+        console.log("Detected HTML Project Resume. Cleaning styles and tags...");
+
+        const htmlPages = Array.isArray(interviewData.projectResume) 
+          ? interviewData.projectResume 
+          : [interviewData.projectResume];
+
+        let allCleanText = "";
+
+        htmlPages.forEach((page, index) => {
+          let rawHtml = page.html_codes || "";
+          
+          // 1. <style> மற்றும் <script> டேகுகளுக்குள் இருக்கும் தேவையற்ற கோடிங்குகளை நீக்க
+          let cleanPageText = rawHtml
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ') // CSS ஸ்டைல்களை நீக்கும்
+            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' '); // JavaScript-ஐ நீக்கும்
+            
+          // 2. இப்போது மீதமுள்ள HTML டேகுகளை (<div>, <h1> போன்றவை) நீக்க
+          cleanPageText = cleanPageText
+            .replace(/<[^>]*>/g, ' ') 
+            .replace(/\s+/g, ' ')    
+            .trim();
+
+          allCleanText += `--- Page ${index + 1} ---\n${cleanPageText}\n\n`;
+        });
+
+        const combinedData = {
+          resumeContent: allCleanText.trim(),
+          interviewType: interviewData.interviewType || "",
+          domain: interviewData.domain || "",
+          difficulty: interviewData.difficulty || "3",
+          notes: interviewData.notes || ""
+        };
+
+        // 🔴 HTML ஸ்டேட்டில் சேமிக்கிறோம்
+        setHtmlResume([combinedData]);
+        console.log("✅ Cleaned HTML Content (No CSS):", allCleanText);
+      }
+    }
+  }, [interviewData]);
+
+  // கன்சோலில் செக் செய்ய
+  // console.log("Current States:", { manualType, uploadedResume, htmlResume });
+
+
+// 🔴 இந்த useEffect மூன்று அரேக்களையும் கண்காணிக்கும் (Monitor)
+useEffect(() => {
+  console.log("--- Monitoring Interview Data States ---");
+
+  // 1. Manual Type Data இருந்தால்
+  if (manualType.length > 0) {
+    console.log("📢 Final Data from Manual Type:", manualType[0]);
+  }
+
+  // 2. Uploaded PDF Data இருந்தால்
+  if (uploadedResume.length > 0) {
+    console.log("📢 Final Data from Uploaded Resume (PDF):", uploadedResume[0]);
+  }
+
+  // 3. HTML Project Data இருந்தால்
+  if (htmlResume.length > 0) {
+    console.log("📢 Final Data from Project Resume (HTML):", htmlResume[0]);
+  }
+
+}, [manualType, uploadedResume, htmlResume]); // ⬅️ இந்த மூன்று அரேக்களில் எது மாறினாலும் இது ரன் ஆகும்
 
 
 
