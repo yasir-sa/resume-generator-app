@@ -2959,7 +2959,66 @@ const systemPrompt = `
 
 
 
+// இ// கோப்பின் மேலே இதை மட்டும் டிக்ளேர் செய்யவும் (Data-வை தற்காலிகமாக சேமிக்க)
+let storedInterviewContext = null;
 
+// 🚀 Store Context Function
+exports.storeContext = async (req, res) => {
+    try {
+        const { resumeInfo } = req.body;
+
+        if (!resumeInfo) {
+            return res.status(400).json({ success: false, message: "No data received" });
+        }
+
+        // 📝 பேக்கெண்ட் கன்சோலில் முழு விவரங்களை அச்சிடுதல்
+        console.log("\n======= 📥 NEW INTERVIEW DATA RECEIVED =======");
+        
+        const summaryTable = {
+            "Interview Type": resumeInfo.interviewType,
+            "Target Domain": resumeInfo.domain,
+            "Difficulty": resumeInfo.difficulty,
+            "Has Manual Skills": !!resumeInfo.manualSkills,
+            "Has PDF Content": !!resumeInfo.resumeContent,
+            "Has HTML Content": !!resumeInfo.projectResume
+        };
+        console.table(summaryTable);
+
+        // விரிவான விவரங்கள் கன்சோலில்
+        if (resumeInfo.manualSkills) {
+            console.log("🔹 MANUAL SKILLS:", resumeInfo.manualSkills);
+        }
+
+        if (resumeInfo.resumeContent) {
+            console.log("🔹 PDF CONTENT (FULL):");
+            console.log(resumeInfo.resumeContent); 
+        }
+
+        if (resumeInfo.projectResume) {
+            console.log("🔹 HTML CONTENT (FULL):");
+            console.log(resumeInfo.projectResume);
+        }
+
+        if (resumeInfo.notes) {
+            console.log("🔹 EXTRA NOTES:", resumeInfo.notes);
+        }
+
+        // 💾 மெமரியில் சேமிக்கிறோம் - இதுதான் முக்கியம்!
+        // அப்போதுதான் interview chat பண்ணும்போது இந்த டேட்டாவை எடுக்க முடியும்.
+        storedInterviewContext = resumeInfo;
+
+        console.log("==============================================\n");
+
+        return res.status(200).json({
+            success: true,
+            message: "Backend received everything!",
+        });
+
+    } catch (error) {
+        console.error("❌ Backend Store Error:", error.message);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+};
 
 
 

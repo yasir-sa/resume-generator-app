@@ -58,7 +58,8 @@ const [animationName, setAnimationName] = useState("hi");
 const [manualType, setManualType] = useState([]);      // Type 1: Typed Skills
   const [uploadedResume, setUploadedResume] = useState([]); // Type 2: PDF Text
   const [htmlResume, setHtmlResume] = useState([]);
-
+// இது இருக்கிறதா என்று செக் பண்ணுங்கள்
+const [isInitialSyncing, setIsInitialSyncing] = useState(true);
 
 
 useEffect(() => {
@@ -625,110 +626,70 @@ const clikaispeak = (text, index) => {
 const location = useLocation();
 const interviewData = location.state;
 
-useEffect(() => {
-
 
 const extractPdfText = async (file) => {
-  try {
-    const arrayBuffer = await file.arrayBuffer();
-    // 🔴 PDFJS மூலம் பிடிஎஃப்-ஐ லோடு செய்கிறோம்
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    let fullText = "";
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = "";
 
-    console.log(`PDF loaded. Total pages: ${pdf.numPages}. Improving Quality for Full Extraction...`);
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const viewport = page.getViewport({ scale: 3 }); 
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
 
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      
-      // 🔴 மாற்றப்பட்டது: Scale 3 (இது படத்தை இன்னும் தெளிவாக மாற்றும், அதனால் சின்ன எழுத்துக்களும் ஸ்கேன் ஆகும்)
-      const viewport = page.getViewport({ scale: 3 }); 
-      
-      const canvas = document.createElement("canvas");
-      const context = canvas.getContext("2d");
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
+        await page.render({ canvasContext: context, viewport: viewport }).promise;
 
-      // 🔴 கன்வாஸில் பக்கத்தை வரைகிறோம்
-      await page.render({ canvasContext: context, viewport: viewport }).promise;
+        const { data: { text } } = await Tesseract.recognize(
+          canvas.toDataURL("image/png"),
+          'eng', 
+          { 
+            tessedit_pageseg_mode: '3' 
+          }
+        );
+        fullText += `--- Page ${i} ---\n${text}\n`;
+      }
 
-      // 🔴 Tesseract OCR - Advanced Settings
-      const { data: { text } } = await Tesseract.recognize(
-        canvas.toDataURL("image/png"),
-        'eng', 
-        { 
-          logger: m => {
-            if (m.status === 'recognizing text') {
-              console.log(`Page ${i} Progress: ${(m.progress * 100).toFixed(2)}%`);
-            }
-          },
-          // 🔴 இந்த செட்டிங் பிடிஎஃப்-ல் உள்ள காலம் மற்றும் வரிகளைச் சரியாகப் பிரிக்கும்
-          tessedit_pageseg_mode: '3' 
-        }
-      );
+      const combinedData = {
+        resumeContent: fullText.trim(),
+        status: "ready", // 🔥 முக்கியம்: எக்ஸ்ட்ராக்ஷன் முடிந்தது
+        interviewType: interviewData?.interviewType || "",
+        domain: interviewData?.domain || "",
+        difficulty: interviewData?.difficulty || "3",
+        notes: interviewData?.notes || ""
+      };
 
-      fullText += `--- Page ${i} ---\n` + text + "\n";
+      setUploadedResume([combinedData]);
+      console.log("✅ OCR Extraction Finished!");
+    } catch (error) {
+      console.error("❌ PDF Extraction Error:", error);
+      setUploadedResume([{ status: "error", resumeContent: null }]);
     }
-
-    // 🔴 செக் பாயிண்ட்: முழு டெக்ஸ்ட்டையும் கன்சோலில் பிரிண்ட் செய்கிறோம்
-    console.log("COMPLETE RESUME DATA:", fullText);
-
-    const combinedData = {
-      resumeContent: fullText.trim(),
-      interviewType: interviewData.interviewType || "",
-      domain: interviewData.domain || "",
-      difficulty: interviewData.difficulty || "" || "3",
-      notes: interviewData.notes || ""
-    };
-
-    setUploadedResume([combinedData]);
-    console.log("✅ Full OCR extraction finished successfully!");
-
-  } catch (error) {
-    console.error("❌ Extraction Error:", error);
-  }
-};
-
-
-
-
-
-
-
-
-
-
-
+  };
+// --- 2. டேட்டாவைப் பிரித்து சேமிக்கும் ஒரே ஒரு useEffect ---
+  useEffect(() => {
     if (interviewData) {
       console.log("--- Starting Data Storage Process ---");
 
-      // 🔵 TASK 1: Manual Type Data (இன்றைய முதல் வேலை)
+      // ✅ 1. Manual Skills (Skills இருந்தால் மட்டும்)
       if (interviewData.skills && interviewData.skills.trim() !== "") {
-        console.log("Saving to manualType array...");
-        // ஸ்கில்ஸை ஒரு அரேவில் சேமிக்கிறோம்
+        console.log("📍 Saving manual skills...");
         setManualType([interviewData.skills]);
       }
 
-      // 🔵 TASK 2: Uploaded Resume (PDF) - அடுத்த கட்டம்
-// 🔵 TASK 2: Uploaded Resume (PDF with OCR) - திருத்தப்பட்ட பகுதி
-      else if (interviewData.resume) {
-        console.log("Detected PDF (Image/Scanned). Initializing OCR Engine...");
-        
-        // இப்போதைக்கு ஒரு தற்காலிக மெசேஜ் காண்பிக்கிறோம் (Optional)
-        setUploadedResume([{ 
-          resumeContent: "Processing PDF... Please wait for a few seconds.",
-          status: "loading" 
-        }]);
-
-        // OCR மூலம் டெக்ஸ்ட் எடுக்கும் அந்த அட்வான்ஸ் ஃபங்க்ஷனை அழைக்கிறோம்
+      // ✅ 2. PDF Resume (OCR Process)
+      if (interviewData.resume) {
+        console.log("📍 Processing PDF Resume...");
+        setUploadedResume([{ status: "loading", resumeContent: null }]);
         extractPdfText(interviewData.resume);
       }
 
-      // 🔵 TASK 3: Project Resume (HTML) - அதற்கடுத்த கட்டம்
-   // 🔵 TASK 3: Project Resume (HTML - Multiple Pages)
-    // 🔵 TASK 3: Project Resume (HTML - Multiple Pages with Style Cleaner)
-      else if (interviewData.projectResume) {
-        console.log("Detected HTML Project Resume. Cleaning styles and tags...");
-
+      // ✅ 3. HTML Resume (Cleaning Process)
+      if (interviewData.projectResume) {
+        console.log("📍 Cleaning HTML Resume...");
         const htmlPages = Array.isArray(interviewData.projectResume) 
           ? interviewData.projectResume 
           : [interviewData.projectResume];
@@ -737,35 +698,168 @@ const extractPdfText = async (file) => {
 
         htmlPages.forEach((page, index) => {
           let rawHtml = page.html_codes || "";
-          
-          // 1. <style> மற்றும் <script> டேகுகளுக்குள் இருக்கும் தேவையற்ற கோடிங்குகளை நீக்க
           let cleanPageText = rawHtml
-            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ') // CSS ஸ்டைல்களை நீக்கும்
-            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' '); // JavaScript-ஐ நீக்கும்
-            
-          // 2. இப்போது மீதமுள்ள HTML டேகுகளை (<div>, <h1> போன்றவை) நீக்க
-          cleanPageText = cleanPageText
-            .replace(/<[^>]*>/g, ' ') 
-            .replace(/\s+/g, ' ')    
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
+            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/\s+/g, ' ')
             .trim();
-
           allCleanText += `--- Page ${index + 1} ---\n${cleanPageText}\n\n`;
         });
 
-        const combinedData = {
+        setHtmlResume([{
           resumeContent: allCleanText.trim(),
+          status: "ready",
           interviewType: interviewData.interviewType || "",
           domain: interviewData.domain || "",
           difficulty: interviewData.difficulty || "3",
           notes: interviewData.notes || ""
-        };
-
-        // 🔴 HTML ஸ்டேட்டில் சேமிக்கிறோம்
-        setHtmlResume([combinedData]);
-        console.log("✅ Cleaned HTML Content (No CSS):", allCleanText);
+        }]);
       }
     }
   }, [interviewData]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 1. கன்சோல் மற்றும் ஏபிஐ கால் செய்யும் ஒருங்கிணைந்த ஃபங்ஷன்
+const syncAndLogInterviewData = async () => {
+  console.log("======= 🧐 LIVE DATA TRACKER & SYNC =======");
+
+  const dataSummary = {
+    manual: {
+      hasData: manualType.length > 0,
+      skills: manualType[0] || "No skills added"
+    },
+    pdf: {
+      status: uploadedResume[0]?.status || "Empty",
+      contentFound: !!uploadedResume[0]?.resumeContent,
+      snippet: uploadedResume[0]?.resumeContent ? uploadedResume[0].resumeContent.substring(0, 100) : "N/A"
+    },
+    html: {
+      status: htmlResume[0]?.status || "Empty",
+      contentFound: !!htmlResume[0]?.resumeContent,
+      snippet: htmlResume[0]?.resumeContent ? htmlResume[0].resumeContent.substring(0, 100) : "N/A"
+    }
+  };
+
+  console.table(dataSummary);
+
+  // --- 🔴 பேக்கெண்டிற்கு அனுப்பும் கண்டிஷன் செக் ---
+  
+  // 1. ஏதாவது ஒரு டேட்டா லோடிங்கில் இருந்தால் அனுப்பாதே (Wait for OCR)
+  const isPDFLoading = uploadedResume[0]?.status === "loading";
+  if (isPDFLoading) {
+    console.log("⏳ PDF இன்னும் ஸ்கேன் ஆகிறது... காத்திருக்கிறேன்.");
+    return; 
+  }
+
+  // 2. அனுப்ப வேண்டிய முக்கிய டேட்டாக்கள் தயாராக இருக்கிறதா என்று பார்
+  const hasManual = manualType.length > 0;
+  const hasPDF = uploadedResume[0]?.status === "ready";
+  const hasHTML = htmlResume[0]?.status === "ready";
+
+  if (hasManual || hasPDF || hasHTML) {
+    try {
+      console.log("🚀 All set! Sending final data to backend...");
+      
+      const payload = {
+        resumeInfo: {
+          interviewType: interviewData?.interviewType || "General",
+          domain: interviewData?.domain || "FullStack",
+          difficulty: interviewData?.difficulty || "3",
+          notes: interviewData?.notes || "",
+          manualSkills: manualType[0] || null,
+          resumeContent: uploadedResume[0]?.resumeContent || null,
+          projectResume: htmlResume[0]?.resumeContent || null,
+        }
+      };
+
+      // 🔴 API கால் (உங்கள் API வேரியபிளை பயன்படுத்தவும்)
+      const response = await API.post("/interview/store-context", payload);
+
+      if (response.data.success) {
+        console.log("✅ Backend received everything!");
+        setIsInitialSyncing(false); // லோடிங் ஸ்கிரீனை நிறுத்து
+      }
+    } catch (error) {
+      console.error("❌ Sync failed:", error.message);
+      // எரர் வந்தாலும் லோடிங்கை நிறுத்தினால் தான் யூசர் பேஜை பார்க்க முடியும்
+      setIsInitialSyncing(false); 
+    }
+  }
+
+  console.log("====================================");
+};
+
+// 2. இந்த ஃபங்ஷனை இயக்கும் அதே useEffect
+useEffect(() => {
+  if (manualType.length > 0 || uploadedResume.length > 0 || htmlResume.length > 0) {
+    syncAndLogInterviewData();
+  }
+}, [manualType, uploadedResume, htmlResume]);
+// 2. இந்த ஃபங்ஷனை இயக்கும் useEffect
+useEffect(() => {
+  // ஏதாவது ஒரு ஸ்டேட் மாறினால் மட்டும் லாக் செய்யும்
+  if (manualType.length > 0 || uploadedResume.length > 0 || htmlResume.length > 0) {
+   syncAndLogInterviewData();
+  }
+}, [manualType, uploadedResume, htmlResume]); // Dependencies
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   // கன்சோலில் செக் செய்ய
   // console.log("Current States:", { manualType, uploadedResume, htmlResume });

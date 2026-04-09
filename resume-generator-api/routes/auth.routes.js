@@ -102,6 +102,7 @@ const {
   interviewUser,
   sendinterviewchat,
    getresumesformock,
+   storeContext,
                       // 🔥 NEW: Photo upload handler
 } = require("../controllers/auth.controller");
 
@@ -151,7 +152,7 @@ router.get(
 
 
 
-
+router.post('/interview/store-context', storeContext);
 router.get("/getresumeformock", verifyToken, getresumesformock);
 router.post("/interview/chat",sendinterviewchat)
 
