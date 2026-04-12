@@ -2890,65 +2890,83 @@ exports.interviewUser = async (req, res) => {
 //     });
 //   }
 // };
-
-
 exports.sendinterviewchat = async (req, res) => {
   try {
-    const { message, oldData } = req.body; 
-    const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-    const model = "arcee-ai/trinity-large-preview:free";
+    const { message, oldData } = req.body;
+    const GROQ_API_KEY = process.env.GROQ_API_KEY;
+    const model = "llama-3.1-8b-instant";
+
+    // 1. storedInterviewContext-ல் இருந்து ரெஸ்யூம் டேட்டாவை எடுத்து ஒரு ஸ்டிரிங்காக மாற்றுகிறோம்
+// 1. Adding the Notes field here so the AI can see it
+    const resumeDetails = storedInterviewContext ? `
+      - Domain: ${storedInterviewContext.domain}
+      - Manual Skills: ${storedInterviewContext.manualSkills || 'N/A'}
+      - Resume Content: ${storedInterviewContext.resumeContent || 'N/A'}
+      - Project Content: ${storedInterviewContext.projectResume || 'N/A'}
+      - Extra Notes: ${storedInterviewContext.notes || 'N/A'} 
+      - Difficulty: ${storedInterviewContext.difficulty}/5
+    ` : "No context found.";
 
 const systemPrompt = `
-  Role: You are 'Anna', a friendly MERN senior brother.
+  Role: You are 'Anna', a Senior Python Mentor. 
   
-  CONTEXT:
-  - Phase 1: Greeting & Introduction.
-  - Phase 2: Technical MERN Interview.
+  STRICT CONTEXT FILTERS (Your only source of truth):
+  1. USER DOMAIN: ${storedInterviewContext?.domain}
+  2. MANUAL SKILLS: ${storedInterviewContext?.manualSkills}
+  3. RESUME CONTENT: ${storedInterviewContext?.resumeContent}
+  4. PROJECT DETAILS: ${storedInterviewContext?.projectResume}
+  5. EXTRA NOTES: ${storedInterviewContext?.notes}
 
-  STRICT FLOW:
-  1. If this is the VERY FIRST message: Say "Hi! I am Anna, your interviewer. Unga per enna? Please introduce yourself." and STOP.
-  2. After user introduces themselves: Say "Nice! Let's start the interview [User Name]." and ask the first MERN question.
-  3. Continuous Interview: Don't repeat introduction. Move to next MERN questions based on their skills.
+  INTERVIEW MANDATE:
+  - You are STRICTLY FORBIDDEN from asking generic questions. 
+  - Every technical question must be directly linked to the skills, projects, or experience found in the data above.
+  - If the user's project uses 'Django', ask about Django. If their notes say 'Focus on Fast API', ask about Fast API.
 
-  RULES:
-  - LENGTH: Stay between 10-20 words.
-  - ENDING: Every reply MUST end with exactly one question.
-  - LANGUAGE: Simple English + Tanglish (e.g., "solunga", "pannunga").
-  - FOCUS: If they go off-topic, say "[User Name], interview-la focus pannunga" and ask a technical question.
-  - TONE: Supportive elder brother style.
+  FIRST MESSAGE (Acknowledgment):
+  - Hi! I'm Anna. I have analyzed your specific Python background.
+  - Mention 1 highlight from their Resume, 1 from their Projects, and acknowledge their 'Extra Notes'.
+  - Ask: "I've locked in your specific profile details. Shall we start the interview at Difficulty Level ${storedInterviewContext?.difficulty}?"
+
+  DURING INTERVIEW:
+  - FEEDBACK: Start with "Correct!" or "Nice explanation!" if they answer well.
+  - LENGTH: 15-25 words per response.
+  - QUESTION: Always end with exactly one question related to THEIR data.
+  - DIFFICULTY: Adjust the toughness of questions (1-5) based on the provided Difficulty level.
+
+  TONE: Professional English, supportive mentor style.
 `;
-    // 1. OldData format-ah map panni oru array-la vechupom
+    // 2. Chat History formatting
     const formattedHistory = (oldData || []).map(msg => ({
       role: msg.role === "ai" ? "assistant" : "user",
       content: msg.text,
     }));
 
-    // 2. Axios post-kulla direct-ah ellathaiyum "spread" panni anupalam
+    // 3. Groq API Call
     const response = await axios.post(
-      "https://openrouter.ai/api/v1/chat/completions",
+      "https://api.groq.com/openai/v1/chat/completions",
       {
         model: model,
         messages: [
-          { role: "system", content: systemPrompt }, // (1) Seperated System Prompt
-          ...formattedHistory,                       // (2) Seperated Old Data (spread operator)
-          { role: "user", content: message }         // (3) Seperated Current Message
+          { role: "system", content: systemPrompt },
+          ...formattedHistory,
+          { role: "user", content: message }
         ],
+        temperature: 0.6
       },
       {
         headers: {
-          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+          Authorization: `Bearer ${GROQ_API_KEY}`,
           "Content-Type": "application/json",
         },
       }
     );
 
     const aiReply = response.data.choices[0].message.content;
-
-    return res.status(200).json({ reply: aiReply });
+    return res.status(200).json({ success: true, reply: aiReply });
 
   } catch (error) {
-    console.error("Interview chat error:", error.message);
-    return res.status(500).json({ message: "AI interview server error" });
+    console.error("Interview error:", error.message);
+    return res.status(500).json({ success: false, message: "AI Sync Error" });
   }
 };
 
@@ -2959,8 +2977,20 @@ const systemPrompt = `
 
 
 
-// இ// கோப்பின் மேலே இதை மட்டும் டிக்ளேர் செய்யவும் (Data-வை தற்காலிகமாக சேமிக்க)
+
+
+
+
+
+
+
+
+
+// கோப்பின் மேலே இதை மட்டும் டிக்ளேர் செய்யவும்
 let storedInterviewContext = null;
+
+// தாமதத்தை உருவாக்க ஒரு ஹெல்பர் ஃபங்ஷன்
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 // 🚀 Store Context Function
 exports.storeContext = async (req, res) => {
@@ -3003,10 +3033,15 @@ exports.storeContext = async (req, res) => {
             console.log("🔹 EXTRA NOTES:", resumeInfo.notes);
         }
 
-        // 💾 மெமரியில் சேமிக்கிறோம் - இதுதான் முக்கியம்!
-        // அப்போதுதான் interview chat பண்ணும்போது இந்த டேட்டாவை எடுக்க முடியும்.
+        // 💾 மெமரியில் சேமிக்கிறோம்
         storedInterviewContext = resumeInfo;
 
+        // --- 🔴 இங்கிருந்து பதில் அனுப்புவதற்கு முன் தாமதத்தை சேர்க்கிறோம் ---
+        console.log("⏳ Processing data... Please wait.");
+        
+        await delay(5000); // 2 வினாடிகள் தாமதம்
+
+        console.log("✅ Sync complete. Sending response to UI...");
         console.log("==============================================\n");
 
         return res.status(200).json({

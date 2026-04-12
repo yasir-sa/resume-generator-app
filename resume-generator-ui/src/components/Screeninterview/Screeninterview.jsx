@@ -27,15 +27,16 @@ function Screeninterview() {
   // const recognitionRef = useRef(null);
 
   const [messages, setMessages] = useState([
-  { role: "ai", text: "Hello" },
-  { role: "user", text: "Hi" },
-  { role: "ai", text: "Explain useEffect" },
-  { role: "user", text: "I know React" },
-   { role: "ai", text: "Hello" },
-  { role: "user", text: "Hi" },
-  { role: "ai", text: "Explain useEffect" },
-  { role: "user", text: "I know React" }
+
 ]);
+  // { role: "ai", text: "Hello" },
+  // { role: "user", text: "Hi" },
+  // { role: "ai", text: "Explain useEffect" },
+  // { role: "user", text: "I know React" },
+  //  { role: "ai", text: "Hello" },
+  // { role: "user", text: "Hi" },
+  // { role: "ai", text: "Explain useEffect" },
+  // { role: "user", text: "I know React" }
 
 
 const recognitionRef = useRef(null);
@@ -60,7 +61,7 @@ const [manualType, setManualType] = useState([]);      // Type 1: Typed Skills
   const [htmlResume, setHtmlResume] = useState([]);
 // இது இருக்கிறதா என்று செக் பண்ணுங்கள்
 const [isInitialSyncing, setIsInitialSyncing] = useState(true);
-
+const [isCompleted, setIsCompleted] = useState(false);
 
 useEffect(() => {
     if (roboContainerRef.current) {
@@ -889,7 +890,27 @@ useEffect(() => {
 
 
 
+
+
+useEffect(() => {
+  // இது Cleanup function. 
+  // இந்தப் பக்கத்தை விட்டு வேறு பக்கத்திற்கு மாறும்போது இது இயங்கும்.
+  return () => {
+    // ஒரு சிறிய தாமதத்திற்குப் பிறகு ரீலோட் செய்ய வைப்பது நல்லது
+    setTimeout(() => {
+      window.location.reload();
+    }, 100); 
+  };
+}, []);
+
+
+
+
+
+
+
   return (
+  
     // <div className="interview-screen">
 
     //   <h2>AI Mock Interview</h2>
@@ -928,6 +949,26 @@ useEffect(() => {
     // </div>
 
 <>
+  {/* Loading Overlay */}
+{isInitialSyncing && (
+  <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm">
+    <div className="relative h-20 w-20">
+      {/* Outer Ring */}
+      <div className="absolute inset-0 rounded-full border-4 border-t-blue-500 border-r-transparent border-b-blue-500 border-l-transparent animate-spin"></div>
+      {/* Inner Circle */}
+      <div className="absolute inset-2 rounded-full border-4 border-t-purple-500 border-r-transparent border-b-purple-500 border-l-transparent animate-spin-reverse"></div>
+    </div>
+    
+    <div className="mt-6 text-center">
+      <h2 className="text-xl font-semibold text-white tracking-wide">
+        Processing Your Profile...
+      </h2>
+      <p className="mt-2 text-blue-200 text-sm animate-pulse">
+        Syncing resume data with AI Context
+      </p>
+    </div>
+  </div>
+)}
  <div className="interview-screen">
 
       {/* TOP SECTION */}
@@ -1013,6 +1054,11 @@ useEffect(() => {
       <button className="save-interview-btn">
         save interview
       </button>
+      <div className="btn-group">
+    {/* Other buttons */}
+    
+   
+</div>
 
     </div>
 

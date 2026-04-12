@@ -5,6 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>resume-generator-ui</title>
+  
+    <script src="https://cdn.tailwindcss.com"></script>
+  
+  <style>
+    /* கஸ்டம் அனிமேஷன் இங்கே */
+    @keyframes spin-reverse {
+      from { transform: rotate(360deg); }
+      to { transform: rotate(0deg); }
+    }
+    .animate-spin-reverse {
+      animation: spin-reverse 1.5s linear infinite;
+    }
+  </style>
   </head>
   <body>
     <div id="root"></div>
