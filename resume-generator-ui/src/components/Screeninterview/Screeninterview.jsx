@@ -63,6 +63,118 @@ const [manualType, setManualType] = useState([]);      // Type 1: Typed Skills
 const [isInitialSyncing, setIsInitialSyncing] = useState(true);
 const [isCompleted, setIsCompleted] = useState(false);
 
+
+
+
+
+
+
+
+
+
+
+
+const [interviewResults, setInterviewResults] = useState({
+  candidateName: "YASIR",
+  domain: "FULLSTACK (MERN)",
+  difficulty: "1-2",
+  interviewType: "TECHNICAL HR",
+  
+  scores: {
+    resume: { value: 82, label: "VERY GOOD", color: "#10b981" },
+    interview: { value: 85, label: "EXCELLENT", color: "#f97316" }
+  },
+
+  resumeAnalysis: {
+    matchPercentage: 85,
+    keySkillsMatch: ["React", "Node", "Mongo"],
+    missingKeywords: ["Redux", "AWS Fundamentals", "Agile Methodology"],
+    projectImpact: "Make 'simple todo list' quantifiable (e.g., 'handling 50+ entries').",
+    formattingFeedback: "Add LinkedIn URL to a professional. Quantifiable Metrics."
+  },
+
+  mistakeTable: [
+    { question: "How does to handle state in React?", userAnswer: "I think useState inside another.", correctAnswer: "Consider Redux or Context API for complex apps.", keySkill: "State Management" },
+    { question: "What is a closure in JavaScript?", userAnswer: "It's like a function inside another.", correctAnswer: "A function that remembers its outer scope.", keySkill: "JS Fundamentals" },
+    { question: "What is was rest' REST APIs.", userAnswer: "Used for web services, GET/POST.", correctAnswer: "Architectural style for hypermedia, stateless, with CRUD", keySkill: "API Design" },
+    { question: "What is in written captitation a project.", userAnswer: "I made a simple todo list.", correctAnswer: "Highlight MERN stack, user auth, integration.", keySkill: "Project Presentation" }
+  ],
+
+  sentiment: {
+    confidence: 90,
+    professionalism: 70,
+    clarityTone: 65
+  },
+
+  learningPlan: [
+    { week: 1, topic: "Redux" },
+    { week: 2, topic: "Context API, Hooks" },
+    { week: 3, topic: "RESTful API Principles" },
+    { week: 4, topic: "Project Refinement" }
+  ],
+
+  nextPracticeQuestions: [
+    { id: 1, q: "Implement custom hook for fetching data?", a: "'useFetch' to centralize loading, error handling." },
+    { id: 2, q: "Compare SQL vs. NoSQL for scalability?", a: "SQL for ACID, NoSQL for horizontal scaling and flex schema." },
+    { id: 3, q: "What are side effects in React?", a: "Affecting outside, like DOM change or API call." },
+    { id: 4, q: "What are a competed successful?", a: "Create APIs for horizontal teams." },
+    { id: 5, q: "What does the represent project?", a: "Actions, NoSQL for horizontal scaling." },
+    { id: 6, q: "Explain JWT Authentication.", a: "JSON Web Token for secure stateless authentication." },
+    { id: 7, q: "What is Middleware in Express?", a: "Functions that have access to req, res objects." },
+    { id: 8, q: "Difference between let, const, and var?", a: "Scope and re-assignment capabilities." },
+    { id: 9, q: "How does Virtual DOM work?", a: "Syncs only changed parts to the real DOM." },
+    { id: 10, q: "What is a custom hook?", a: "Reusable logic starting with 'use' keyword." }
+  ]
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 useEffect(() => {
     if (roboContainerRef.current) {
       init(roboContainerRef.current);
@@ -1077,10 +1189,133 @@ useEffect(() => {
       </div>
 
       {/* BOTTOM SECTION */}
-      <div className="results-container">
-           here al result ingetha varum ok ithu height autova erukkanum ok 
 
+
+
+
+
+
+
+
+
+<div className="results-container">
+  <div className="results-inner-wrapper">
+    
+    <div className="results-header">
+      <h2>CAREER ANALYSER - MOCK INTERVIEW RESULTS</h2>
+      <p>GREAT JOB, {interviewResults.candidateName}!</p>
+    </div>
+
+    {/* Top Section: Scores & Candidate Info */}
+    <div className="top-grid">
+      <div className="score-box resume-border">
+        <h4>RESUME SCORE</h4>
+        <div className="score-val" style={{color: interviewResults.scores.resume.color}}>{interviewResults.scores.resume.value}/100</div>
+        <p>RESUME STRENGTH: {interviewResults.scores.resume.label}</p>
       </div>
+      <div className="score-box interview-border">
+        <h4>INTERVIEW SCORE</h4>
+        <div className="score-val" style={{color: interviewResults.scores.interview.color}}>{interviewResults.scores.interview.value}/100</div>
+        <p>OVERALL PERFORMANCE: {interviewResults.scores.interview.label}</p>
+      </div>
+      <div className="candidate-card">
+        <p><strong>CANDIDATE:</strong> {interviewResults.candidateName}</p>
+        <p><strong>DOMAIN:</strong> {interviewResults.domain}</p>
+        <p><strong>DIFFICULTY:</strong> {interviewResults.difficulty}</p>
+        <p><strong>TYPE:</strong> {interviewResults.interviewType}</p>
+      </div>
+    </div>
+
+    <div className="main-content-layout">
+      {/* 1. Resume Analysis */}
+      <div className="content-card resume-analysis">
+        <h3>RESUME ANALYSIS</h3>
+        <p className="sub-heading">KEY SKILLS MATCH ({interviewResults.resumeAnalysis.matchPercentage}%)</p>
+        <ul>{interviewResults.resumeAnalysis.keySkillsMatch.map(s => <li key={s}>{s}</li>)}</ul>
+        
+        <p className="sub-heading">MISSING KEYWORDS</p>
+        <p className="small-text">{interviewResults.resumeAnalysis.missingKeywords.join(', ')} to improve ATS match.</p>
+        
+        <p className="sub-heading">PROJECT IMPACT</p>
+        <p className="small-text">{interviewResults.resumeAnalysis.projectImpact}</p>
+        
+        <p className="sub-heading">FORMATTING FEEDBACK</p>
+        <p className="small-text">{interviewResults.resumeAnalysis.formattingFeedback}</p>
+      </div>
+
+      {/* 2. Mistake Analysis Table */}
+      <div className="content-card table-overflow">
+        <h3>MISTAKE ANALYSIS TABLE</h3>
+        <table>
+          <thead>
+            <tr><th>QUESTION ASKED</th><th>YOUR ANSWER</th><th>CORRECT ANSWER</th><th>KEY SKILL</th></tr>
+          </thead>
+          <tbody>
+            {interviewResults.mistakeTable.map((m, i) => (
+              <tr key={i}>
+                <td>{m.question}</td>
+                <td className="red-text">{m.userAnswer}</td>
+                <td className="green-text">{m.correctAnswer}</td>
+                <td><strong>{m.keySkill}</strong></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* 3. Sentiment & Learning Plan */}
+      <div className="content-card">
+        <h3>SENTIMENT & LEARNING PLAN</h3>
+        <p className="sub-heading">SENTIMENT & COMMUNICATION ANALYSIS</p>
+        {Object.entries(interviewResults.sentiment).map(([key, val]) => (
+          <div key={key} className="sentiment-row">
+            <span>{key.toUpperCase()}</span>
+            <div className="bar"><div className="fill" style={{width: `${val}%`}}></div></div>
+          </div>
+        ))}
+
+        <p className="sub-heading" style={{marginTop:'20px'}}>30-DAY LEARNING PLAN</p>
+        <div className="roadmap">
+          {interviewResults.learningPlan.map(p => (
+            <div key={p.week} className="road-step">
+              <strong>Week {p.week}</strong><br/>{p.topic}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* Bottom: 10 Practice Questions */}
+    <div className="content-card questions-section">
+      <h3>NEXT PRACTICE QUESTIONS (10 ITEMS)</h3>
+      <div className="questions-grid">
+        {interviewResults.nextPracticeQuestions.map(q => (
+          <div key={q.id} className="q-box">
+            <strong>{q.id}. {q.q}</strong><br/>
+            <span className="ans-text">Ans: {q.a}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div className="footer-bar">
+      CONGRATULATIONS, {interviewResults.candidateName}! INTERVIEW COMPLETE - KEEP LEARNING!
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
       <button onClick={startInterview}>
         start interview
       </button>
