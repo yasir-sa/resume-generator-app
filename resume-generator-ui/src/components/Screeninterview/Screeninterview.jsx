@@ -343,30 +343,66 @@ useEffect(() => {
 }, [messages]);
 
 
-const sendMessageToBackend =async(text)=>{
- try{
-     setIsProcessing(true);
-     const response=await API.post("/interview/chat",{
-      message:text,
+// const sendMessageToBackend =async(text)=>{
+//  try{
+//      setIsProcessing(true);
+//      const response=await API.post("/interview/chat",{
+//       message:text,
+//       oldData: messages
+//      })
+
+
+//      const aiReply=response.data.reply;
+//      setMessages(prev=>[
+//       ...prev,
+//       {role:"ai",text:aiReply}
+//      ])
+//       speakAI(aiReply);
+
+//  }   
+//  catch(error){
+// console.error("interview chat send error: ",error);
+//  }
+// finally {
+//     setIsProcessing(false);
+//   }
+// }
+
+
+const sendMessageToBackend = async (text) => {
+  try {
+    setIsProcessing(true);
+    const response = await API.post("/interview/chat", {
+      message: text,
       oldData: messages
-     })
+    });
 
+    // Backend-லிருந்து வரும் reply மற்றும் animation-ஐப் பிரிக்கிறோம்
+    const aiReply = response.data.reply;
+    const animationFromAI = response.data.animation; // இது "hi" அல்லது "talk" ஆக இருக்கும்
 
-     const aiReply=response.data.reply;
-     setMessages(prev=>[
+    // 1. அனிமேஷனை செட் செய்கிறோம்
+    setAnimationName(animationFromAI);
+
+    // 2. மெசேஜை செட் செய்கிறோம்
+    setMessages(prev => [
       ...prev,
-      {role:"ai",text:aiReply}
-     ])
-      speakAI(aiReply);
+      { role: "ai", text: aiReply }
+    ]);
 
- }   
- catch(error){
-console.error("interview chat send error: ",error);
- }
-finally {
+    // 3. AI பேசத் தொடங்குகிறது
+    speakAI(aiReply);
+
+  } catch (error) {
+    console.error("interview chat send error: ", error);
+  } finally {
     setIsProcessing(false);
   }
-}
+};
+
+
+
+
 // const speakAI = (text) => {
 
 //   if (!window.speechSynthesis) return;

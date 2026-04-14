@@ -2889,6 +2889,121 @@ exports.interviewUser = async (req, res) => {
 //       message: "AI interview server error",
 //     });
 //   }
+// // };
+// exports.sendinterviewchat = async (req, res) => {
+//   try {
+//     const { message, oldData } = req.body;
+//     const GROQ_API_KEY = process.env.GROQ_API_KEY;
+//     const model = "llama-3.1-8b-instant";
+
+//     // 1. storedInterviewContext-ல் இருந்து ரெஸ்யூம் டேட்டாவை எடுத்து ஒரு ஸ்டிரிங்காக மாற்றுகிறோம்
+// // 1. Adding the Notes field here so the AI can see it
+//     const resumeDetails = storedInterviewContext ? `
+//       - Domain: ${storedInterviewContext.domain}
+//       - Manual Skills: ${storedInterviewContext.manualSkills || 'N/A'}
+//       - Resume Content: ${storedInterviewContext.resumeContent || 'N/A'}
+//       - Project Content: ${storedInterviewContext.projectResume || 'N/A'}
+//       - Extra Notes: ${storedInterviewContext.notes || 'N/A'} 
+//       - Difficulty: ${storedInterviewContext.difficulty}/5
+//     ` : "No context found.";
+
+// // const systemPrompt = `
+// //   Role: You are 'Anna', a Senior Python Mentor. 
+
+// //   STRICT CONTEXT FILTERS:
+// //   1. DOMAIN: ${storedInterviewContext?.domain}
+// //   2. SKILLS: ${storedInterviewContext?.manualSkills}
+// //   3. RESUME: ${storedInterviewContext?.resumeContent}
+// //   4. PROJECTS: ${storedInterviewContext?.projectResume}
+// //   5. NOTES: ${storedInterviewContext?.notes}
+
+// //   QUESTION COUNT RULES:
+// //   - Difficulty 1-2: 10 Questions.
+// //   - Difficulty 3-4: 15 Questions.
+// //   - Difficulty 5-6: 20 Questions.
+
+// //   INTERVIEW MANDATE:
+// //   - WRONG ANSWER: Briefly correct the user, then ask the next question.
+// //   - CORRECT ANSWER: Start with "Great!", "Perfect!", or "Excellent!", then ask the next question.
+// //   - STRUCTURE: Every response MUST end with exactly one question.
+// //   - DATA: Stay strictly within the user's provided resume and projects.
+
+// //   WORD COUNT CONTROL (STRICT):
+// //   - Minimum: 10 words.
+// //   - Maximum: 20 words. (Never exceed 20 words per message).
+
+// //   FIRST MESSAGE:
+// //   - Hi, I'm Anna. Analyzed your ${storedInterviewContext?.domain} profile. Let's start ${storedInterviewContext?.difficulty <= 2 ? '10' : storedInterviewContext?.difficulty <= 4 ? '15' : '20'} questions. Ready?
+
+// //   FINISHING THE INTERVIEW:
+// //   - After reaching the question limit, provide a final correction (if needed) and say: "Interview complete! Great effort today, keep practicing!"
+
+// //   TONE: Professional English. No Tamil.
+// // `;
+
+
+// const systemPrompt = `
+//   Role: You are 'Anna', a interviewer. 
+
+//   STRICT CONTEXT:
+//   - Source: ${storedInterviewContext?.domain}, ${storedInterviewContext?.manualSkills}, ${storedInterviewContext?.resumeContent}, ${storedInterviewContext?.projectResume}.
+//   - Logic: Use ONLY the data above. No generic Python questions.
+
+//   STRICT QUESTION COUNT (Excluding Intro):
+//   - Initial Task: Ask for a brief Self-Introduction first.
+//   - After Intro, ask EXACTLY:
+//     * Difficulty 1-2: 10 Questions.
+//     * Difficulty 3-4: 15 Questions.
+//     * Difficulty 5-6: 20 Questions.
+//   - TERMINATION: Stop exactly after the last question. Do NOT ask a new question in the final message.
+
+//   INTERVIEW FLOW:
+//   - WRONG ANSWER: Max 10-word correction + Next question.
+//   - CORRECT ANSWER: "Great/Excellent!" + Next question.
+//   - EVERY response (except final) must end with a question.
+
+//   WORD COUNT (MANDATORY):
+//   - Range: 10 to 20 words per message.
+//   - NEVER exceed 20 words. Be extremely concise.
+
+//   FINAL MESSAGE:
+//   - Provide final correction (if any) + "Interview complete! Great effort today, keep practicing!"
+
+//   TONE: Professional English only. No Tamil.
+// `;
+//     // 2. Chat History formatting
+//     const formattedHistory = (oldData || []).map(msg => ({
+//       role: msg.role === "ai" ? "assistant" : "user",
+//       content: msg.text,
+//     }));
+
+//     // 3. Groq API Call
+//     const response = await axios.post(
+//       "https://api.groq.com/openai/v1/chat/completions",
+//       {
+//         model: model,
+//         messages: [
+//           { role: "system", content: systemPrompt },
+//           ...formattedHistory,
+//           { role: "user", content: message }
+//         ],
+//         temperature: 0.6
+//       },
+//       {
+//         headers: {
+//           Authorization: `Bearer ${GROQ_API_KEY}`,
+//           "Content-Type": "application/json",
+//         },
+//       }
+//     );
+
+//     const aiReply = response.data.choices[0].message.content;
+//     return res.status(200).json({ success: true, reply: aiReply });
+
+//   } catch (error) {
+//     console.error("Interview error:", error.message);
+//     return res.status(500).json({ success: false, message: "AI Sync Error" });
+//   }
 // };
 exports.sendinterviewchat = async (req, res) => {
   try {
@@ -2896,71 +3011,39 @@ exports.sendinterviewchat = async (req, res) => {
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
     const model = "llama-3.1-8b-instant";
 
-    // 1. storedInterviewContext-ல் இருந்து ரெஸ்யூம் டேட்டாவை எடுத்து ஒரு ஸ்டிரிங்காக மாற்றுகிறோம்
-// 1. Adding the Notes field here so the AI can see it
-    const resumeDetails = storedInterviewContext ? `
-      - Domain: ${storedInterviewContext.domain}
-      - Manual Skills: ${storedInterviewContext.manualSkills || 'N/A'}
-      - Resume Content: ${storedInterviewContext.resumeContent || 'N/A'}
-      - Project Content: ${storedInterviewContext.projectResume || 'N/A'}
-      - Extra Notes: ${storedInterviewContext.notes || 'N/A'} 
-      - Difficulty: ${storedInterviewContext.difficulty}/5
-    ` : "No context found.";
+    // 1. Animation Logic Instructions (அனிமேஷனை மட்டும் முடிவு செய்யும் விதி)
+    const animationRule = `
+    ANIMATION INSTRUCTION:
+    - Start every message with an animation tag.
+    - Use [hi] for the very first greeting (Intro) and the very last message (Interview complete).
+    - Use [talk] for every other question or response in between.
+    - Format: [tag] Your response here.
+    `;
 
-// const systemPrompt = `
-//   Role: You are 'Anna', a Senior Python Mentor. 
+    const systemPrompt = `
+  Role: You are 'Anna', an expert Senior Interviewer. 
+  ${animationRule}
 
-//   STRICT CONTEXT FILTERS:
-//   1. DOMAIN: ${storedInterviewContext?.domain}
-//   2. SKILLS: ${storedInterviewContext?.manualSkills}
-//   3. RESUME: ${storedInterviewContext?.resumeContent}
-//   4. PROJECTS: ${storedInterviewContext?.projectResume}
-//   5. NOTES: ${storedInterviewContext?.notes}
+  STRICT DATA ACCESS (ONLY USE THIS):
+  - Candidate Domain: ${storedInterviewContext?.domain || 'Fullstack'}
+  - Technical Skills: ${storedInterviewContext?.manualSkills || 'N/A'}
+  - Project Experience: ${storedInterviewContext?.projectResume || 'N/A'}
+  - Resume Content: ${storedInterviewContext?.resumeContent || 'N/A'}
 
-//   QUESTION COUNT RULES:
-//   - Difficulty 1-2: 10 Questions.
-//   - Difficulty 3-4: 15 Questions.
-//   - Difficulty 5-6: 20 Questions.
-
-//   INTERVIEW MANDATE:
-//   - WRONG ANSWER: Briefly correct the user, then ask the next question.
-//   - CORRECT ANSWER: Start with "Great!", "Perfect!", or "Excellent!", then ask the next question.
-//   - STRUCTURE: Every response MUST end with exactly one question.
-//   - DATA: Stay strictly within the user's provided resume and projects.
-
-//   WORD COUNT CONTROL (STRICT):
-//   - Minimum: 10 words.
-//   - Maximum: 20 words. (Never exceed 20 words per message).
-
-//   FIRST MESSAGE:
-//   - Hi, I'm Anna. Analyzed your ${storedInterviewContext?.domain} profile. Let's start ${storedInterviewContext?.difficulty <= 2 ? '10' : storedInterviewContext?.difficulty <= 4 ? '15' : '20'} questions. Ready?
-
-//   FINISHING THE INTERVIEW:
-//   - After reaching the question limit, provide a final correction (if needed) and say: "Interview complete! Great effort today, keep practicing!"
-
-//   TONE: Professional English. No Tamil.
-// `;
-
-
-const systemPrompt = `
-  Role: You are 'Anna', a interviewer. 
-
-  STRICT CONTEXT:
-  - Source: ${storedInterviewContext?.domain}, ${storedInterviewContext?.manualSkills}, ${storedInterviewContext?.resumeContent}, ${storedInterviewContext?.projectResume}.
-  - Logic: Use ONLY the data above. No generic Python questions.
+  INTERVIEW MANDATE:
+  1. You have FULL access to the data above. NEVER say "I don't have access to your personal info."
+  2. Ask questions ONLY based on the Candidate Domain and Technical Skills listed above.
+  3. If the user mentions "College" or "C++", look for related context in the skills and projects above.
 
   STRICT QUESTION COUNT (Excluding Intro):
-  - Initial Task: Ask for a brief Self-Introduction first.
-  - After Intro, ask EXACTLY:
-    * Difficulty 1-2: 10 Questions.
-    * Difficulty 3-4: 15 Questions.
-    * Difficulty 5-6: 20 Questions.
+  - Step 1: Ask for a brief Self-Introduction first.
+  - After Intro, ask EXACTLY: Difficulty ${storedInterviewContext?.difficulty}: ${storedInterviewContext?.difficulty <= 2 ? '10' : storedInterviewContext?.difficulty <= 4 ? '15' : '20'} Questions.
   - TERMINATION: Stop exactly after the last question. Do NOT ask a new question in the final message.
 
   INTERVIEW FLOW:
   - WRONG ANSWER: Max 10-word correction + Next question.
   - CORRECT ANSWER: "Great/Excellent!" + Next question.
-  - EVERY response (except final) must end with a question.
+  - EVERY response (except final) must end with a question based on the Skills/Domain.
 
   WORD COUNT (MANDATORY):
   - Range: 10 to 20 words per message.
@@ -2987,7 +3070,7 @@ const systemPrompt = `
           ...formattedHistory,
           { role: "user", content: message }
         ],
-        temperature: 0.6
+        temperature: 0.5 // விதிகளுக்குக் கட்டுப்பட 0.5 சிறந்தது
       },
       {
         headers: {
@@ -2997,8 +3080,29 @@ const systemPrompt = `
       }
     );
 
-    const aiReply = response.data.choices[0].message.content;
-    return res.status(200).json({ success: true, reply: aiReply });
+    const fullResponse = response.data.choices[0].message.content;
+
+    // --- 🪄 Animation Variable Logic ---
+    
+    // AI பதிலில் இருந்து [hi] அல்லது [talk]-ஐ பிரிக்கிறோம்
+    const animMatch = fullResponse.match(/\[(.*?)\]/);
+    const animatedAction = animMatch ? animMatch[1].toLowerCase() : "talk"; 
+    
+    // UI-க்கு அனுப்ப டெக்ஸ்டில் இருந்து அந்த பிராக்கெட் டேக்-ஐ நீக்குகிறோம்
+    const cleanReply = fullResponse.replace(/\[.*?\]/, "").trim();
+
+    // Backend-ல் கன்சோல் செய்கிறோம்
+    console.log("----------------------------");
+    console.log("AI DECIDED ANIMATION:", animatedAction);
+    console.log("AI TEXT:", cleanReply);
+    console.log("----------------------------");
+
+    // 4. Return both reply and animation to UI
+    return res.status(200).json({ 
+      success: true, 
+      reply: cleanReply, 
+      animation: animatedAction 
+    });
 
   } catch (error) {
     console.error("Interview error:", error.message);
