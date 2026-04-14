@@ -3013,11 +3013,11 @@ exports.sendinterviewchat = async (req, res) => {
 
     // 1. Animation Logic Instructions (அனிமேஷனை மட்டும் முடிவு செய்யும் விதி)
     const animationRule = `
-    ANIMATION INSTRUCTION:
-    - Start every message with an animation tag.
-    - Use [hi] for the very first greeting (Intro) and the very last message (Interview complete).
-    - Use [talk] for every other question or response in between.
-    - Format: [tag] Your response here.
+ ANIMATION RULES:
+1. If the 'oldData' is empty or you are asking for the 'Self-Introduction', you MUST use [hi].
+2. For the final interview termination message, you MUST use [hi].
+3. For ALL technical questions, follow-up questions, and corrections in between, you MUST use [talk].
+Format: [hi] or [talk] followed by your text.
     `;
 
     const systemPrompt = `
