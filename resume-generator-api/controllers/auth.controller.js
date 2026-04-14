@@ -2943,7 +2943,7 @@ exports.sendinterviewchat = async (req, res) => {
 
 
 const systemPrompt = `
-  Role: You are 'Anna', a Senior Python Mentor. 
+  Role: You are 'Anna', a interviewer. 
 
   STRICT CONTEXT:
   - Source: ${storedInterviewContext?.domain}, ${storedInterviewContext?.manualSkills}, ${storedInterviewContext?.resumeContent}, ${storedInterviewContext?.projectResume}.
