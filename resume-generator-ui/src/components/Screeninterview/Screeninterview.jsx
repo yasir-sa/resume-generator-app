@@ -68,66 +68,156 @@ const [isCompleted, setIsCompleted] = useState(false);
 
 
 
+  const [interviewResults] = useState({
+    candidateName: "YASIR",
+    domain: "FULLSTACK (MERN)",
+    difficulty: "1-2",
+    interviewType: "TECHNICAL HR",
+    scores: {
+      resume: { value: 82, label: "VERY GOOD" },
+      interview: { value: 85, label: "EXCELLENT" },
+    },
+    resumeAnalysis: {
+      matchPercentage: 85,
+      keySkills: ["React", "Node", "Mongo"],
+      missingKeywords: "'Redux', 'AWS Fundamentals', 'Agile Methodology'",
+      projectImpact:
+        "Make 'simple todo list' quantifiable (e.g., 'handling 50+ entries').",
+      formattingFeedback: [
+        "Add LinkedIn URL to professional profile.",
+        "Use Quantifiable Metrics.",
+      ],
+    },
+    mistakes: [
+      {
+        q: "How does to handle state in React?",
+        u: "I think useState inside another.",
+        c: "Consider Redux or Context API for complex apps.",
+        s: "State Management",
+      },
+      {
+        q: "What is a closure in JavaScript?",
+        u: "It's like a function inside another.",
+        c: "A function that remembers its outer scope.",
+        s: "JS Fundamentals",
+      },
+      {
+        q: "What is REST APIs?",
+        u: "Used for web services, GET/POST.",
+        c: "Architectural style for stateless CRUD operations.",
+        s: "API Design",
+      },
+      {
+        q: "What is writing about a project?",
+        u: "I made a simple todo list.",
+        c: "Highlight MERN stack, auth, and integration.",
+        s: "Project Presentation",
+      },
+    ],
+    sentiment: {
+      confidence: 90,
+      professionalism: 70,
+      clarity: 65,
+    },
+    learningPlan: [
+      { week: "Week 1", topic: "Redux" },
+      { week: "Week 2", topic: "Context API, Hooks" },
+      { week: "Week 3", topic: "RESTful API Principles" },
+      { week: "Week 4", topic: "Project Refinement" },
+    ],
+    practiceQuestions: [
+      {
+        id: 1,
+        q: "Implement custom hook for fetching data?",
+        a: "'useFetch' to centralize loading, error handling.",
+      },
+      {
+        id: 2,
+        q: "Compare SQL vs. NoSQL for scalability?",
+        a: "SQL for ACID, NoSQL for horizontal scaling.",
+      },
+      {
+        id: 3,
+        q: "What are side effects in React?",
+        a: "Actions like DOM change or API call.",
+      },
+      {
+        id: 4,
+        q: "Explain JWT Authentication?",
+        a: "Secure stateless authentication using tokens.",
+      },
+      {
+        id: 5,
+        q: "What is Middleware in Express?",
+        a: "Functions that handle Request-Response objects.",
+      },
+      {
+        id: 6,
+        q: "Explain Virtual DOM.",
+        a: "Lightweight copy for fast UI updates.",
+      },
+      {
+        id: 7,
+        q: "What is useEffect?",
+        a: "Hook for side effects in functional components.",
+      },
+      {
+        id: 8,
+        q: "Difference between let and var?",
+        a: "Block scope vs Function scope.",
+      },
+      {
+        id: 9,
+        q: "What is MongoDB aggregation?",
+        a: "Data processing pipeline for complex queries.",
+      },
+      {
+        id: 10,
+        q: "How to optimize React apps?",
+        a: "Memoization, Lazy loading, and Code splitting.",
+      },
+    ],
+  });
 
+  const sentimentColors = {
+    confidence: "#a78bfa",
+    professionalism: "#34d399",
+    clarity: "#60a5fa",
+  };
 
+  const circumference = 2 * Math.PI * 32;
 
-
-
-
-const [interviewResults, setInterviewResults] = useState({
-  candidateName: "YASIR",
-  domain: "FULLSTACK (MERN)",
-  difficulty: "1-2",
-  interviewType: "TECHNICAL HR",
-  
-  scores: {
-    resume: { value: 82, label: "VERY GOOD", color: "#10b981" },
-    interview: { value: 85, label: "EXCELLENT", color: "#f97316" }
-  },
-
-  resumeAnalysis: {
-    matchPercentage: 85,
-    keySkillsMatch: ["React", "Node", "Mongo"],
-    missingKeywords: ["Redux", "AWS Fundamentals", "Agile Methodology"],
-    projectImpact: "Make 'simple todo list' quantifiable (e.g., 'handling 50+ entries').",
-    formattingFeedback: "Add LinkedIn URL to a professional. Quantifiable Metrics."
-  },
-
-  mistakeTable: [
-    { question: "How does to handle state in React?", userAnswer: "I think useState inside another.", correctAnswer: "Consider Redux or Context API for complex apps.", keySkill: "State Management" },
-    { question: "What is a closure in JavaScript?", userAnswer: "It's like a function inside another.", correctAnswer: "A function that remembers its outer scope.", keySkill: "JS Fundamentals" },
-    { question: "What is was rest' REST APIs.", userAnswer: "Used for web services, GET/POST.", correctAnswer: "Architectural style for hypermedia, stateless, with CRUD", keySkill: "API Design" },
-    { question: "What is in written captitation a project.", userAnswer: "I made a simple todo list.", correctAnswer: "Highlight MERN stack, user auth, integration.", keySkill: "Project Presentation" }
-  ],
-
-  sentiment: {
-    confidence: 90,
-    professionalism: 70,
-    clarityTone: 65
-  },
-
-  learningPlan: [
-    { week: 1, topic: "Redux" },
-    { week: 2, topic: "Context API, Hooks" },
-    { week: 3, topic: "RESTful API Principles" },
-    { week: 4, topic: "Project Refinement" }
-  ],
-
-  nextPracticeQuestions: [
-    { id: 1, q: "Implement custom hook for fetching data?", a: "'useFetch' to centralize loading, error handling." },
-    { id: 2, q: "Compare SQL vs. NoSQL for scalability?", a: "SQL for ACID, NoSQL for horizontal scaling and flex schema." },
-    { id: 3, q: "What are side effects in React?", a: "Affecting outside, like DOM change or API call." },
-    { id: 4, q: "What are a competed successful?", a: "Create APIs for horizontal teams." },
-    { id: 5, q: "What does the represent project?", a: "Actions, NoSQL for horizontal scaling." },
-    { id: 6, q: "Explain JWT Authentication.", a: "JSON Web Token for secure stateless authentication." },
-    { id: 7, q: "What is Middleware in Express?", a: "Functions that have access to req, res objects." },
-    { id: 8, q: "Difference between let, const, and var?", a: "Scope and re-assignment capabilities." },
-    { id: 9, q: "How does Virtual DOM work?", a: "Syncs only changed parts to the real DOM." },
-    { id: 10, q: "What is a custom hook?", a: "Reusable logic starting with 'use' keyword." }
-  ]
-});
-
-
+  function ScoreRing({ value, color, label, sublabel }) {
+    const offset = circumference - (value / 100) * circumference;
+    return (
+      <div className="score-card">
+        <div className="score-card__label">{label}</div>
+        <div className="score-ring">
+          <svg width="90" height="90" viewBox="0 0 90 90">
+            <circle cx="45" cy="45" r="32" className="score-ring__bg" />
+            <circle
+              cx="45"
+              cy="45"
+              r="32"
+              className="score-ring__fill"
+              style={{
+                stroke: color,
+                strokeDasharray: circumference,
+                strokeDashoffset: offset,
+              }}
+            />
+          </svg>
+          <div className="score-ring__value">
+            {value}
+            <span>/100</span>
+          </div>
+        </div>
+        <div className="score-card__sublabel" style={{ color }}>
+          {sublabel}
+        </div>
+      </div>
+    );
+  }
 
 
 
@@ -1194,116 +1284,175 @@ useEffect(() => {
 
 
 
+   <div className="dashboard">
+      {/* ── Header ── */}
+      <header className="dashboard__header">
+        <div className="dashboard__header-icon">🤖</div>
+        <h1>CAREER ANALYSER — MOCK INTERVIEW RESULTS</h1>
+        <p>GREAT JOB, {interviewResults.candidateName}!</p>
+      </header>
 
-
-
-
-<div className="results-container">
-  <div className="results-inner-wrapper">
-    
-    <div className="results-header">
-      <h2>CAREER ANALYSER - MOCK INTERVIEW RESULTS</h2>
-      <p>GREAT JOB, {interviewResults.candidateName}!</p>
-    </div>
-
-    {/* Top Section: Scores & Candidate Info */}
-    <div className="top-grid">
-      <div className="score-box resume-border">
-        <h4>RESUME SCORE</h4>
-        <div className="score-val" style={{color: interviewResults.scores.resume.color}}>{interviewResults.scores.resume.value}/100</div>
-        <p>RESUME STRENGTH: {interviewResults.scores.resume.label}</p>
-      </div>
-      <div className="score-box interview-border">
-        <h4>INTERVIEW SCORE</h4>
-        <div className="score-val" style={{color: interviewResults.scores.interview.color}}>{interviewResults.scores.interview.value}/100</div>
-        <p>OVERALL PERFORMANCE: {interviewResults.scores.interview.label}</p>
-      </div>
-      <div className="candidate-card">
-        <p><strong>CANDIDATE:</strong> {interviewResults.candidateName}</p>
-        <p><strong>DOMAIN:</strong> {interviewResults.domain}</p>
-        <p><strong>DIFFICULTY:</strong> {interviewResults.difficulty}</p>
-        <p><strong>TYPE:</strong> {interviewResults.interviewType}</p>
-      </div>
-    </div>
-
-    <div className="main-content-layout">
-      {/* 1. Resume Analysis */}
-      <div className="content-card resume-analysis">
-        <h3>RESUME ANALYSIS</h3>
-        <p className="sub-heading">KEY SKILLS MATCH ({interviewResults.resumeAnalysis.matchPercentage}%)</p>
-        <ul>{interviewResults.resumeAnalysis.keySkillsMatch.map(s => <li key={s}>{s}</li>)}</ul>
-        
-        <p className="sub-heading">MISSING KEYWORDS</p>
-        <p className="small-text">{interviewResults.resumeAnalysis.missingKeywords.join(', ')} to improve ATS match.</p>
-        
-        <p className="sub-heading">PROJECT IMPACT</p>
-        <p className="small-text">{interviewResults.resumeAnalysis.projectImpact}</p>
-        
-        <p className="sub-heading">FORMATTING FEEDBACK</p>
-        <p className="small-text">{interviewResults.resumeAnalysis.formattingFeedback}</p>
-      </div>
-
-      {/* 2. Mistake Analysis Table */}
-      <div className="content-card table-overflow">
-        <h3>MISTAKE ANALYSIS TABLE</h3>
-        <table>
-          <thead>
-            <tr><th>QUESTION ASKED</th><th>YOUR ANSWER</th><th>CORRECT ANSWER</th><th>KEY SKILL</th></tr>
-          </thead>
-          <tbody>
-            {interviewResults.mistakeTable.map((m, i) => (
-              <tr key={i}>
-                <td>{m.question}</td>
-                <td className="red-text">{m.userAnswer}</td>
-                <td className="green-text">{m.correctAnswer}</td>
-                <td><strong>{m.keySkill}</strong></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* 3. Sentiment & Learning Plan */}
-      <div className="content-card">
-        <h3>SENTIMENT & LEARNING PLAN</h3>
-        <p className="sub-heading">SENTIMENT & COMMUNICATION ANALYSIS</p>
-        {Object.entries(interviewResults.sentiment).map(([key, val]) => (
-          <div key={key} className="sentiment-row">
-            <span>{key.toUpperCase()}</span>
-            <div className="bar"><div className="fill" style={{width: `${val}%`}}></div></div>
-          </div>
-        ))}
-
-        <p className="sub-heading" style={{marginTop:'20px'}}>30-DAY LEARNING PLAN</p>
-        <div className="roadmap">
-          {interviewResults.learningPlan.map(p => (
-            <div key={p.week} className="road-step">
-              <strong>Week {p.week}</strong><br/>{p.topic}
+      {/* ── Top Row: Scores + Info ── */}
+      <div className="top-row">
+        <ScoreRing
+          value={interviewResults.scores.resume.value}
+          color="#10b981"
+          label="RESUME SCORE"
+          sublabel={`RESUME STRENGTH: ${interviewResults.scores.resume.label}`}
+        />
+        <ScoreRing
+          value={interviewResults.scores.interview.value}
+          color="#f59e0b"
+          label="INTERVIEW SCORE"
+          sublabel={`OVERALL PERFORMANCE: ${interviewResults.scores.interview.label}`}
+        />
+        <div className="info-card">
+          <div className="section-title">CANDIDATE INFO</div>
+          {[
+            ["Candidate", interviewResults.candidateName],
+            ["Domain", interviewResults.domain],
+            ["Difficulty", interviewResults.difficulty],
+            ["Type", interviewResults.interviewType],
+          ].map(([k, v]) => (
+            <div className="info-row" key={k}>
+              <span>{k}</span>
+              <span className="info-row__value">{v}</span>
             </div>
           ))}
         </div>
       </div>
-    </div>
 
-    {/* Bottom: 10 Practice Questions */}
-    <div className="content-card questions-section">
-      <h3>NEXT PRACTICE QUESTIONS (10 ITEMS)</h3>
-      <div className="questions-grid">
-        {interviewResults.nextPracticeQuestions.map(q => (
-          <div key={q.id} className="q-box">
-            <strong>{q.id}. {q.q}</strong><br/>
-            <span className="ans-text">Ans: {q.a}</span>
+      {/* ── Middle: Resume + Sentiment ── */}
+      <div className="mid-row">
+        {/* Resume Analysis */}
+        <div className="section">
+          <div className="section-title">RESUME ANALYSIS</div>
+
+          <div className="sub-label">
+            KEY SKILLS MATCH ({interviewResults.resumeAnalysis.matchPercentage}%)
           </div>
-        ))}
+          <div className="tags">
+            {interviewResults.resumeAnalysis.keySkills.map((s) => (
+              <span className="tag tag--purple" key={s}>
+                {s}
+              </span>
+            ))}
+          </div>
+
+          <div className="missing-block">
+            <span className="badge badge--warn">Missing Keywords</span>
+            <p className="missing-block__text">
+              {interviewResults.resumeAnalysis.missingKeywords}
+            </p>
+          </div>
+
+          <div className="sub-label" style={{ marginTop: 10 }}>
+            PROJECT IMPACT
+          </div>
+          <p className="bullet-item">
+            {interviewResults.resumeAnalysis.projectImpact}
+          </p>
+
+          <div className="sub-label" style={{ marginTop: 10 }}>
+            FORMATTING FEEDBACK
+          </div>
+          {interviewResults.resumeAnalysis.formattingFeedback.map((f) => (
+            <p className="bullet-item" key={f}>
+              {f}
+            </p>
+          ))}
+        </div>
+
+        {/* Sentiment + Learning Plan */}
+        <div className="section">
+          <div className="section-title">SENTIMENT &amp; COMMUNICATION</div>
+          {Object.entries(interviewResults.sentiment).map(([k, v]) => (
+            <div className="bar-row" key={k}>
+              <div className="bar-row__header">
+                <span>{k.charAt(0).toUpperCase() + k.slice(1)}</span>
+                <span>{v}%</span>
+              </div>
+              <div className="bar-bg">
+                <div
+                  className="bar-fill"
+                  style={{
+                    width: `${v}%`,
+                    background: sentimentColors[k],
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+
+          <div className="section-title" style={{ marginTop: 18 }}>
+            30-DAY LEARNING PLAN
+          </div>
+          <div className="week-grid">
+            {interviewResults.learningPlan.map((w, i) => (
+              <div className="week-card" key={i}>
+                <div className="week-card__label">{w.week}</div>
+                <div className="week-card__topic">{w.topic}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div className="footer-bar">
-      CONGRATULATIONS, {interviewResults.candidateName}! INTERVIEW COMPLETE - KEEP LEARNING!
-    </div>
-  </div>
-</div>
+      {/* ── Mistake Table ── */}
+      <div className="section" style={{ marginBottom: 16 }}>
+        <div className="section-title">MISTAKE ANALYSIS TABLE</div>
+        <div className="table-wrapper">
+          <table className="mistake-table">
+            <thead>
+              <tr>
+                <th>QUESTION ASKED</th>
+                <th>YOUR ANSWER</th>
+                <th>CORRECT ANSWER</th>
+                <th>KEY SKILL</th>
+              </tr>
+            </thead>
+            <tbody>
+              {interviewResults.mistakes.map((m, i) => (
+                <tr key={i}>
+                  <td>{m.q}</td>
+                  <td className="td--user">{m.u}</td>
+                  <td className="td--correct">{m.c}</td>
+                  <td>
+                    <span className="tag tag--green">{m.s}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
+      {/* ── Practice Questions ── */}
+      <div className="section">
+        <div className="section-title">
+          NEXT PRACTICE QUESTIONS ({interviewResults.practiceQuestions.length}{" "}
+          ITEMS)
+        </div>
+        <div className="pq-grid">
+          {interviewResults.practiceQuestions.map((p) => (
+            <div className="pq-item" key={p.id}>
+              <div className="pq-item__num">{p.id}</div>
+              <div>
+                <div className="pq-item__q">{p.q}</div>
+                <div className="pq-item__a">{p.a}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Footer ── */}
+      <footer className="dashboard__footer">
+        CONGRATULATIONS, {interviewResults.candidateName}! INTERVIEW COMPLETE —
+        KEEP LEARNING AND PRACTISING TO{" "}
+        <span className="footer__highlight">SHINE IN YOUR CAREER!</span>
+      </footer>
+    </div>
 
 
 
