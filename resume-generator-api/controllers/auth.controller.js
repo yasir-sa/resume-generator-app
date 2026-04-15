@@ -3275,3 +3275,130 @@ exports.getresumesformock = async (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ok now naan  ippa getresult btn clik panninal antha all data backendula proint aguthu  next intha ella datavayum nama oru ai modelukku anuppi results datava kaykkanum and athe uikkun send panni oru usestate ubdate panannum ok ithuthan concept 
+
+
+
+
+// exports.getInterviewResults என நீங்கள் கேட்ட அதே பெயரில்:
+// --- புதிய getInterviewResults பங்க்ஷன் ---
+exports.getInterviewResults = async (req, res) => {
+    try {
+        // 1. UI-ல் இருந்து வரும் Chat Data-வை ஒரு வேரியபிளில் சேமிக்கிறோம்
+        const chatData = req.body.chatTranscript;
+
+        console.log("\n<<<<<<<<<< 🚀 FINAL CONSOLIDATION START >>>>>>>>>>");
+
+        // 2. ஏற்கனவே பேக்கெண்டில் உள்ள Resume Context-ஐ சரிபார்க்கிறோம்
+        if (!storedInterviewContext) {
+            console.log("⚠️ Warning: No previous Resume Context found in backend!");
+        }
+
+        // --- 📊 VARIABLE 1: RESUME & CONTEXT DATA LOGGING ---
+  // --- 📊 VARIABLE 1: RESUME & CONTEXT DATA LOGGING ---
+        console.log("\n======= 📁 DATA VAR 1: STORED CONTEXT =======");
+        if (storedInterviewContext) {
+            console.log("🔹 Interview Type   :", storedInterviewContext.interviewType);
+            console.log("🔹 Target Domain    :", storedInterviewContext.domain);
+            console.log("🔹 Difficulty       :", storedInterviewContext.difficulty);
+            
+            // 🔥 இதோ 'notes' டேட்டாவையும் இங்கே சேர்த்துள்ளேன்
+            console.log("🔹 User Notes       :", storedInterviewContext.notes || "No notes provided");
+            
+            console.log("🔹 Manual Skills    :", storedInterviewContext.manualSkills || "None");
+            console.log("🔹 Has PDF Content  :", !!storedInterviewContext.resumeContent);
+            console.log("🔹 Has HTML Resume  :", !!storedInterviewContext.projectResume);
+            
+            if(storedInterviewContext.resumeContent) {
+                console.log("🔹 Resume Snippet   :", storedInterviewContext.resumeContent.substring(0, 100) + "...");
+            }
+        }
+
+        // --- 💬 VARIABLE 2: CHAT TRANSCRIPT DATA LOGGING ---
+        console.log("\n======= 💬 DATA VAR 2: CHAT TRANSCRIPT =======");
+        if (chatData && chatData.length > 0) {
+            console.log("🔹 Total Messages  :", chatData.length);
+            
+            // சப்-டேட்டா: யூசர் மற்றும் AI மெசேஜ்களை மட்டும் பிரிக்கிறோம்
+            const userAnswers = chatData.filter(m => m.role === "user");
+            const aiQuestions = chatData.filter(m => m.role === "ai");
+
+            console.log("🔹 Questions Asked :", aiQuestions.length);
+            console.log("🔹 Answers Given   :", userAnswers.length);
+
+            // ஒவ்வொரு மெசேஜையும் வரிசையாக கன்சோல் செய்கிறோம்
+            console.log("--- Detail Chat History ---");
+            chatData.forEach((msg, index) => {
+                console.log(`[${index + 1}] ${msg.role.toUpperCase()}: ${msg.text}`);
+            });
+        } else {
+            console.log("❌ No chat transcript received!");
+        }
+
+        console.log("\n<<<<<<<<<< ✅ ALL DATA CONSOLIDATED >>>>>>>>>>\n");
+
+        // 3. வெற்றிகரமாக முடிந்தது என பதில் அனுப்புகிறோம்
+        res.status(200).json({
+            success: true,
+            message: "All data consolidated in backend console",
+            summary: {
+                domain: storedInterviewContext?.domain,
+                totalChat: chatData?.length
+            }
+        });
+
+    } catch (error) {
+        console.error("❌ Error in getInterviewResults:", error.message);
+        res.status(500).json({ success: false, message: "Server Error during consolidation" });
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

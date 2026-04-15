@@ -27,16 +27,16 @@ function Screeninterview() {
   // const recognitionRef = useRef(null);
 
   const [messages, setMessages] = useState([
-
+  { role: "ai", text: "Hello" },
+  { role: "user", text: "Hi" },
+  { role: "ai", text: "Explain useEffect" },
+  { role: "user", text: "I know React" },
+   { role: "ai", text: "Hello" },
+  { role: "user", text: "Hi" },
+  { role: "ai", text: "Explain useEffect" },
+  { role: "user", text: "I know React" }
 ]);
-  // { role: "ai", text: "Hello" },
-  // { role: "user", text: "Hi" },
-  // { role: "ai", text: "Explain useEffect" },
-  // { role: "user", text: "I know React" },
-  //  { role: "ai", text: "Hello" },
-  // { role: "user", text: "Hi" },
-  // { role: "ai", text: "Explain useEffect" },
-  // { role: "user", text: "I know React" }
+
 
 
 const recognitionRef = useRef(null);
@@ -62,7 +62,7 @@ const [manualType, setManualType] = useState([]);      // Type 1: Typed Skills
 // இது இருக்கிறதா என்று செக் பண்ணுங்கள்
 const [isInitialSyncing, setIsInitialSyncing] = useState(true);
 const [isCompleted, setIsCompleted] = useState(false);
-
+const [interviewCompleted, setInterviewCompleted] = useState(true);
 
 
 
@@ -1147,6 +1147,77 @@ useEffect(() => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const getInterviewResults = async () => {
+  // 1. கண்டிஷன் செக்: இன்டர்வியூ முடிந்திருந்தால் மட்டுமே ரன் ஆகும்
+  if (!interviewCompleted) {
+    console.log("⚠️ Interview is not completed yet!");
+    alert("Please complete the interview before getting results.");
+    return;
+  }
+
+  console.log("======= 🎯 INTERVIEW COMPLETED: SYNCING TO BACKEND =======");
+  
+  // மெசேஜ்களை லாக் செய்கிறோம்
+  console.log("Full Chat Transcript:", messages);
+  
+  const userAnswers = messages.filter(msg => msg.role === "user");
+  const aiQuestions = messages.filter(msg => msg.role === "ai");
+
+  console.log("Total Questions Asked by AI:", aiQuestions.length);
+  console.log("Total Answers Given by User:", userAnswers.length);
+  
+  try {
+    const payload = {
+      chatTranscript: messages, 
+      completedAt: new Date()
+    };
+
+    // பேக்கெண்டிற்கு டேட்டாவை அனுப்புகிறோம்
+    const response = await API.post("/auth/interview-results", payload);
+
+    if (response.data.success) {
+      console.log("✅ Chat data synced successfully!");
+      // வெற்றிகரமாக முடிந்தால் ரிசல்ட் பக்கத்திற்கு செல்லலாம்
+      // navigate("/results"); 
+    }
+  } catch (error) {
+    console.error("❌ Failed to sync interview data:", error.response?.data?.message || error.message);
+  }
+
+  console.log("==========================================================");
+};
+
+
+
+
+
+
+
+
   return (
   
     // <div className="interview-screen">
@@ -1474,6 +1545,21 @@ useEffect(() => {
       <button className="save-interview-btn">
         save interview
       </button>
+      <button 
+  className="finish-btn" 
+  onClick={getInterviewResults}
+  style={{
+    padding: '10px 20px',
+    backgroundColor: '#8b5cf6', // Purple color like your theme
+    color: 'white',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontWeight: 'bold'
+  }}
+>
+  GET INTERVIEW RESULTS 🤖
+</button>
       <div className="btn-group">
     {/* Other buttons */}
     
