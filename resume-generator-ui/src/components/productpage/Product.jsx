@@ -51,6 +51,14 @@ const [selectedTempResume, setSelectedTempResume] = useState(null);
 
 
 
+
+
+
+
+const previewRef = useRef(null);   // iframe preview
+const downloadRef = useRef(null); // hidden download
+
+
 // possible values: "view" | "edit" | "delete"
 
 
@@ -251,45 +259,117 @@ useEffect(() => {
 
 
 
+
+
+
+
+
+// const resumedownload = async () => {
+//   const pdf = new jsPDF("p", "mm", "a4");
+
+//   // ⏳ wait for DOM render
+//   await new Promise(resolve => setTimeout(resolve, 800));
+
+//   const pages = downloadRef.current.querySelectorAll(".resume-page");
+
+//   for (let i = 0; i < pages.length; i++) {
+//     const page = pages[i];
+
+//     const canvas = await html2canvas(page, {
+//       scale: 2,
+//       useCORS: true,
+//       backgroundColor: "#ffffff",
+//       windowWidth: page.scrollWidth,
+//       windowHeight: page.scrollHeight
+//     });
+
+//     const imgData = canvas.toDataURL("image/png");
+
+//     const imgWidth = 210;
+//     const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+//     if (i !== 0) pdf.addPage();
+
+//     pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+//   }
+
+//   pdf.save("My_Resume.pdf");
+// };
 const resumedownload = async () => {
-  const pdf = new jsPDF("p", "mm", "a4");
+  try {
+    const fullHTML = buildFullHTML();
 
-  const pages = resumeRef.current.querySelectorAll(".resume-page");
+    const res = await API.post(
+      "/download-pdf",
+      { html: fullHTML },
+      {
+        responseType: "blob"
+      }
+    );
 
-  for (let i = 0; i < pages.length; i++) {
-    const page = pages[i];
+    // 🔥 IMPORTANT FIX
+    const blob = new Blob([res.data], { type: "application/pdf" });
 
-    // convert page → canvas
-    const canvas = await html2canvas(page, {
-      scale: 2,          // high quality
-      useCORS: true
-    });
-
-    const imgData = canvas.toDataURL("image/png");
-
-    const imgWidth = 210; // A4 width mm
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-    if (i !== 0) {
-      pdf.addPage();
+    // ❗ sometimes needed (force correct type)
+    if (blob.size === 0) {
+      alert("PDF is empty ❌");
+      return;
     }
 
-    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+    const url = window.URL.createObjectURL(blob);
+
+    // ✅ SAFE DOWNLOAD METHOD
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "My_Resume.pdf";
+
+    document.body.appendChild(link);
+    link.click();
+
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+      link.remove();
+    }, 100);
+
+  } catch (err) {
+    console.error("Download error:", err);
   }
-
-  pdf.save("My_Resume.pdf");
 };
+const buildFullHTML = () => {
+  return `
+    <html>
+      <head>
+        <meta charset="UTF-8" />
 
+        <style>
+          body {
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+          }
 
+          /* A4 exact */
+          .resume-page {
+            width: 794px;
+            min-height: 1123px;
+            background: #ffffff !important;
+            color: #000000 !important;
+            page-break-after: always;
+          }
 
+          /* remove unwanted spacing */
+          p, h1, h2, h3, h4, h5, h6 {
+            margin: 0;
+          }
+        </style>
+      </head>
 
-
-
-
-
-
-
-
+      <body>
+        ${resumePages.join("")}
+      </body>
+    </html>
+  `;
+};
 
 
 
@@ -800,7 +880,7 @@ const confirmSelection = () => {
 
 
 
-
+{/* 
 {previewid !== null &&(
         <div className="resume-preview-page">
           <div className="resume-container"ref={resumeRef}>
@@ -823,8 +903,63 @@ const confirmSelection = () => {
 
               <button onClick={resumedownload} className="download-btn">download your resume</button>
         </div>
+)} */}
+{previewid !== null && (
+  <div className="resume-preview-page">
+
+    {/* ✅ Preview மட்டும் iframe */}
+    <div className="resume-container">
+      {resumePages.map((page, index) => (
+        <iframe
+          key={index}
+          className="resume-iframe"
+          srcDoc={page}
+          title={`resume-${index}`}
+        />
+      ))}
+    </div>
+
+    <button
+      onClick={() => setpreviewid(null)}
+      className="go-back-btn"
+    >
+      go back
+    </button>
+
+    <button onClick={resumedownload} className="download-btn">
+      download your resume
+    </button>
+
+  </div>
 )}
-      
+
+
+{/* ✅ DOWNLOAD மட்டும் hidden clean container */}
+<div
+  ref={downloadRef}
+  style={{
+    position: "absolute",
+    top: "-9999px",
+    left: "-9999px",
+    width: "794px",
+    background: "#ffffff"
+  }}
+>
+  {resumePages.map((page, index) => (
+    <div
+      key={index}
+      className="resume-page"
+      style={{
+        width: "794px",
+        minHeight: "1123px",
+        background: "#ffffff",
+        color: "#000",
+        overflow: "hidden"
+      }}
+      dangerouslySetInnerHTML={{ __html: page }}
+    />
+  ))}
+</div>
 
 
 

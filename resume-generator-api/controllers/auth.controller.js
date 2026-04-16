@@ -11,6 +11,9 @@ const path = require('path');
 const fs = require('fs');
 
 
+const puppeteer = require("puppeteer");
+
+
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000);
  
 // const multer = require("multer");
@@ -3521,4 +3524,103 @@ Analyze the provided datasets to generate a highly accurate, consistent candidat
         console.error("❌ ERROR:", error.response?.data || error.message);
         res.status(500).json({ success: false, message: "Analysis failed" });
     }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// resume  download 
+
+
+
+exports.downloadPDF = async (req, res) => {
+  try {
+    const { html } = req.body;
+
+    if (!html) {
+      return res.status(400).send("No HTML provided");
+    }
+
+    const browser = await puppeteer.launch({
+      headless: "new",
+      args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    });
+
+    const page = await browser.newPage();
+
+    await page.setContent(html, {
+      waitUntil: "networkidle0"
+    });
+
+    await page.emulateMediaType("screen");
+
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      preferCSSPageSize: true
+    });
+
+    await browser.close();
+
+    // 🔥 VERY IMPORTANT FIX
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Length", pdfBuffer.length);
+
+    res.end(pdfBuffer);   // ❗ use end instead of send
+
+  } catch (error) {
+    console.error("PDF error:", error);
+    res.status(500).send("PDF generation failed");
+  }
 };

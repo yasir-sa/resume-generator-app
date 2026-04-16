@@ -104,6 +104,7 @@ const {
    getresumesformock,
    storeContext,
    getInterviewResults,
+   downloadPDF,
                       // 🔥 NEW: Photo upload handler
 } = require("../controllers/auth.controller");
 
@@ -151,7 +152,7 @@ router.get(
 
 
 
-
+router.post("/download-pdf", downloadPDF);
 router.post("/auth/interview-results", getInterviewResults);
 router.post('/interview/store-context', storeContext);
 router.get("/getresumeformock", verifyToken, getresumesformock);

@@ -1400,6 +1400,8 @@ const getInterviewResults = async () => {
 
    <div className="dashboard">
       {/* ── Header ── */}
+      {interviewResults && Object.keys(interviewResults).length > 0 && (
+        <>
       <header className="dashboard__header">
         <div className="dashboard__header-icon">🤖</div>
         <h1>CAREER ANALYSER — MOCK INTERVIEW RESULTS</h1>
@@ -1566,6 +1568,8 @@ const getInterviewResults = async () => {
         KEEP LEARNING AND PRACTISING TO{" "}
         <span className="footer__highlight">SHINE IN YOUR CAREER!</span>
       </footer>
+      </>
+      )}
     </div>
 
 
@@ -1588,6 +1592,7 @@ const getInterviewResults = async () => {
       <button className="save-interview-btn">
         save interview
       </button>
+      {interviewComplete && (
       <button 
   className="finish-btn" 
   onClick={getInterviewResults}
@@ -1603,6 +1608,8 @@ const getInterviewResults = async () => {
 >
   GET INTERVIEW RESULTS 🤖
 </button>
+
+)}
       <div className="btn-group">
     {/* Other buttons */}
     
@@ -1657,4 +1664,66 @@ export default Screeninterview;
 // }
 // "nodemonConfig": {
 //   "ignore": ["*.json", "uploads/*"]
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// {
+//   "name": "resume-generator-api",
+//   "version": "1.0.0",
+//   "main": "server.js",
+//   "type": "commonjs",
+//   "scripts": {
+//     "clean:ui": "npx rimraf dist",
+//     "build:ui": "cd ../resume-generator-ui && npm run build",
+//     "copy:ui": "xcopy ..\\resume-generator-ui\\dist dist /E /I /Y",
+//     "ui:update": "npm run clean:ui && npm run build:ui && npm run copy:ui",
+//     "watch:ui": "npx chokidar \"../resume-generator-ui/src/**/*\" -c \"npm run ui:update\"",
+//     "start": "npx concurrently \"npm run watch:ui\" \"nodemon server.js\""
+//   },
+//   "dependencies": {
+//     "@google/generative-ai": "^0.24.1",
+//     "bcrypt": "^6.0.0",
+//     "cookie-parser": "^1.4.7",
+//     "cors": "^2.8.5",
+//     "dotenv": "^17.2.3",
+//     "express": "^4.22.1",
+//     "express-session": "^1.18.2",
+//     "jsonwebtoken": "^9.0.3",
+//     "multer": "^2.0.2",
+//     "node-fetch": "^3.3.2",
+//     "nodemailer": "^7.0.12",
+//     "passport": "^0.7.0",
+//     "passport-google-oauth20": "^2.0.0",
+//     "pg": "^8.16.3"
+//   },
+//   "devDependencies": {
+//     "chokidar-cli": "^3.0.0",
+//     "concurrently": "^9.2.1",
+//     "nodemon": "^3.1.11",
+//     "rimraf": "^5.0.10"
+//   },
+//   "nodemonConfig": {
+//     "ignore": [
+//       "*.json",
+//       "uploads/*",
+//       "dist/*"
+//     ]
+//   }
 // }

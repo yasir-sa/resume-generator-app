@@ -60,6 +60,7 @@ const passport = require("./config/passport"); // passport.js
 const session = require("express-session");
 
 const app = express();
+app.use(express.json({ limit: "10mb" }));
 
 // ====================
 // Session Setup
