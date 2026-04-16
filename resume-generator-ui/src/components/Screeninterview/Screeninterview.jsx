@@ -27,14 +27,53 @@ function Screeninterview() {
   // const recognitionRef = useRef(null);
 
   const [messages, setMessages] = useState([
-  { role: "ai", text: "Hello" },
-  { role: "user", text: "Hi" },
-  { role: "ai", text: "Explain useEffect" },
-  { role: "user", text: "I know React" },
-   { role: "ai", text: "Hello" },
-  { role: "user", text: "Hi" },
-  { role: "ai", text: "Explain useEffect" },
-  { role: "user", text: "I know React" }
+
+  { role: "ai", text: "Hello, I am Anna. Please provide a brief self-introduction to start our interview." },
+  { role: "user", text: "I am Yasir, a MERN stack developer looking for Fullstack roles." },
+  
+  // Question 1: Correct
+  { role: "ai", text: "Great! Let's start. Can you explain the primary purpose of React's Virtual DOM?" },
+  { role: "user", text: "It updates only changed parts of the UI to improve performance significantly." },
+  
+  // Question 2: Correct
+  { role: "ai", text: "Excellent! How does the 'useEffect' hook handle side effects in functional components?" },
+  { role: "user", text: "It runs code after rendering, like fetching data or setting up subscriptions." },
+  
+  // Question 3: Wrong (1/5)
+  { role: "ai", text: "Great! What is the difference between 'state' and 'props' in React?" },
+  { role: "user", text: "Both are exactly the same and used for storing local data." },
+  
+  // Question 4: Correction + Question
+  { role: "ai", text: "Actually, state is internal while props are passed down. What is the role of Express.js middleware?" },
+  { role: "user", text: "It is used only for connecting the database to the frontend." },
+  
+  // Question 5: Correction + Question (Wrong 2/5)
+  { role: "ai", text: "Middleware processes requests before they reach routes. Explain the concept of 'Hoisting' in JavaScript." },
+  { role: "user", text: "Variables and function declarations are moved to the top of their scope during execution." },
+  
+  // Question 6: Correct
+  { role: "ai", text: "Excellent! What is 'Redux' and why is it used in large applications?" },
+  { role: "user", text: "Redux is a database used to store images for the website." },
+  
+  // Question 7: Correction + Question (Wrong 3/5)
+  { role: "ai", text: "Redux is for state management, not images. What is the purpose of 'git merge' command?" },
+  { role: "user", text: "It is used to delete the entire project from the cloud." },
+  
+  // Question 8: Correction + Question (Wrong 4/5)
+  { role: "ai", text: "Merge combines different code branches together. What is the difference between SQL and NoSQL databases?" },
+  { role: "user", text: "SQL is relational with schemas; NoSQL is non-relational and document-based." },
+  
+  // Question 9: Correct
+  { role: "ai", text: "Great! Explain what a 'JWT' (JSON Web Token) is used for." },
+  { role: "user", text: "JWT is a tool to design the CSS of a webpage." },
+  
+  // Question 10: Correction + Final Question (Wrong 5/5)
+  { role: "ai", text: "JWT is actually for secure authentication. Finally, what are 'REST API' methods?" },
+  { role: "user", text: "GET, POST, PUT, and DELETE are the standard methods used for communication." },
+  
+  // Final Message
+  { role: "ai", text: "Correct. REST methods define resource actions. Interview complete! Great effort today, keep practicing!" }
+
 ]);
 
 
@@ -68,116 +107,142 @@ const [interviewCompleted, setInterviewCompleted] = useState(true);
 
 
 
-  const [interviewResults] = useState({
-    candidateName: "YASIR",
-    domain: "FULLSTACK (MERN)",
-    difficulty: "1-2",
-    interviewType: "TECHNICAL HR",
-    scores: {
-      resume: { value: 82, label: "VERY GOOD" },
-      interview: { value: 85, label: "EXCELLENT" },
-    },
-    resumeAnalysis: {
-      matchPercentage: 85,
-      keySkills: ["React", "Node", "Mongo"],
-      missingKeywords: "'Redux', 'AWS Fundamentals', 'Agile Methodology'",
-      projectImpact:
-        "Make 'simple todo list' quantifiable (e.g., 'handling 50+ entries').",
-      formattingFeedback: [
-        "Add LinkedIn URL to professional profile.",
-        "Use Quantifiable Metrics.",
-      ],
-    },
-    mistakes: [
-      {
-        q: "How does to handle state in React?",
-        u: "I think useState inside another.",
-        c: "Consider Redux or Context API for complex apps.",
-        s: "State Management",
-      },
-      {
-        q: "What is a closure in JavaScript?",
-        u: "It's like a function inside another.",
-        c: "A function that remembers its outer scope.",
-        s: "JS Fundamentals",
-      },
-      {
-        q: "What is REST APIs?",
-        u: "Used for web services, GET/POST.",
-        c: "Architectural style for stateless CRUD operations.",
-        s: "API Design",
-      },
-      {
-        q: "What is writing about a project?",
-        u: "I made a simple todo list.",
-        c: "Highlight MERN stack, auth, and integration.",
-        s: "Project Presentation",
-      },
-    ],
-    sentiment: {
-      confidence: 90,
-      professionalism: 70,
-      clarity: 65,
-    },
-    learningPlan: [
-      { week: "Week 1", topic: "Redux" },
-      { week: "Week 2", topic: "Context API, Hooks" },
-      { week: "Week 3", topic: "RESTful API Principles" },
-      { week: "Week 4", topic: "Project Refinement" },
-    ],
-    practiceQuestions: [
-      {
-        id: 1,
-        q: "Implement custom hook for fetching data?",
-        a: "'useFetch' to centralize loading, error handling.",
-      },
-      {
-        id: 2,
-        q: "Compare SQL vs. NoSQL for scalability?",
-        a: "SQL for ACID, NoSQL for horizontal scaling.",
-      },
-      {
-        id: 3,
-        q: "What are side effects in React?",
-        a: "Actions like DOM change or API call.",
-      },
-      {
-        id: 4,
-        q: "Explain JWT Authentication?",
-        a: "Secure stateless authentication using tokens.",
-      },
-      {
-        id: 5,
-        q: "What is Middleware in Express?",
-        a: "Functions that handle Request-Response objects.",
-      },
-      {
-        id: 6,
-        q: "Explain Virtual DOM.",
-        a: "Lightweight copy for fast UI updates.",
-      },
-      {
-        id: 7,
-        q: "What is useEffect?",
-        a: "Hook for side effects in functional components.",
-      },
-      {
-        id: 8,
-        q: "Difference between let and var?",
-        a: "Block scope vs Function scope.",
-      },
-      {
-        id: 9,
-        q: "What is MongoDB aggregation?",
-        a: "Data processing pipeline for complex queries.",
-      },
-      {
-        id: 10,
-        q: "How to optimize React apps?",
-        a: "Memoization, Lazy loading, and Code splitting.",
-      },
-    ],
-  });
+  // const [interviewResults] = useState({
+  //   candidateName: "YASIR",
+  //   domain: "FULLSTACK (MERN)",
+  //   difficulty: "1-2",
+  //   interviewType: "TECHNICAL HR",
+  //   scores: {
+  //     resume: { value: 82, label: "VERY GOOD" },
+  //     interview: { value: 85, label: "EXCELLENT" },
+  //   },
+  //   resumeAnalysis: {
+  //     matchPercentage: 85,
+  //     keySkills: ["React", "Node", "Mongo"],
+  //     missingKeywords: "'Redux', 'AWS Fundamentals', 'Agile Methodology'",
+  //     projectImpact:
+  //       "Make 'simple todo list' quantifiable (e.g., 'handling 50+ entries').",
+  //     formattingFeedback: [
+  //       "Add LinkedIn URL to professional profile.",
+  //       "Use Quantifiable Metrics.",
+  //     ],
+  //   },
+  //   mistakes: [
+  //     {
+  //       q: "How does to handle state in React?",
+  //       u: "I think useState inside another.",
+  //       c: "Consider Redux or Context API for complex apps.",
+  //       s: "State Management",
+  //     },
+  //     {
+  //       q: "What is a closure in JavaScript?",
+  //       u: "It's like a function inside another.",
+  //       c: "A function that remembers its outer scope.",
+  //       s: "JS Fundamentals",
+  //     },
+  //     {
+  //       q: "What is REST APIs?",
+  //       u: "Used for web services, GET/POST.",
+  //       c: "Architectural style for stateless CRUD operations.",
+  //       s: "API Design",
+  //     },
+  //     {
+  //       q: "What is writing about a project?",
+  //       u: "I made a simple todo list.",
+  //       c: "Highlight MERN stack, auth, and integration.",
+  //       s: "Project Presentation",
+  //     },
+  //   ],
+  //   sentiment: {
+  //     confidence: 90,
+  //     professionalism: 70,
+  //     clarity: 65,
+  //   },
+  //   learningPlan: [
+  //     { week: "Week 1", topic: "Redux" },
+  //     { week: "Week 2", topic: "Context API, Hooks" },
+  //     { week: "Week 3", topic: "RESTful API Principles" },
+  //     { week: "Week 4", topic: "Project Refinement" },
+  //   ],
+  //   practiceQuestions: [
+  //     {
+  //       id: 1,
+  //       q: "Implement custom hook for fetching data?",
+  //       a: "'useFetch' to centralize loading, error handling.",
+  //     },
+  //     {
+  //       id: 2,
+  //       q: "Compare SQL vs. NoSQL for scalability?",
+  //       a: "SQL for ACID, NoSQL for horizontal scaling.",
+  //     },
+  //     {
+  //       id: 3,
+  //       q: "What are side effects in React?",
+  //       a: "Actions like DOM change or API call.",
+  //     },
+  //     {
+  //       id: 4,
+  //       q: "Explain JWT Authentication?",
+  //       a: "Secure stateless authentication using tokens.",
+  //     },
+  //     {
+  //       id: 5,
+  //       q: "What is Middleware in Express?",
+  //       a: "Functions that handle Request-Response objects.",
+  //     },
+  //     {
+  //       id: 6,
+  //       q: "Explain Virtual DOM.",
+  //       a: "Lightweight copy for fast UI updates.",
+  //     },
+  //     {
+  //       id: 7,
+  //       q: "What is useEffect?",
+  //       a: "Hook for side effects in functional components.",
+  //     },
+  //     {
+  //       id: 8,
+  //       q: "Difference between let and var?",
+  //       a: "Block scope vs Function scope.",
+  //     },
+  //     {
+  //       id: 9,
+  //       q: "What is MongoDB aggregation?",
+  //       a: "Data processing pipeline for complex queries.",
+  //     },
+  //     {
+  //       id: 10,
+  //       q: "How to optimize React apps?",
+  //       a: "Memoization, Lazy loading, and Code splitting.",
+  //     },
+  //   ],
+  // });
+
+  const [interviewResults, setInterviewResults] = useState({
+  candidateName: "",
+  domain: "",
+  difficulty: "",
+  interviewType: "",
+  scores: {
+    resume: { value: 0, label: "" },
+    interview: { value: 0, label: "" },
+  },
+  resumeAnalysis: {
+    matchPercentage: 0,
+    keySkills: [],
+    missingKeywords: "",
+    projectImpact: "",
+    formattingFeedback: [],
+  },
+  mistakes: [],
+  sentiment: {
+    confidence: 0,
+    professionalism: 0,
+    clarity: 0,
+  },
+  learningPlan: [],
+  practiceQuestions: [],
+});
 
   const sentimentColors = {
     confidence: "#a78bfa",
@@ -1171,50 +1236,28 @@ useEffect(() => {
 
 
 
+
+
 const getInterviewResults = async () => {
-  // 1. கண்டிஷன் செக்: இன்டர்வியூ முடிந்திருந்தால் மட்டுமே ரன் ஆகும்
   if (!interviewCompleted) {
     console.log("⚠️ Interview is not completed yet!");
     alert("Please complete the interview before getting results.");
     return;
   }
 
-  console.log("======= 🎯 INTERVIEW COMPLETED: SYNCING TO BACKEND =======");
-  
-  // மெசேஜ்களை லாக் செய்கிறோம்
-  console.log("Full Chat Transcript:", messages);
-  
-  const userAnswers = messages.filter(msg => msg.role === "user");
-  const aiQuestions = messages.filter(msg => msg.role === "ai");
 
-  console.log("Total Questions Asked by AI:", aiQuestions.length);
-  console.log("Total Answers Given by User:", userAnswers.length);
-  
   try {
-    const payload = {
-      chatTranscript: messages, 
-      completedAt: new Date()
-    };
-
-    // பேக்கெண்டிற்கு டேட்டாவை அனுப்புகிறோம்
+    const payload = { chatTranscript: messages };
     const response = await API.post("/auth/interview-results", payload);
 
     if (response.data.success) {
-      console.log("✅ Chat data synced successfully!");
-      // வெற்றிகரமாக முடிந்தால் ரிசல்ட் பக்கத்திற்கு செல்லலாம்
-      // navigate("/results"); 
+      // 🎯 இங்கேதான் பேக்கெண்ட் டேட்டா உங்கள் UI Mapping-க்குள் செல்கிறது
+      setInterviewResults(response.data.data);
     }
   } catch (error) {
-    console.error("❌ Failed to sync interview data:", error.response?.data?.message || error.message);
+    console.error("❌ UI Sync Error:", error.message);
   }
-
-  console.log("==========================================================");
 };
-
-
-
-
-
 
 
 
@@ -1576,3 +1619,42 @@ const getInterviewResults = async () => {
 }
 
 export default Screeninterview;
+// {
+//   "name": "resume-generator-api",
+//   "version": "1.0.0",
+//   "main": "server.js",
+//   "type": "commonjs",
+//   "scripts": {
+//     "clean:ui": "npx rimraf dist",
+//     "build:ui": "cd ../resume-generator-ui && npm run build",
+//     "copy:ui": "xcopy ..\\resume-generator-ui\\dist dist /E /I /Y",
+//     "ui:update": "npm run clean:ui && npm run build:ui && npm run copy:ui",
+//     "watch:ui": "npx chokidar \"../resume-generator-ui/src/**/*\" -c \"npm run ui:update\"",
+//     "start": "npx concurrently \"npm run watch:ui\" \"nodemon server.js\""
+//   },
+//   "dependencies": {
+//     "@google/generative-ai": "^0.24.1",
+//     "bcrypt": "^6.0.0",
+//     "cookie-parser": "^1.4.7",
+//     "cors": "^2.8.5",
+//     "dotenv": "^17.2.3",
+//     "express": "^4.22.1",
+//     "express-session": "^1.18.2",
+//     "jsonwebtoken": "^9.0.3",
+//     "multer": "^2.0.2",
+//     "node-fetch": "^3.3.2",
+//     "nodemailer": "^7.0.12",
+//     "passport": "^0.7.0",
+//     "passport-google-oauth20": "^2.0.0",
+//     "pg": "^8.16.3"
+//   },
+//   "devDependencies": {
+//     "chokidar-cli": "^3.0.0",
+//     "concurrently": "^9.2.1",
+//     "nodemon": "^3.1.11",
+//     "rimraf": "^5.0.10"
+//   }
+// }
+// "nodemonConfig": {
+//   "ignore": ["*.json", "uploads/*"]
+// }

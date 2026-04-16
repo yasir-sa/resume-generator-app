@@ -3309,96 +3309,216 @@ exports.getresumesformock = async (req, res) => {
 
 
 // exports.getInterviewResults என நீங்கள் கேட்ட அதே பெயரில்:
-// --- புதிய getInterviewResults பங்க்ஷன் ---
+
+
 exports.getInterviewResults = async (req, res) => {
     try {
-        // 1. UI-ல் இருந்து வரும் Chat Data-வை ஒரு வேரியபிளில் சேமிக்கிறோம்
         const chatData = req.body.chatTranscript;
+        const GROQ_API_KEY = process.env.GROQ_API_KEY;
+        const model = "llama-3.1-8b-instant";
 
-        console.log("\n<<<<<<<<<< 🚀 FINAL CONSOLIDATION START >>>>>>>>>>");
-
-        // 2. ஏற்கனவே பேக்கெண்டில் உள்ள Resume Context-ஐ சரிபார்க்கிறோம்
-        if (!storedInterviewContext) {
-            console.log("⚠️ Warning: No previous Resume Context found in backend!");
+        if (!chatData || chatData.length === 0) {
+            return res.status(400).json({ success: false, message: "No chat data received" });
         }
 
-        // --- 📊 VARIABLE 1: RESUME & CONTEXT DATA LOGGING ---
-  // --- 📊 VARIABLE 1: RESUME & CONTEXT DATA LOGGING ---
-        console.log("\n======= 📁 DATA VAR 1: STORED CONTEXT =======");
-        if (storedInterviewContext) {
-            console.log("🔹 Interview Type   :", storedInterviewContext.interviewType);
-            console.log("🔹 Target Domain    :", storedInterviewContext.domain);
-            console.log("🔹 Difficulty       :", storedInterviewContext.difficulty);
-            
-            // 🔥 இதோ 'notes' டேட்டாவையும் இங்கே சேர்த்துள்ளேன்
-            console.log("🔹 User Notes       :", storedInterviewContext.notes || "No notes provided");
-            
-            console.log("🔹 Manual Skills    :", storedInterviewContext.manualSkills || "None");
-            console.log("🔹 Has PDF Content  :", !!storedInterviewContext.resumeContent);
-            console.log("🔹 Has HTML Resume  :", !!storedInterviewContext.projectResume);
-            
-            if(storedInterviewContext.resumeContent) {
-                console.log("🔹 Resume Snippet   :", storedInterviewContext.resumeContent.substring(0, 100) + "...");
-            }
-        }
+        // --- 📊 LOGGING 1: CONTEXT SUMMARY TABLE ---
+        console.log("\n<<<<<<<<<< 🚀 STEP 1: CONTEXT SUMMARY >>>>>>>>>>");
+   const contextSummary = {
+            "Interview Type": storedInterviewContext?.interviewType || "N/A",
+            "Target Domain": storedInterviewContext?.domain || "N/A",
+            "Difficulty": storedInterviewContext?.difficulty || "N/A",
+            "User Notes": storedInterviewContext?.notes || "Not provided",
+            "Manual Skills": storedInterviewContext?.manualSkills || "Not provided",
+            // புதிய வரிகள் இங்கே:
+            "Has PDF Content": !!storedInterviewContext?.resumeContent,
+            "Has HTML Content": !!storedInterviewContext?.projectResume
+        };
+        console.table(contextSummary);
 
-        // --- 💬 VARIABLE 2: CHAT TRANSCRIPT DATA LOGGING ---
-        console.log("\n======= 💬 DATA VAR 2: CHAT TRANSCRIPT =======");
-        if (chatData && chatData.length > 0) {
-            console.log("🔹 Total Messages  :", chatData.length);
-            
-            // சப்-டேட்டா: யூசர் மற்றும் AI மெசேஜ்களை மட்டும் பிரிக்கிறோம்
-            const userAnswers = chatData.filter(m => m.role === "user");
-            const aiQuestions = chatData.filter(m => m.role === "ai");
-
-            console.log("🔹 Questions Asked :", aiQuestions.length);
-            console.log("🔹 Answers Given   :", userAnswers.length);
-
-            // ஒவ்வொரு மெசேஜையும் வரிசையாக கன்சோல் செய்கிறோம்
-            console.log("--- Detail Chat History ---");
-            chatData.forEach((msg, index) => {
-                console.log(`[${index + 1}] ${msg.role.toUpperCase()}: ${msg.text}`);
-            });
-        } else {
-            console.log("❌ No chat transcript received!");
-        }
-
-        console.log("\n<<<<<<<<<< ✅ ALL DATA CONSOLIDATED >>>>>>>>>>\n");
-
-        // 3. வெற்றிகரமாக முடிந்தது என பதில் அனுப்புகிறோம்
-        res.status(200).json({
-            success: true,
-            message: "All data consolidated in backend console",
-            summary: {
-                domain: storedInterviewContext?.domain,
-                totalChat: chatData?.length
-            }
+        // --- 💬 LOGGING 2: CHAT DATA ---
+        console.log("\n<<<<<<<<<< 💬 STEP 2: CHAT DATA RECEIVED >>>>>>>>>>");
+        console.log(`Total Messages: ${chatData.length}`);
+        chatData.forEach((msg, i) => {
+            console.log(`[${i + 1}] ${msg.role.toUpperCase()}: ${msg.text.substring(0, 50)}...`);
         });
 
+        // const analysisPrompt = `
+        // Return ONLY a JSON object. Analyze Chat (${JSON.stringify(chatData)}) and Context (${JSON.stringify(contextSummary)}).
+        
+        // RULES:
+        // 1. NAME: If Resume is empty, search 'User Notes' for 'iam [name]'.
+        // 2. SCORE: Strictly calculate 'interview' score based on chat performance (0-100).
+        // 3. SENTIMENT: Use whole numbers (0-100), NO decimals like 0.5.
+        // 4. RESUME: Use 'Manual Skills' for keySkills if resume is empty.
+
+        // JSON STRUCTURE:
+        // {
+        //     "candidateName": "string",
+        //     "domain": "string",
+        //     "difficulty": "string",
+        //     "interviewType": "string",
+        //     "scores": {
+        //         "resume": { "value": number, "label": "string" },
+        //         "interview": { "value": number, "label": "string" }
+        //     },
+        //     "resumeAnalysis": {
+        //         "matchPercentage": number,
+        //         "keySkills": ["array"],
+        //         "missingKeywords": "string",
+        //         "projectImpact": "string",
+        //         "formattingFeedback": ["array"]
+        //     },
+        //     "mistakes": [{ "q": "string", "u": "string", "c": "string", "s": "string" }],
+        //     "sentiment": { "confidence": number, "professionalism": number, "clarity": number },
+        //     "learningPlan": [{ "week": "string", "topic": "string" }],
+        //     "practiceQuestions": [{ "id": number, "q": "string", "a": "string" }]
+        // }`;
+const analysisPrompt = `
+You are a Professional Senior Technical Interviewer and Resume Strategist.
+Analyze the provided datasets to generate a highly accurate, consistent candidate report.
+
+--- INPUT DATA ---
+1. CHAT HISTORY: ${JSON.stringify(chatData)}
+2. INTERVIEW CONTEXT: ${JSON.stringify(contextSummary)}
+3. RESUME CONTENT (PDF): ${storedInterviewContext?.resumeContent || "EMPTY"}
+4. PROJECT CONTENT (HTML): ${storedInterviewContext?.projectResume || "EMPTY"}
+
+--- MANDATORY ANALYSIS RULES (STRICT COMPLIANCE) ---
+
+1. CANDIDATE NAME & RESUME LOGIC:
+   - Priority 1: Extract Name from 'RESUME CONTENT'.
+   - Priority 2: Scan 'User Notes' for "iam [name]".
+   - Fallback: "Candidate".
+   - **RESUME SCORE:** * If Resume/Project Content is "EMPTY", score MUST be 0 and label MUST be "No Resume Uploaded".
+     * If present, score 0-100. Label should be a feedback like "Excellent Fit", "Matches Well", or "Skills Gap Found".
+
+2. INTERVIEW SCORE & LABELS:
+   - Calculate score based on Chat History: (Correct*10) + (Partial*5).
+   - **LABEL RULE:** Do NOT just repeat the score. Provide a short 2-3 word assessment based on ${contextSummary["Difficulty"]}.
+     * Examples: "Strong Technical Knowledge", "Good Effort, Needs Depth", "Basic Understanding", or "Needs More Practice".
+
+3. MISTAKE FILTERING (STRICT):
+   - ONLY include INCORRECT or PARTIAL answers.
+   - If the AI in chat said "Correct" or "Excellent", SKIP it.
+   - If the AI said "Actually", "Incorrect", or corrected the user, ADD it to the array.
+   - The array length must exactly match the number of wrong answers only.
+
+4. MEASUREMENT & SENTIMENT:
+   - Calculate 'Confidence', 'Professionalism', and 'Clarity' based on Difficulty: ${contextSummary["Difficulty"]}.
+   - **NO DECIMALS:** All values must be whole numbers (0-100).
+
+5. PRACTICE QUESTIONS:
+   - You MUST generate exactly **10 technical practice questions** with answers.
+
+--- OUTPUT JSON FORMAT (STRICTLY ONLY JSON) ---
+{
+    "candidateName": "string",
+    "domain": "string",
+    "difficulty": "string",
+    "interviewType": "string",
+    "scores": {
+        "resume": { "value": number, "label": "e.g., Excellent Fit / No Resume Uploaded" },
+        "interview": { "value": number, "label": "e.g., Strong Candidate / Needs Improvement" }
+    },
+    "resumeAnalysis": {
+        "matchPercentage": number,
+        "keySkills": ["array"],
+        "missingKeywords": "string",
+        "projectImpact": "string",
+        "formattingFeedback": ["array"]
+    },
+    "mistakes": [
+        { 
+          "q": "Question asked", 
+          "u": "User's WRONG answer", 
+          "c": "The full correct technical explanation", 
+          "s": "Topic Name (e.g. Redux)" 
+        }
+    ],
+    "sentiment": { "confidence": number, "professionalism": number, "clarity": number },
+    "learningPlan": [{ "week": "string", "topic": "string" }],
+    "practiceQuestions": [
+        { "id": 1, "q": "string", "a": "string" },
+        { "id": 2, "q": "string", "a": "string" },
+        { "id": 3, "q": "string", "a": "string" },
+        { "id": 4, "q": "string", "a": "string" },
+        { "id": 5, "q": "string", "a": "string" },
+        { "id": 6, "q": "string", "a": "string" },
+        { "id": 7, "q": "string", "a": "string" },
+        { "id": 8, "q": "string", "a": "string" },
+        { "id": 9, "q": "string", "a": "string" },
+        { "id": 10, "q": "string", "a": "string" }
+    ]
+}`;
+  console.log("\n⏳ AI is analyzing... (Calling Groq API)");
+
+        const response = await axios.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            {
+                model: model,
+                messages: [{ role: "user", content: analysisPrompt }],
+                response_format: { type: "json_object" },
+                temperature: 0.1
+            },
+            { headers: { Authorization: `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" } }
+        );
+
+        const result = JSON.parse(response.data.choices[0].message.content);
+
+        // --- 🛠️ LOGGING 3: DETAILED DATA BREAKDOWN ---
+        console.log("\n<<<<<<<<<< ✅ STEP 3: FULL AI REPORT (DETAILED) >>>>>>>>>>");
+
+        // A. Basic Info
+        console.log("\n--- [BASIC INFO] ---");
+        console.log(`- Candidate Name : ${result.candidateName}`);
+        console.log(`- Domain         : ${result.domain}`);
+        console.log(`- Difficulty     : ${result.difficulty}`);
+        console.log(`- Type           : ${result.interviewType}`);
+
+        // B. Scores
+        console.log("\n--- [SCORES] ---");
+        console.log(`- Resume    : ${result.scores.resume.value}% (${result.scores.resume.label})`);
+        console.log(`- Interview : ${result.scores.interview.value}% (${result.scores.interview.label})`);
+
+        // C. Resume Analysis
+        console.log("\n--- [RESUME ANALYSIS] ---");
+        console.log(`- Match          : ${result.resumeAnalysis.matchPercentage}%`);
+        console.log(`- Key Skills     : ${result.resumeAnalysis.keySkills?.join(", ")}`);
+        console.log(`- Missing        : ${result.resumeAnalysis.missingKeywords}`);
+        console.log(`- Impact         : ${result.resumeAnalysis.projectImpact}`);
+        console.log(`- Feedback       : ${result.resumeAnalysis.formattingFeedback?.join(" | ")}`);
+
+        // D. Mistakes
+        console.log("\n--- [MISTAKES] ---");
+        if (result.mistakes && result.mistakes.length > 0) {
+            console.table(result.mistakes);
+        } else {
+            console.log("No mistakes found.");
+        }
+
+        // E. Sentiment
+        console.log("\n--- [SENTIMENT %] ---");
+        console.log(`- Confidence      : ${result.sentiment.confidence}%`);
+        console.log(`- Professionalism : ${result.sentiment.professionalism}%`);
+        console.log(`- Clarity         : ${result.sentiment.clarity}%`);
+
+        // F. Learning Plan
+        console.log("\n--- [LEARNING PLAN] ---");
+        console.table(result.learningPlan);
+
+        // G. Practice Questions
+        console.log("\n--- [PRACTICE QUESTIONS] ---");
+        result.practiceQuestions.forEach((pq, idx) => {
+            console.log(`Q${pq.id || idx+1}: ${pq.q}`);
+            console.log(`A: ${pq.a}\n`);
+        });
+
+        console.log("<<<<<<<<<< 🏁 END OF ALL CONSOLE LOGS >>>>>>>>>>\n");
+
+        res.status(200).json({ success: true, data: result });
+
     } catch (error) {
-        console.error("❌ Error in getInterviewResults:", error.message);
-        res.status(500).json({ success: false, message: "Server Error during consolidation" });
+        console.error("❌ ERROR:", error.response?.data || error.message);
+        res.status(500).json({ success: false, message: "Analysis failed" });
     }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
