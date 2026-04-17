@@ -115,9 +115,7 @@ app.get("/helo", (req, res) => {
 });
 
 // For all other routes, serve React index.html
-app.get("*", (req, res) => {
-  res.sendFile(path.join(distPath, "index.html"));
-});
+
 
 // ====================
 // Start Server
@@ -126,6 +124,13 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
   console.log(`📁 Uploads folder: ${path.join(__dirname, 'uploads')}`);
+});
+
+
+
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(distPath, "index.html"));
 });
 // const express = require("express");
 // const path = require("path");

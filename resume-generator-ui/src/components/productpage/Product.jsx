@@ -705,6 +705,12 @@ const confirmSelection = () => {
   <Link to="/chatbox">
     <button >go to chatpot</button>
     </Link>
+    <Link to="/completed-mocks">
+       <button 
+ >
+  Go to Completed Mock Interviews
+</button>
+</Link>
       <Link to="/">
     <button >go to home</button>
     </Link>

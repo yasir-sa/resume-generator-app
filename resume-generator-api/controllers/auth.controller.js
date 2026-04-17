@@ -3688,3 +3688,107 @@ exports.saveInterviewResults = async (req, res) => {
     res.status(500).json({ success: false, message: "Database Error" });
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Database pool import (உங்கள் db config பாத் படி மாற்றவும்)
+
+// 1. எல்லா இன்டர்வியூ விவரங்களையும் எடுக்க (List View)
+// Database pool import (உங்கள் db config பாத் படி மாற்றவும்)
+
+exports.getAllCompletedMocks = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    if (!userId) {
+      console.log("❌ NO! User ID missing in request");
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    // Database query
+    const query = `
+      SELECT id, chat_data, result_summary, created_at 
+      FROM interview_results 
+      WHERE user_id = $1 
+      ORDER BY created_at DESC
+    `;
+
+    const { rows } = await pool.query(query, [userId]);
+
+    // 🔥 FRONT-END-க்கு அனுப்பும் முன் டேட்டாவை கன்சோலில் சரிபார்க்க
+    console.log("-----------------------------------------");
+    console.log("✅ YES! Data fetched for User:", userId);
+    console.log("📊 Total Records Found:", rows.length);
+
+    if (rows.length > 0) {
+      console.log("📝 Sample First Record Summary (JSON Structure):");
+      // summary-ஐ மட்டும் கன்சோலில் பிரிண்ட் செய்து பார்க்கிறோம்
+      console.log(rows[0].result_summary); 
+    }
+    console.log("-----------------------------------------");
+
+    res.status(200).json({
+      success: true,
+      data: rows
+    });
+
+  } catch (error) {
+    console.error("❌ Backend Error:", error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: "Internal Server Error" 
+    });
+  }
+};
+
+// 2. வீடியோவை ஸ்ட்ரீம் செய்ய (Detailed View)
+exports.getInterviewVideo = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const query = `SELECT video_blob FROM interview_results WHERE id = $1`;
+    const { rows } = await pool.query(query, [id]);
+
+    if (rows.length === 0 || !rows[0].video_blob) {
+      return res.status(404).send("Video not found");
+    }
+
+    const videoBuffer = rows[0].video_blob;
+
+    // வீடியோ ஹெடர்ஸ் செட் செய்தல்
+    res.set({
+      'Content-Type': 'video/webm', // உங்கள் வீடியோ ஃபார்மேட் படி மாற்றவும் (Ex: video/mp4)
+      'Content-Length': videoBuffer.length,
+      'Accept-Ranges': 'bytes'
+    });
+
+    console.log(`🎥 Streaming video for ID: ${id}`);
+    res.send(videoBuffer);
+
+  } catch (error) {
+    console.error("❌ Video Stream Error:", error);
+    res.status(500).send("Error streaming video");
+  }
+};

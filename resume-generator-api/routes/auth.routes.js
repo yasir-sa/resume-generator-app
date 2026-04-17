@@ -107,7 +107,10 @@ const {
    storeContext,
    getInterviewResults,
    downloadPDF,
-   saveInterviewResults,
+  getAllCompletedMocks, 
+  getInterviewVideo,
+  saveInterviewResults,
+
                       // 🔥 NEW: Photo upload handler
 } = require("../controllers/auth.controller");
 
@@ -153,7 +156,9 @@ router.get(
 
 
 
-
+// இது verifyToken மிடில்வேயருக்கு கீழே இருக்க வேண்டும்
+router.get("/completed-mocks", verifyToken, getAllCompletedMocks);
+router.get("/interview-video/:id", getInterviewVideo);
 router.post(
   "/save-interview-results", 
   verifyToken, 
