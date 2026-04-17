@@ -13,10 +13,13 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
 
 import { init, showModel, hideModel, setSpeaking, setAnimation } from "../script/script.js";
 import Tesseract from 'tesseract.js';
-
+// 1. காம்போனென்ட்டுக்கு வெளியே டிஃபைன் செய்வது நல்லது
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+import { useNavigate } from 'react-router-dom';
 
 function Screeninterview() {
-
+const navigate = useNavigate();
   const videoRef = useRef(null);
     const mediaRecorderRef = useRef(null);
   const streamRef = useRef(null);
@@ -102,7 +105,7 @@ const [manualType, setManualType] = useState([]);      // Type 1: Typed Skills
 const [isInitialSyncing, setIsInitialSyncing] = useState(true);
 const [isCompleted, setIsCompleted] = useState(false);
 const [interviewCompleted, setInterviewCompleted] = useState(true);
-
+const [isListening, setIsListening] = useState(false);
 
 
 
@@ -1261,6 +1264,169 @@ const getInterviewResults = async () => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const saveAllInterview = async () => {
+  try {
+    // 1. Check Messages (Chat Data)
+    let chatDataToSend = null;
+    if (messages && messages.length > 0) {
+      chatDataToSend = messages;
+    } else {
+      console.error("No chat history found");
+      return;
+    }
+
+    // 2. Check Interview Results
+    let resultsToSend = null;
+    if (interviewResults && interviewResults.domain) {
+      resultsToSend = interviewResults;
+    } else {
+      console.error("No interview results found");
+      return;
+    }
+
+    // 3. Check and Convert Video
+    let videoBlob = null;
+    if (recordedVideo) {
+      const response = await fetch(recordedVideo);
+      videoBlob = await response.blob();
+      console.log("Video ready for upload ✅");
+    } else {
+      alert("Please wait for video to process or record again.");
+      return;
+    }
+
+    // 4. Combine everything into FormData
+    const formData = new FormData();
+    
+    // UI-லிருந்து வரும் 3 முக்கியமான டேட்டா
+    formData.append("chatData", JSON.stringify(chatDataToSend));
+    formData.append("resultSummary", JSON.stringify(resultsToSend));
+    formData.append("video", videoBlob, "interview_session.webm");
+
+    // 5. Send to Backend
+    // குறிப்பு: userId-ஐ பேக்-எண்ட் 'req.user.id' அல்லது 'req.session' மூலம் எடுத்துக்கொள்ளும்
+    const res = await API.post("/save-interview-results", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    // if (res.status === 200) {
+    //   alert("All interview data saved successfully! 🚀");
+    // }
+    if (res.status === 200) {
+  // 🚀 வெற்றிகரமாகச் சேமிக்கப்பட்டால் சக்சஸ் பேஜிற்கு போகவும்
+  navigate('/success-saveinterview'); 
+}
+
+  } catch (error) {
+    console.error("Save error:", error);
+    alert("Error saving interview data. Check console.");
+  }
+};
+
+// 1. Define the function inside your component
+// இது உங்கள் காம்போனெண்டிற்குள் இருக்க வேண்டும்
+useEffect(() => {
+  if (recognition) {
+    // மைக் தானாக நின்றாலோ அல்லது நாம் நிறுத்தினாலோ இந்த ஸ்டேட் மாறும்
+    recognition.onend = () => {
+      setIsListening(false);
+      console.log("🎤 Mic turned off");
+    };
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      console.log("🎤 Mic turned on");
+    };
+  }
+}, [recognition]);
+
+
+const startListening = () => {
+  // மைக் ஆப்ஜெக்ட் இருக்கிறதா மற்றும் ஏற்கனவே மைக் ஓடவில்லையா என்று பார்க்கிறோம்
+  if (recognition && !isListening) { 
+    try {
+      recognition.start();
+      // குறிப்பு: இங்கேயே setIsListening(true) போடுவதை விட, 
+      // மேலே உள்ள onstart-ல் போடுவது இன்னும் துல்லியமானது.
+    } catch (error) {
+      console.log("Speech recognition is already active.");
+    }
+  } else {
+    console.log("Recognition attempt skipped because it is already running.");
+  }
+};
+
+const speakResponse = (text) => {
+  // 1. AI பேச ஆரம்பிக்கும் போது மைக்கை நிறுத்தவும்
+  if (recognition) {
+    recognition.stop(); 
+    setIsListening(false);
+  }
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  
+  utterance.onend = () => {
+    console.log("AI finished speaking. Now listening...");
+    
+    // 2. AI பேசி முடித்த பிறகு ஒரு 500ms கேப் விட்டு ஸ்டார்ட் செய்யவும்
+    // இது பிரவுசருக்கு மைக்கை ரீசெட் செய்ய நேரம் கொடுக்கும்
+    setTimeout(() => {
+      startListening();
+    }, 500);
+  };
+
+  window.speechSynthesis.speak(utterance);
+};
+
   return (
   
     // <div className="interview-screen">
@@ -1592,7 +1758,7 @@ const getInterviewResults = async () => {
       <button className="save-interview-btn">
         save interview
       </button>
-      {interviewComplete && (
+      {interviewCompleted && (
       <button 
   className="finish-btn" 
   onClick={getInterviewResults}
@@ -1609,6 +1775,42 @@ const getInterviewResults = async () => {
   GET INTERVIEW RESULTS 🤖
 </button>
 
+
+
+)}
+{/* நிபந்தனை: 
+  1. interviewResults-ல் டொமைன் இருக்க வேண்டும் (Result வந்துவிட்டது என அர்த்தம்)
+  2. recordedVideo இருக்க வேண்டும் (வீடியோ ரெக்கார்ட் ஆகிவிட்டது என அர்த்தம்)
+*/}
+
+{interviewResults.domain && recordedVideo ? (
+  <div className="save-action-container" style={{ marginTop: '20px', textAlign: 'center' }}>
+    <button 
+      onClick={saveAllInterview} 
+      className="save-results-btn"
+      style={{
+        padding: '12px 25px',
+        backgroundColor: '#27ae60',
+        color: 'white',
+        border: 'none',
+        borderRadius: '8px',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        fontSize: '16px',
+        boxShadow: '0 4px 10px rgba(39, 174, 96, 0.3)'
+      }}
+    >
+      💾 Save Interview Results & Video
+    </button>
+    <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+      Everything is ready! You can now save your session to the cloud.
+    </p>
+  </div>
+) : (
+  <div className="waiting-msg" style={{ marginTop: '20px', color: '#e67e22', fontWeight: '500' }}>
+    {/* ரிசல்ட் வரும் வரை பயனர் காத்திருக்கச் சொல்கிறோம் */}
+    {!interviewResults.domain ? "⏳ Waiting for interview analysis..." : "🎥 Processing recorded video..."}
+  </div>
 )}
       <div className="btn-group">
     {/* Other buttons */}

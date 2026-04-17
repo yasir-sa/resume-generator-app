@@ -335,7 +335,51 @@ const resumedownload = async () => {
     console.error("Download error:", err);
   }
 };
+// const buildFullHTML = () => {
+//   return `
+//     <html>
+//       <head>
+//         <meta charset="UTF-8" />
+
+//         <style>
+//           body {
+//             margin: 0;
+//             padding: 0;
+//             background: #ffffff;
+//           }
+
+//           /* A4 exact */
+//           .resume-page {
+//             width: 794px;
+//             min-height: 1123px;
+//             background: #ffffff !important;
+//             color: #000000 !important;
+//             page-break-after: always;
+//           }
+
+//           /* remove unwanted spacing */
+//           p, h1, h2, h3, h4, h5, h6 {
+//             margin: 0;
+//           }
+//         </style>
+//       </head>
+
+//       <body>
+//         ${resumePages.join("")}
+//       </body>
+//     </html>
+//   `;
+// };
+
 const buildFullHTML = () => {
+  const wrappedPages = resumePages.map(page => {
+    return `
+      <div class="pdf-page">
+        ${page}
+      </div>
+    `;
+  }).join("");
+
   return `
     <html>
       <head>
@@ -346,18 +390,33 @@ const buildFullHTML = () => {
             margin: 0;
             padding: 0;
             background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
           }
 
-          /* A4 exact */
-          .resume-page {
+          /* 🔥 FIX: force all pages same size */
+          .pdf-page {
             width: 794px;
-            min-height: 1123px;
-            background: #ffffff !important;
-            color: #000000 !important;
+            height: 1123px;
+            background: #fff;
+            overflow: hidden;
+            position: relative;
+
             page-break-after: always;
+            page-break-inside: avoid;
+          }
+
+          /* 🔥 IMPORTANT: reset inner html issues */
+          .pdf-page * {
+            max-width: 100% !important;
           }
 
           /* remove unwanted spacing */
+          * {
+            box-sizing: border-box;
+          }
+
           p, h1, h2, h3, h4, h5, h6 {
             margin: 0;
           }
@@ -365,13 +424,11 @@ const buildFullHTML = () => {
       </head>
 
       <body>
-        ${resumePages.join("")}
+        ${wrappedPages}
       </body>
     </html>
   `;
 };
-
-
 
 
 

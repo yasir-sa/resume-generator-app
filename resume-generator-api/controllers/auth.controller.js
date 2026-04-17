@@ -3624,3 +3624,67 @@ exports.downloadPDF = async (req, res) => {
     res.status(500).send("PDF generation failed");
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+exports.saveInterviewResults = async (req, res) => {
+  try {
+    const userId = req.user.id; // 👈 நீங்கள் உறுதி செய்த ஐடி
+    
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    const { chatData, resultSummary } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ message: "Video file missing" });
+    }
+
+    const videoBuffer = req.file.buffer;
+    const videoName = req.file.originalname;
+
+    const insertQuery = `
+      INSERT INTO interview_results 
+      (user_id, chat_data, video_blob, video_filename, result_summary) 
+      VALUES ($1, $2, $3, $4, $5) 
+      RETURNING id;
+    `;
+
+    // JSONB-க்கு அனுப்பும்போது JSON.stringify செய்வது பாதுகாப்பானது
+    const values = [
+      userId,
+      typeof chatData === 'string' ? chatData : JSON.stringify(chatData),
+      videoBuffer,
+      videoName,
+      typeof resultSummary === 'string' ? resultSummary : JSON.stringify(resultSummary)
+    ];
+
+    const { rows } = await pool.query(insertQuery, values);
+    
+    console.log("Success! ID:", rows[0].id);
+    res.status(200).json({ success: true, message: "Saved!", id: rows[0].id });
+
+  } catch (error) {
+    console.error("Save Error:", error);
+    res.status(500).json({ success: false, message: "Database Error" });
+  }
+};

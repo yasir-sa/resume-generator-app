@@ -75,6 +75,8 @@ const express = require("express");
 const router = express.Router();
 const passport = require("passport");
 const {verifyToken} =require("../config/jwt.js")
+const multer = require("multer");
+const upload = multer({ storage: multer.memoryStorage() });
 const {
   registerUser,
   verifyOTP,
@@ -105,6 +107,7 @@ const {
    storeContext,
    getInterviewResults,
    downloadPDF,
+   saveInterviewResults,
                       // 🔥 NEW: Photo upload handler
 } = require("../controllers/auth.controller");
 
@@ -151,7 +154,12 @@ router.get(
 
 
 
-
+router.post(
+  "/save-interview-results", 
+  verifyToken, 
+  upload.single("video"), 
+  saveInterviewResults
+);
 router.post("/download-pdf", downloadPDF);
 router.post("/auth/interview-results", getInterviewResults);
 router.post('/interview/store-context', storeContext);
