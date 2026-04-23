@@ -4754,3 +4754,77 @@ exports.testAdzunaKeywords = async (req, res) => {
         res.send("Adzuna multi-keyword test finished! Check terminal.");
     } catch (e) { res.status(500).send(e.message); }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ // axios ஏற்கனவே இருக்கும்னு நினைக்கிறேன்
+
+
+exports.testJoobleAPI = async (req, res) => {
+    // Frontend-ல் இருந்து வரும் குயரி, இல்லையென்றால் டிபால்ட்
+    const { query, location } = req.query;
+    const searchTerm = query || "React Developer";
+    const searchLocation = location || "Chennai";
+    const GROQ_API_KEY = process.env.GROQ_API_KEY;
+
+    try {
+        const response = await axios.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            {
+                model: "llama-3.3-70b-versatile",
+                messages: [
+                    {
+                        role: "system",
+                        content: `You are a real-time job search engine. 
+                        Provide exactly 5 active job openings. 
+                        Return ONLY a valid JSON object with a 'jobs' array. 
+                        Each job must have: title, company, location, url, description, salary, posted, and source.`
+                    },
+                    {
+                        role: "user",
+                        content: `Find 5 recent ${searchTerm} jobs in ${searchLocation}, India. Format as JSON. Ensure URLs are real career links.`
+                    }
+                ],
+                response_format: { type: "json_object" }
+            },
+            {
+                headers: {
+                    "Authorization": `Bearer ${GROQ_API_KEY}`,
+                    "Content-Type": "application/json"
+                }
+            }
+        );
+
+        const aiContent = JSON.parse(response.data.choices[0].message.content);
+
+        // UI-ல் காட்டுவதற்கு வசதியாக source-ஐ 'AI Engine' என்று மாற்றுவோம்
+        const formattedJobs = aiContent.jobs.map(job => ({
+            ...job,
+            source: 'AI Engine',
+            posted: job.posted || 'Recent'
+        }));
+
+        res.status(200).json(formattedJobs); // Frontend-ல் நேரடியாக 'jobs' மாறியில் செட் செய்ய வசதியாக
+
+    } catch (error) {
+        console.error("Groq API Error:", error.message);
+        res.status(500).json([]); // எரர் வந்தால் வெறும் அரே அனுப்புவோம்
+    }
+};

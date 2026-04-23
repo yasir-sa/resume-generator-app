@@ -115,6 +115,8 @@ const {
   testAdvancedSearch,
   testRemoteOKTags,
   testAdzunaKeywords,
+ testJoobleAPI,
+
 
 
                       // 🔥 NEW: Photo upload handler
@@ -171,7 +173,7 @@ router.get(
 
 
 
-
+router.get('/test-jooble', testJoobleAPI);
 router.get('/test-remoteok',testRemoteOKTags);
 router.get('/test-adzuna',testAdzunaKeywords);
 router.get('/test-fresher',testAdvancedSearch);
