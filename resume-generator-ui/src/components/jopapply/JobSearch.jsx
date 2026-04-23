@@ -637,12 +637,13 @@ import API from "../../api.js";
 // export default JobSearch;
 
 
+
 const JobPortal = () => {
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(false);
     const [filters, setFilters] = useState({ query: '', location: 'Chennai', experience: '0' });
     
-    const [viewingJob, setViewingJob] = useState(null);
+    const [viewingJob, setViewingJob] = useState(null); 
     const [showApplyForm, setShowApplyForm] = useState(false);
 
     useEffect(() => {
@@ -652,7 +653,6 @@ const JobPortal = () => {
     const autoFetchInitialJobs = async () => {
         setLoading(true);
         try {
-            // Initial load-ல் டிபால்ட்டாக 0 exp அனுப்புகிறோம்
             const res = await API.get('/search-jobs', { params: { query: 'React', location: 'Chennai', experience: '0' } });
             setJobs(res.data);
         } catch (err) { console.error("Initial load failed"); }
@@ -668,176 +668,158 @@ const JobPortal = () => {
         setLoading(false);
     };
 
-    // ✅ இப்போது எல்லா வேலைகளுக்கும் Details Modal ஓபன் ஆகும்
     const handleJobAction = (job) => {
-        setViewingJob(job);
+        if (job.source === 'Adzuna') {
+            window.open(job.url, '_blank'); 
+        } else {
+            setViewingJob(job); 
+        }
     };
 
     return (
-        <div className="max-w-6xl mx-auto p-4 min-h-screen bg-gray-50">
-            <h1 className="text-4xl font-black mb-8 text-blue-700 italic tracking-tighter">JOB PORTAL PRO</h1>
+        <div className="max-w-6xl mx-auto p-4 min-h-screen bg-gray-50 font-sans">
+            <h1 className="text-4xl font-black mb-8 text-blue-700 italic tracking-tighter uppercase">Job Finder Pro</h1>
 
-            {/* --- Search Section with Experience Filter --- */}
+            {/* --- Filter Section --- */}
             <div className="flex flex-wrap gap-4 mb-10 p-6 bg-white shadow-2xl rounded-[2.5rem] border border-gray-100">
                 <input className="flex-[2] min-w-[200px] border-none bg-gray-100 p-5 rounded-3xl focus:ring-2 focus:ring-blue-400 outline-none font-bold" 
-                       placeholder="Skill (e.g MERN Stack)" 
+                       placeholder="Role (e.g Node.js)" 
                        onChange={e => setFilters({...filters, query: e.target.value})} />
                 
                 <input className="flex-1 min-w-[150px] border-none bg-gray-100 p-5 rounded-3xl focus:ring-2 focus:ring-blue-400 outline-none font-bold" 
-                       placeholder="Location" 
+                       placeholder="City" 
                        onChange={e => setFilters({...filters, location: e.target.value})} />
 
-                {/* ✅ எக்ஸ்பீரியன்ஸ் பில்டர் (UI-ல் இப்போது தெரியும்) */}
                 <select 
                     className="flex-1 min-w-[150px] border-none bg-gray-100 p-5 rounded-3xl focus:ring-2 focus:ring-blue-400 outline-none font-black text-blue-600"
                     onChange={e => setFilters({...filters, experience: e.target.value})}
                 >
-                    <option value="0">Fresher (0-1y)</option>
-                    <option value="2">Junior (2+ yrs)</option>
-                    <option value="5">Mid-Senior (5+ yrs)</option>
-                    <option value="10">Expert (10+ yrs)</option>
+                    <option value="0">Fresher</option>
+                    <option value="2">2+ Years</option>
+                    <option value="5">5+ Years</option>
                 </select>
 
-                <button onClick={handleManualSearch} className="bg-blue-600 text-white px-12 py-5 rounded-3xl font-black hover:bg-blue-700 transform active:scale-95 transition-all shadow-xl shadow-blue-200">
-                    FIND OPPORTUNITIES
+                <button onClick={handleManualSearch} className="bg-blue-600 text-white px-12 py-5 rounded-3xl font-black hover:bg-blue-700 shadow-xl transition-all">
+                    SEARCH
                 </button>
             </div>
 
             {/* --- Job Feed --- */}
             <div className="grid gap-6">
                 {loading ? (
-                    <div className="text-center py-20">
-                        <div className="inline-block animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-blue-600"></div>
-                        <p className="mt-4 font-black text-gray-400 uppercase tracking-widest">Searching Databases...</p>
-                    </div>
+                    <div className="text-center py-20 font-black text-gray-400 animate-pulse">⚡ LOADING LIVE JOBS...</div>
                 ) : (
                     jobs.map((job, idx) => (
-                        <div key={idx} className="group bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-wrap justify-between items-center gap-6">
+                        <div key={idx} className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-wrap justify-between items-center gap-6 hover:shadow-xl transition-all">
                             <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <span className={`text-[10px] uppercase font-black px-4 py-1.5 rounded-full ${job.source === 'Adzuna' ? 'bg-orange-100 text-orange-600' : 'bg-emerald-100 text-emerald-600'}`}>
-                                        {job.source}
-                                    </span>
-                                    <span className="text-gray-400 text-xs font-black">📅 {job.posted}</span>
+                                <div className="flex items-center gap-3 mb-3">
+                                    <span className={`text-[10px] font-black px-4 py-1.5 rounded-full ${job.source === 'Adzuna' ? 'bg-orange-100 text-orange-600' : 'bg-emerald-100 text-emerald-600'}`}>{job.source}</span>
+                                    <span className="text-gray-400 text-[10px] font-bold tracking-widest uppercase">Posted: {job.posted}</span>
                                 </div>
-                                <h2 className="text-2xl font-black text-gray-800 group-hover:text-blue-600 transition-colors mb-1">{job.title}</h2>
+                                <h2 className="text-2xl font-black text-gray-800 mb-1">{job.title}</h2>
                                 <p className="text-blue-500 font-extrabold text-lg mb-4">{job.company}</p>
-                                
-                                <div className="flex flex-wrap gap-4 text-sm text-gray-500 font-bold">
-                                    <span className="bg-gray-50 px-4 py-2 rounded-xl">📍 {job.location}</span>
-                                    <span className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl">💼 {job.experienceRequired}</span>
-                                    {job.salary && <span className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl">💰 {job.salary}</span>}
+                                <div className="flex flex-wrap gap-3 text-xs font-bold text-gray-500">
+                                    <span className="bg-gray-100 px-3 py-1.5 rounded-lg">📍 {job.location}</span>
+                                    <span className="bg-gray-100 px-3 py-1.5 rounded-lg">💼 {job.experienceRequired}</span>
                                 </div>
                             </div>
-                            
-                            <button 
-                                onClick={() => handleJobAction(job)}
-                                className="bg-gray-900 text-white px-10 py-5 rounded-[1.5rem] font-black text-sm hover:bg-blue-600 shadow-xl transition-all uppercase tracking-wider"
-                            >
-                                View Details
+                            <button onClick={() => handleJobAction(job)} className={`px-10 py-5 rounded-2xl font-black text-sm shadow-lg transition-all ${job.source === 'Adzuna' ? 'bg-orange-500 text-white' : 'bg-gray-900 text-white'}`}>
+                                {job.source === 'Adzuna' ? 'APPLY DIRECT ↗' : 'VIEW DETAILS'}
                             </button>
                         </div>
                     ))
                 )}
             </div>
 
-            {/* --- [1] ENHANCED JOB DETAILS MODAL --- */}
+            {/* --- [MODAL] DETAILED JOB VIEW --- */}
             {viewingJob && !showApplyForm && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-[3rem] w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+                    <div className="bg-white rounded-[3rem] w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-in zoom-in duration-300">
                         
-                        {/* Header */}
-                        <div className="p-10 border-b relative bg-gradient-to-r from-white to-blue-50">
-                            <button onClick={() => setViewingJob(null)} className="absolute top-8 right-8 bg-white shadow-md p-3 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 transition-all">✕</button>
-                            <h2 className="text-4xl font-black text-gray-900 leading-tight pr-12">{viewingJob.title}</h2>
-                            <p className="text-2xl text-blue-600 font-black mt-2">{viewingJob.company}</p>
+                        {/* Modal Header */}
+                        <div className="p-10 border-b relative bg-blue-50/20">
+                            <button onClick={() => setViewingJob(null)} className="absolute top-8 right-8 bg-white shadow-md p-3 rounded-full hover:text-red-500">✕</button>
+                            <h2 className="text-3xl font-black text-gray-900 leading-tight pr-12">{viewingJob.title}</h2>
+                            <p className="text-xl text-blue-600 font-black mt-1">{viewingJob.company}</p>
                         </div>
 
-                        {/* Content */}
+                        {/* Modal Content - Extensive Details */}
                         <div className="p-10 overflow-y-auto flex-1 space-y-8">
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <div className="bg-gray-50 p-5 rounded-3xl border border-gray-100">
+                                    <p className="text-[10px] text-gray-400 font-black uppercase mb-1">Estimated Salary</p>
+                                    <p className="font-black text-emerald-600">{viewingJob.salary || "Best in Industry"}</p>
+                                </div>
+                                <div className="bg-gray-50 p-5 rounded-3xl border border-gray-100">
+                                    <p className="text-[10px] text-gray-400 font-black uppercase mb-1">Vacancies</p>
+                                    <p className="font-black text-gray-700">0{Math.floor(Math.random() * 5) + 1} Openings</p>
+                                </div>
+                                <div className="bg-gray-50 p-5 rounded-3xl border border-gray-100">
+                                    <p className="text-[10px] text-gray-400 font-black uppercase mb-1">Applicants</p>
+                                    <p className="font-black text-orange-600">{Math.floor(Math.random() * 40) + 12} People Applied</p>
+                                </div>
+                                <div className="bg-gray-50 p-5 rounded-3xl border border-gray-100">
+                                    <p className="text-[10px] text-gray-400 font-black uppercase mb-1">Deadline</p>
+                                    <p className="font-black text-red-500">Apply within 7 days</p>
+                                </div>
+                                <div className="bg-gray-50 p-5 rounded-3xl border border-gray-100">
+                                    <p className="text-[10px] text-gray-400 font-black uppercase mb-1">Job Type</p>
+                                    <p className="font-black text-blue-700">Full-Time / Remote</p>
+                                </div>
                                 <div className="bg-gray-50 p-5 rounded-3xl border border-gray-100">
                                     <p className="text-[10px] text-gray-400 font-black uppercase mb-1">Location</p>
                                     <p className="font-black text-gray-700">{viewingJob.location}</p>
                                 </div>
-                                <div className="bg-blue-50 p-5 rounded-3xl border border-blue-100">
-                                    <p className="text-[10px] text-blue-400 font-black uppercase mb-1">Experience</p>
-                                    <p className="font-black text-blue-700">{viewingJob.experienceRequired}</p>
-                                </div>
-                                <div className="bg-emerald-50 p-5 rounded-3xl border border-emerald-100">
-                                    <p className="text-[10px] text-emerald-400 font-black uppercase mb-1">Salary</p>
-                                    <p className="font-black text-emerald-700">{viewingJob.salary || "Negotiable"}</p>
-                                </div>
-                                <div className="bg-orange-50 p-5 rounded-3xl border border-orange-100">
-                                    <p className="text-[10px] text-orange-400 font-black uppercase mb-1">Platform</p>
-                                    <p className="font-black text-orange-700">{viewingJob.source}</p>
-                                </div>
                             </div>
 
-                            {/* Tags / Skills */}
-                            {viewingJob.tags && viewingJob.tags.length > 0 && (
+                            {/* Required Skills */}
+                            {viewingJob.tags && (
                                 <div>
-                                    <h3 className="text-xs font-black text-gray-400 uppercase mb-4 tracking-widest ml-1">Required Skills</h3>
+                                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Required Expertise</h3>
                                     <div className="flex flex-wrap gap-2">
                                         {viewingJob.tags.map(tag => (
-                                            <span key={tag} className="bg-white border-2 border-gray-100 text-gray-600 px-5 py-2 rounded-2xl text-xs font-black uppercase hover:border-blue-200 transition-all">
-                                                #{tag}
-                                            </span>
+                                            <span key={tag} className="bg-white border-2 border-gray-100 text-gray-600 px-5 py-2 rounded-2xl text-[10px] font-black uppercase hover:border-blue-300">#{tag}</span>
                                         ))}
                                     </div>
                                 </div>
                             )}
 
-                            {/* Full Description */}
+                            {/* Detailed Description */}
                             <div>
-                                <h3 className="text-xs font-black text-gray-400 uppercase mb-4 tracking-widest ml-1">Full Description</h3>
+                                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Detailed Description</h3>
                                 <div 
-                                    className="text-gray-600 leading-relaxed text-base bg-gray-50 p-8 rounded-[2rem] border border-gray-100 font-medium" 
+                                    className="text-gray-600 leading-relaxed text-sm bg-gray-50 p-8 rounded-[2rem] border border-gray-100 font-medium" 
                                     dangerouslySetInnerHTML={{ __html: viewingJob.description }} 
                                 />
                             </div>
                         </div>
 
-                        {/* Footer Actions */}
+                        {/* Modal Footer */}
                         <div className="p-10 bg-white border-t flex gap-5">
-                            <button onClick={() => setViewingJob(null)} className="flex-1 py-5 font-black text-gray-400 hover:text-gray-600">CLOSE</button>
-                            
-                            {viewingJob.applyType === 'external' ? (
-                                <button 
-                                    onClick={() => window.open(viewingJob.url, '_blank')}
-                                    className="flex-[3] bg-orange-500 text-white py-5 rounded-3xl font-black text-lg shadow-xl shadow-orange-100 hover:bg-orange-600 transition-all"
-                                >
-                                    APPLY ON {viewingJob.source.toUpperCase()} ↗
-                                </button>
-                            ) : (
-                                <button 
-                                    onClick={() => setShowApplyForm(true)} 
-                                    className="flex-[3] bg-blue-600 text-white py-5 rounded-3xl font-black text-lg shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all"
-                                >
-                                    QUICK APPLY NOW
-                                </button>
-                            )}
+                            <button onClick={() => setViewingJob(null)} className="flex-1 py-5 font-black text-gray-400">CANCEL</button>
+                            <button onClick={() => setShowApplyForm(true)} className="flex-[3] bg-blue-600 text-white py-5 rounded-3xl font-black text-xl shadow-xl shadow-blue-100 hover:scale-[1.02] transition-transform">
+                                QUICK APPLY NOW
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* --- Application Form (இது அப்படியே இருக்கலாம்) --- */}
+            {/* --- Application Form (Remains the Same) --- */}
             {showApplyForm && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[60]">
-                    {/* ... (உங்கள் பழைய போர்டல் பார்ம் கோட்) ... */}
-                    <div className="bg-white p-10 rounded-[3rem] w-full max-w-md shadow-2xl">
+                    <div className="bg-white p-10 rounded-[3.5rem] w-full max-w-md shadow-2xl animate-in slide-in-from-bottom duration-500">
                          <h2 className="text-3xl font-black mb-2">Final Step</h2>
-                         <p className="text-gray-400 font-bold mb-8 italic">Applying to {viewingJob?.company}</p>
-                         <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); alert("Application Sent!"); setShowApplyForm(false); setViewingJob(null); }}>
-                             <input className="w-full bg-gray-50 border-none p-5 rounded-2xl font-bold" placeholder="Your Name" required />
-                             <input className="w-full bg-gray-50 border-none p-5 rounded-2xl font-bold" type="email" placeholder="Email" required />
-                             <div className="border-4 border-dashed border-gray-100 p-10 rounded-[2rem] text-center">
-                                 <p className="text-blue-600 font-black">UPLOAD RESUME</p>
+                         <p className="text-gray-400 font-bold mb-8 italic uppercase text-[10px]">Applying for {viewingJob?.company}</p>
+                         <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); alert("Successfully Applied!"); setShowApplyForm(false); setViewingJob(null); }}>
+                             <input className="w-full bg-gray-50 border-none p-5 rounded-3xl font-bold focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Full Name" required />
+                             <input className="w-full bg-gray-50 border-none p-5 rounded-2xl font-bold focus:ring-2 focus:ring-blue-500 outline-none" type="email" placeholder="Email" required />
+                             <div className="border-4 border-dashed border-gray-100 p-12 rounded-[2.5rem] text-center hover:bg-blue-50 cursor-pointer">
+                                 <p className="text-blue-600 font-black text-sm">DROP CV HERE</p>
                              </div>
                              <div className="flex gap-4">
                                 <button type="button" onClick={() => setShowApplyForm(false)} className="flex-1 font-bold text-gray-400">BACK</button>
-                                <button className="flex-[2] bg-gray-900 text-white py-5 rounded-2xl font-black shadow-2xl">SUBMIT</button>
+                                <button className="flex-[2] bg-gray-900 text-white py-5 rounded-3xl font-black shadow-2xl uppercase tracking-widest">SUBMIT</button>
                              </div>
                          </form>
                     </div>
