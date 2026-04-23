@@ -9,6 +9,8 @@ import Resumedetails from './components/resume-details-filpage/Resumedetails';
 import Screeninterview from './components/Screeninterview/Screeninterview';
 import SuccessInterview from './components/successinterview/SuccessInterview';
 import CompletedMock from './components/completemock/CompletedMock';
+import JobSearch from './components/jopapply/JobSearch';
+
 function App() {
   return (
     <>
@@ -22,6 +24,7 @@ function App() {
         <Route path="/interview-screen" element={<Screeninterview/>}/>
         <Route path="/success-saveinterview" element={<SuccessInterview />} />
         <Route path="/completed-mocks" element={<CompletedMock />} />
+        <Route path="/apply-jobs" element={<JobSearch />} />
       </Routes>
     </>
   );

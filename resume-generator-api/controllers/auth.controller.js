@@ -3792,3 +3792,965 @@ exports.getInterviewVideo = async (req, res) => {
     res.status(500).send("Error streaming video");
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // Job Search Controller
+// exports.searchJobs = async (req, res) => {
+//     // Frontend-ல் இருந்து வரும் Query Params
+//     const { query, location, experience, wfh } = req.query;
+
+//     console.log("--- New Job Search Request ---");
+//     console.log(`Query: ${query}, Location: ${location}, Experience: ${experience}, WFH: ${wfh}`);
+
+//     // API-களுக்கு அனுப்ப தகுந்தாற்போல Query-ஐ தயார் செய்தல்
+//     const searchTerm = query || 'Software Engineer';
+//     const searchLoc = location || '';
+
+//     try {
+//         // 1. SmartRecruiters API Call
+//         const smartRecruitersReq = axios.get(`https://api.smartrecruiters.com/v1/postings`, {
+//             params: { q: `${searchTerm} ${searchLoc}` }
+//         });
+
+//         // 2. Adzuna API Call
+//         const adzunaReq = axios.get(`https://api.adzuna.com/v1/api/jobs/in/search/1`, {
+//             params: {
+//                 app_id: process.env.ADZUNA_APP_ID,
+//                 app_key: process.env.ADZUNA_APP_KEY,
+//                 what: searchTerm,
+//                 where: searchLoc
+//             }
+//         });
+
+//         // 3. Jooble API Call (POST request)
+//         const joobleReq = axios.post(`https://jooble.org/api/v2/jobs/${process.env.JOOBLE_API_KEY}`, {
+//             keywords: searchTerm,
+//             location: searchLoc
+//         });
+
+//         // மூன்று API-களையும் ஒரே நேரத்தில் இயக்குகிறோம்
+//         const results = await Promise.allSettled([smartRecruitersReq, adzunaReq, joobleReq]);
+
+//         let allJobs = [];
+
+//         // --- 1. SmartRecruiters Data Handling ---
+//         if (results[0].status === 'fulfilled') {
+//             const srData = results[0].value.data.content.map(job => ({
+//                 title: job.name,
+//                 company: job.company.name,
+//                 location: job.location.city,
+//                 source: 'SmartRecruiters'
+//             }));
+//             allJobs.push(...srData);
+//         }
+
+//         // --- 2. Adzuna Data Handling ---
+//         if (results[1].status === 'fulfilled') {
+//             const adzData = results[1].value.data.results.map(job => ({
+//                 title: job.title.replace(/<\/?[^>]+(>|$)/g, ""), // HTML Tags நீக்க
+//                 company: job.company.display_name,
+//                 location: job.location.display_name,
+//                 source: 'Adzuna'
+//             }));
+//             allJobs.push(...adzData);
+//         }
+
+//         // --- 3. Jooble Data Handling ---
+//         if (results[2].status === 'fulfilled') {
+//             const joobleData = (results[2].value.data.jobs || []).map(job => ({
+//                 title: job.title.replace(/<\/?[^>]+(>|$)/g, ""),
+//                 company: job.company,
+//                 location: job.location,
+//                 source: 'Jooble'
+//             }));
+//             allJobs.push(...joobleData);
+//         }
+
+//         // Backend Console-ல் முடிவுகளைக் காட்டுகிறோம் (நீங்கள் கேட்டது போல)
+//         console.log(`Total Jobs Found: ${allJobs.length}`);
+        
+//         // Frontend-க்கு அனுப்புதல்
+//         res.status(200).json(allJobs);
+
+//     } catch (error) {
+//         console.error("Backend Job Search Error:", error.message);
+//         res.status(500).json({ message: "Error fetching jobs", error: error.message });
+//     }
+// };
+
+
+// exports.searchJobs = async (req, res) => {
+//     const { query, location } = req.query;
+//     const searchTerm = query || 'Javascript';
+//     const searchLoc = location || 'india'; // லொகேஷன் காலியாக இருந்தால் 'india' என எடுத்துக்கொள்ளும்
+
+//     console.log(`🔍 Searching: ${searchTerm} | 📍 Location: ${searchLoc}`);
+
+//     try {
+//         // 1. SmartRecruiters (சரியான API URL: /postings என்பதைத் தவிர்த்துவிட்டு /jobs அல்லது /postings என செக் செய்யவும்)
+//         // சில நேரங்களில் இது /v1/postings என வேலை செய்யும். 
+//         const smartRecruitersReq = axios.get(`https://api.smartrecruiters.com/v1/postings`, {
+//             params: { q: searchTerm, limit: 15 }, // q என்பதுதான் query
+//         }).catch(err => { 
+//             console.log("SR Error (404/403):", err.message); 
+//             return { data: { content: [] } }; 
+//         });
+
+//         // 2. Adzuna (இதன் URL மற்றும் Params சரியாக இருக்கிறது)
+//         const adzunaReq = axios.get(`https://api.adzuna.com/v1/api/jobs/in/search/1`, {
+//             params: {
+//                 app_id: process.env.ADZUNA_APP_ID,
+//                 app_key: process.env.ADZUNA_APP_KEY,
+//                 results_per_page: 20,
+//                 what: searchTerm,
+//                 where: searchLoc
+//             }
+//         }).catch(err => { 
+//             console.log("Adzuna Error:", err.message); 
+//             return { data: { results: [] } }; 
+//         });
+
+//         // 3. Jooble 403 எரர் வருவதால், ஒருவேளை API Key பிரச்சனை இருக்கலாம். 
+//         // அதற்கு பதில் நாம் Adzuna-வில் இருந்தே அதிகப்படியான பக்கங்களை (Page 2) எடுக்கலாம் அல்லது Jooble-ஐ தற்காலிகமாக தவிர்க்கலாம்.
+//         const joobleReq = axios.post(`https://jooble.org/api/v2/jobs/${process.env.JOOBLE_API_KEY}`, {
+//             keywords: searchTerm,
+//             location: searchLoc
+//         }).catch(err => { 
+//             console.error("Jooble Error (403): API Key issues or blocked access."); 
+//             return { data: { jobs: [] } }; 
+//         });
+
+//         const [srRes, adzRes, joobleRes] = await Promise.all([smartRecruitersReq, adzunaReq, joobleReq]);
+
+//         let allJobs = [];
+
+//         // --- Data Mapping ---
+//         if (srRes.data?.content) {
+//             srRes.data.content.forEach(job => {
+//                 allJobs.push({
+//                     title: job.name,
+//                     company: job.company?.name || "Global Co",
+//                     location: job.location?.city || "Remote",
+//                     source: 'SmartRecruiters'
+//                 });
+//             });
+//         }
+
+//         if (adzRes.data?.results) {
+//             adzRes.data.results.forEach(job => {
+//                 allJobs.push({
+//                     title: job.title.replace(/<\/?[^>]+(>|$)/g, ""),
+//                     company: job.company?.display_name || "Enterprise",
+//                     location: job.location?.display_name || "India",
+//                     source: 'Adzuna'
+//                 });
+//             });
+//         }
+
+//         if (joobleRes.data?.jobs) {
+//             joobleRes.data.jobs.forEach(job => {
+//                 allJobs.push({
+//                     title: job.title.replace(/<\/?[^>]+(>|$)/g, ""),
+//                     company: job.company || "Company",
+//                     location: job.location || "Remote",
+//                     source: 'Jooble'
+//                 });
+//             });
+//         }
+
+//         // Shuffle: ஒரே போர்ட்டல் முடிவுகள் வரிசையாக வராமல் கலந்து தெரிய (Randomize)
+//         allJobs = allJobs.sort(() => Math.random() - 0.5);
+
+//         console.log(`🚀 Final Combined Jobs: ${allJobs.length}`);
+//         res.status(200).json(allJobs);
+
+//     } catch (error) {
+//         console.error("Critical Backend Error:", error);
+//         res.status(500).json([]);
+//     }
+// };
+
+
+
+
+
+// exports.searchJobs = async (req, res) => {
+//     const { query, location, experience, wfh, partTime, salary } = req.query;
+    
+//     let searchTerm = query || 'javascript';
+//     let filterExp = experience ? experience.toLowerCase() : "";
+//     let searchLoc = location || 'india';
+
+//     // 1. Adzuna Query - துல்லியமாக மாற்றுகிறோம்
+//     let adzunaQuery = searchTerm;
+//     if (filterExp.includes("fresher") || filterExp === "0") {
+//         adzunaQuery = `${searchTerm} fresher entry level`; 
+//     }
+
+//     console.log(`🔍 API Calling: Query: ${adzunaQuery} | Exp: ${filterExp}`);
+
+//     try {
+//         // --- RemoteOK API ---
+//         const remoteOkReq = axios.get(`https://remoteok.com/api?tag=${searchTerm.split(' ')[0].toLowerCase()}`, {
+//             headers: { 'User-Agent': 'Mozilla/5.0' }
+//         }).catch(() => ({ data: [] }));
+
+//         // --- Adzuna API ---
+//         const adzunaParams = {
+//             app_id: 'a68a7f55',
+//             app_key: '3eb711496d6ebd6e7b8e8f84f31b37ed',
+//             results_per_page: 50,
+//             what: adzunaQuery,
+//             where: searchLoc,
+//             content_type: 'all'
+//         };
+
+//         // சம்பளம் இருந்தால் மட்டும் மிகக் கவனமாகச் சேர்க்கவும்
+//         if (salary && salary.trim() !== "") {
+//             const numSalary = parseInt(salary.replace(/[^0-9]/g, ""));
+//             if (!isNaN(numSalary)) {
+//                 // 100-க்கு கீழே இருந்தால் அதை லட்சமாக மாற்றவும் (e.g., 4 -> 400000)
+//                 adzunaParams.salary_min = numSalary < 100 ? numSalary * 100000 : numSalary;
+//             }
+//         }
+
+//         const adzunaReq = axios.get(`https://api.adzuna.com/v1/api/jobs/in/search/1`, {
+//             params: adzunaParams
+//         }).catch((err) => {
+//             console.log("Adzuna Request Failed:", err.message);
+//             return { data: { results: [] } };
+//         });
+
+//         const [remoteRes, adzRes] = await Promise.all([remoteOkReq, adzunaReq]);
+
+//         let allJobs = [];
+
+//         // RemoteOK Mapping
+//         if (Array.isArray(remoteRes.data) && remoteRes.data.length > 1) {
+//             remoteRes.data.slice(1).forEach(job => {
+//                 allJobs.push({
+//                     id: job.id || Math.random().toString(),
+//                     title: job.position,
+//                     company: job.company,
+//                     location: job.location || "Remote",
+//                     source: 'RemoteOK',
+//                     url: job.url,
+//                     description: job.description || ""
+//                 });
+//             });
+//         }
+
+//         // Adzuna Mapping
+//         if (adzRes.data?.results) {
+//             adzRes.data.results.forEach(job => {
+//                 allJobs.push({
+//                     id: job.id,
+//                     title: job.title.replace(/<\/?[^>]+(>|$)/g, ""),
+//                     company: job.company?.display_name,
+//                     location: job.location?.display_name || "India",
+//                     source: 'Adzuna',
+//                     url: job.redirect_url,
+//                     salary_info: job.salary_min ? `₹${(job.salary_min/100000).toFixed(1)}L` : "Best in Industry"
+//                 });
+//             });
+//         }
+
+//         // --- முக்கியமான பில்டர் மாற்றம் ---
+//         if (filterExp !== "") {
+//             allJobs = allJobs.filter(job => {
+//                 const title = job.title.toLowerCase();
+//                 const desc = (job.description || "").toLowerCase();
+
+//                 if (filterExp.includes("fresher") || filterExp === "0") {
+//                     const seniorTerms = ["senior", "sr.", "lead", "manager", "architect", "expert", "3-5", "5+", "years exp"];
+//                     // தலைப்பில் சீனியர் வார்த்தைகள் இருந்தால் அதை நீக்கு
+//                     const isSenior = seniorTerms.some(term => title.includes(term));
+                    
+//                     // தலைப்பில் 'fresher' இருந்தாலோ அல்லது சீனியர் வார்த்தைகள் இல்லாமலிருந்தாலோ மட்டும் அனுமதி
+//                     return (title.includes("fresher") || !isSenior);
+//                 } 
+                
+//                 if (filterExp.includes("senior")) {
+//                     return ["senior", "sr.", "lead", "architect"].some(term => title.includes(term));
+//                 }
+
+//                 return true;
+//             });
+//         }
+
+//         // Shuffle
+//         allJobs = allJobs.sort(() => Math.random() - 0.5);
+        
+//         console.log(`✅ Adzuna Count: ${adzRes.data?.results?.length || 0} | Final Sent: ${allJobs.length}`);
+//         res.status(200).json(allJobs);
+
+//     } catch (error) {
+//         console.error("Backend Error:", error);
+//         res.status(500).json([]);
+//     }
+// }
+
+
+exports.searchJobs = async (req, res) => {
+    const { query, location, experience, salary, wfh } = req.query;
+    
+    const searchTerm = query || 'react';
+    const searchLoc = location || 'chennai';
+    const expNum = experience === "fresher" ? 0 : parseInt(experience) || 0;
+
+    // API Keys
+    const ADZUNA_ID = 'a68a7f55';
+    const ADZUNA_KEY = '3eb711496d6ebd6e7b8e8f84f31b37ed';
+
+    try {
+        // Switch Case for RemoteOK Tags
+        let remoteTag = (expNum >= 5) ? "senior" : (expNum <= 1 ? "junior" : searchTerm.split(' ')[0].toLowerCase());
+
+        const [remoteRes, adzRes] = await Promise.all([
+            axios.get(`https://remoteok.com/api?tag=${remoteTag}`, { headers: { 'User-Agent': 'Mozilla/5.0' } }).catch(() => ({ data: [] })),
+            axios.get(`https://api.adzuna.com/v1/api/jobs/in/search/1`, {
+                params: {
+                    app_id: ADZUNA_ID,
+                    app_key: ADZUNA_KEY,
+                    results_per_page: 30,
+                    what: searchTerm,
+                    where: searchLoc,
+                    salary_min: salary ? parseInt(salary) * 100000 : undefined
+                }
+            }).catch(() => ({ data: { results: [] } }))
+        ]);
+
+        let allJobs = [];
+
+        // Strict Filter Logic
+        const filterLogic = (title) => {
+            const t = title.toLowerCase();
+            if (expNum <= 1) return !t.includes('senior') && !t.includes('lead') && !t.includes('manager');
+            if (expNum >= 5) return t.includes('senior') || t.includes('lead') || t.includes('sr');
+            return true;
+        };
+
+        // RemoteOK Data Mapping
+        if (Array.isArray(remoteRes.data)) {
+            remoteRes.data.slice(1).filter(j => filterLogic(j.position)).forEach(job => {
+                allJobs.push({
+                    id: job.id || Math.random(),
+                    title: job.position,
+                    company: job.company,
+                    location: "Remote",
+                    experience: expNum === 0 ? "Fresher" : `${expNum} Yrs`,
+                    salary: "Global Pay",
+                    description: job.description || "No description available",
+                    url: job.url,
+                    source: 'RemoteOK',
+                    applyType: 'external'
+                });
+            });
+        }
+
+        // Adzuna Data Mapping
+        if (adzRes.data?.results) {
+            adzRes.data.results.filter(j => filterLogic(j.title)).forEach(job => {
+                allJobs.push({
+                    id: job.id,
+                    title: job.title.replace(/<\/?[^>]+(>|$)/g, ""),
+                    company: job.company?.display_name,
+                    location: job.location?.display_name,
+                    experience: expNum === 0 ? "Fresher" : `${expNum} Yrs`,
+                    salary: job.salary_min ? `₹${(job.salary_min/100000).toFixed(1)} LPA` : "Best in Industry",
+                    description: job.description || "Job details available on site",
+                    url: job.redirect_url,
+                    source: 'Adzuna',
+                    applyType: 'external'
+                });
+            });
+        }
+
+        res.status(200).json(allJobs.sort(() => Math.random() - 0.5));
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+
+
+exports.searchMuseJobs = async (req, res) => {
+    const { query, location, experience } = req.query;
+
+    // 1. Params தயார் செய்தல்
+    // The Muse-க்கு query என்பது 'category' அல்லது 'level' ஆக இருக்க வேண்டும்
+    const category = query || 'Software Engineering';
+    const loc = location || 'India';
+    const level = (experience === "0") ? 'Entry Level' : (experience === "5") ? 'Senior Level' : '';
+
+    try {
+        // 2. The Muse Public API Call
+        // level இருந்தால் அதையும் பில்டரில் சேர்க்கிறோம்
+        let museURL = `https://www.themuse.com/api/public/jobs?category=${encodeURIComponent(category)}&location=${encodeURIComponent(loc)}&page=1`;
+        
+        if (level) {
+            museURL += `&level=${encodeURIComponent(level)}`;
+        }
+
+        const response = await axios.get(museURL);
+        const results = response.data.results || [];
+
+        // 3. Mapping (UI-க்கு ஏற்றவாறு மாற்றுதல்)
+        const formattedJobs = results.map(job => ({
+            id: job.id,
+            title: job.name,
+            company: job.company?.name,
+            location: job.locations[0]?.name || loc,
+            source: 'The Muse',
+            url: job.refs?.landing_page,
+            applyType: 'external',
+            // Muse-இல் சம்பளம் வராது, அதனால் Default-ஆகக் கொடுக்கிறோம்
+            salary: "Market Standard",
+            experience: level || "Any Experience",
+            description: job.contents // விவரங்களை Modal-இல் காட்ட
+        }));
+
+        res.status(200).json(formattedJobs);
+    } catch (error) {
+        console.error("The Muse API Error:", error.message);
+        res.status(500).json([]);
+    }
+};
+// exports.searchJobs = async (req, res) => {
+//     // Frontend-இல் இருந்து வரும் அனைத்து பில்டர்களையும் எடுக்கிறோம்
+//     const { query, location, experience, wfh, partTime, salary } = req.query;
+    
+//     const searchTerm = query || 'javascript';
+//     const tagForRemoteOK = searchTerm.split(' ')[0].toLowerCase(); 
+//     const searchLoc = location || 'india';
+
+//     console.log(`🔍 Searching: ${searchTerm} in ${searchLoc}`);
+
+//     try {
+//         // --- 1. RemoteOK API ---
+//         const remoteOkReq = axios.get(`https://remoteok.com/api?tag=${tagForRemoteOK}`, {
+//             headers: {
+//                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+//             }
+//         }).catch(err => {
+//             console.log("RemoteOK Error:", err.message);
+//             return { data: [] };
+//         });
+
+//         // --- 2. Adzuna API Setup ---
+//         const adzunaParams = {
+//             app_id: 'a68a7f55',
+//             app_key: '3eb711496d6ebd6e7b8e8f84f31b37ed',
+//             results_per_page: 30,
+//             what: searchTerm,
+//             where: searchLoc,
+//             content_type: 'all'
+//         };
+
+//         // பில்டர்கள் இருந்தால் மட்டும் சேர்க்கிறோம்
+//         if (salary && salary !== '') {
+//             const minSalary = parseInt(salary) * 100000;
+//             if (!isNaN(minSalary)) adzunaParams.salary_min = minSalary;
+//         }
+
+//         if (partTime === 'true' || partTime === true) {
+//             adzunaParams.part_time = 1;
+//         }
+
+//         const adzunaReq = axios.get(`https://api.adzuna.com/v1/api/jobs/in/search/1`, {
+//             params: adzunaParams
+//         }).catch(err => {
+//             console.log("Adzuna Error:", err.message);
+//             return { data: { results: [] } };
+//         });
+
+//         // இரண்டு API-களையும் ஒரே நேரத்தில் அழைக்கிறோம்
+//         const [remoteRes, adzRes] = await Promise.all([remoteOkReq, adzunaReq]);
+
+//         let allJobs = [];
+
+//         // RemoteOK Data Mapping
+//         if (Array.isArray(remoteRes.data) && remoteRes.data.length > 1) {
+//             remoteRes.data.slice(1).forEach(job => {
+//                 allJobs.push({
+//                     id: job.id || Math.random(),
+//                     title: job.position,
+//                     company: job.company,
+//                     location: job.location || "Remote",
+//                     source: 'RemoteOK',
+//                     description: job.description, 
+//                     url: job.url,
+//                     applyType: 'internal',
+//                     experience: "Fresher/Experienced",
+//                     salary: job.salary_min ? `₹${job.salary_min}` : "Best in Industry"
+//                 });
+//             });
+//         }
+
+//         // Adzuna Data Mapping
+//         if (adzRes.data && adzRes.data.results) {
+//             adzRes.data.results.forEach(job => {
+//                 allJobs.push({
+//                     id: job.id,
+//                     title: job.title.replace(/<\/?[^>]+(>|$)/g, ""),
+//                     company: job.company?.display_name,
+//                     location: job.location?.display_name || "India",
+//                     source: 'Adzuna',
+//                     url: job.redirect_url, 
+//                     applyType: 'external',
+//                     experience: job.contract_type === 'permanent' ? 'Full-time' : (job.contract_type || "Fresher/Experienced"), 
+//                     salary: job.salary_min ? `₹${(job.salary_min/100000).toFixed(1)}L - ${(job.salary_max/100000).toFixed(1)}L` : "Best in Industry"
+//                 });
+//             });
+//         }
+
+//         // --- Backend Filtering for Experience ---
+//         if (experience && experience !== '') {
+//             const expLevel = experience.toLowerCase();
+//             allJobs = allJobs.filter(job => {
+//                 const title = job.title.toLowerCase();
+//                 // Fresher பில்டர்: Senior வேலைகளைத் தவிர்க்கும்
+//                 if (expLevel.includes("fresher") || expLevel === "0") {
+//                     return !title.includes("senior") && !title.includes("lead") && !title.includes("sr.");
+//                 }
+//                 // Senior பில்டர்: அனுபவம் வாய்ந்த வேலைகளை மட்டும் காட்டும்
+//                 if (expLevel.includes("senior") || expLevel.includes("5+")) {
+//                     return title.includes("senior") || title.includes("sr") || title.includes("lead") || title.includes("expert");
+//                 }
+//                 return true;
+//             });
+//         }
+
+//         // முடிவுகளைக் கலந்து அனுப்புகிறோம்
+//         allJobs = allJobs.sort(() => Math.random() - 0.5);
+        
+//         console.log(`✅ Final Results - RemoteOK: ${allJobs.filter(j => j.source === 'RemoteOK').length}, Adzuna: ${allJobs.filter(j => j.source === 'Adzuna').length}`);
+        
+//         res.status(200).json(allJobs);
+
+//     } catch (error) {
+//         console.error("Backend Serious Error:", error);
+//         res.status(500).json([]);
+//     }
+
+
+
+
+
+// };
+
+
+
+
+
+
+exports.testAdvancedSearch = async (req, res) => {
+    const userInput = req.query.experience || "fresher"; // 0, 1, 2, 3, 4, 5 or "fresher"
+    const domainInput = req.query.domain || "react";
+    const locationInput = req.query.location || "chennai"; 
+    
+    // 1. Smart Normalizer (உதாரணமாக MERN-ஐ React-ஆக மாற்றுவது)
+    let searchDomain = domainInput.toLowerCase().trim();
+    if (searchDomain === 'mern') searchDomain = 'react'; 
+    if (searchDomain === 'fullstack') searchDomain = 'full stack';
+    
+    const expNum = (userInput === "fresher") ? 0 : parseInt(userInput);
+
+    // 2. Switch Case Logic for API Keywords (உங்களது பழைய லாஜிக் படி)
+    let adzunaExpTag = "";
+    let remoteTag = "";
+
+    switch (expNum) {
+        case 0:
+        case 1:
+            adzunaExpTag = "fresher";
+            remoteTag = "junior";
+            break;
+        case 2:
+            adzunaExpTag = "2 years experience";
+            remoteTag = "junior"; 
+            break;
+        case 3:
+        case 4:
+            adzunaExpTag = `${expNum} years experience intermediate`;
+            remoteTag = "mid-level";
+            break;
+        case 5:
+            adzunaExpTag = "senior lead 5 years";
+            remoteTag = "senior";
+            break;
+        default:
+            adzunaExpTag = "experienced";
+            remoteTag = searchDomain;
+    }
+
+    const ADZUNA_APP_ID = 'a68a7f55';
+    const ADZUNA_APP_KEY = '3eb711496d6ebd6e7b8e8f84f31b37ed';
+
+    console.log(`\n🚀 ADVANCED SEARCH: ${searchDomain.toUpperCase()} | EXP: ${expNum} Yrs | LOC: ${locationInput}`);
+
+    try {
+        // 3. Parallel API Request
+        const [remoteRes, adzunaRes] = await Promise.all([
+            axios.get(`https://remoteok.com/api?tag=${remoteTag}`, { headers: { 'User-Agent': 'Mozilla/5.0' } }).catch(() => ({ data: [] })),
+            axios.get(`https://api.adzuna.com/v1/api/jobs/in/search/1`, {
+                params: {
+                    app_id: ADZUNA_APP_ID,
+                    app_key: ADZUNA_APP_KEY,
+                    results_per_page: 50,
+                    what: `${searchDomain} ${adzunaExpTag}`,
+                    where: locationInput
+                }
+            }).catch(() => ({ data: { results: [] } }))
+        ]);
+
+        // 4. STRICT FILTER LOGIC (நமது புதிய தரமான பில்டர்)
+        const filterLogic = (title, tags = []) => {
+            const titleLower = title.toLowerCase();
+            const hasDomain = titleLower.includes(searchDomain) || tags.includes(searchDomain);
+            if (!hasDomain) return false;
+
+            const highLevel = ['staff', 'principal', 'architect', 'director', 'head', 'lead', 'manager', 'vp', 'cto'];
+            const seniorLevel = ['senior', 'sr.', 'sr '];
+            const juniorLevel = ['junior', 'intern', 'fresher', 'trainee', 'entry'];
+
+            if (expNum <= 1) {
+                return !highLevel.some(w => titleLower.includes(w)) && !seniorLevel.some(w => titleLower.includes(w));
+            } else if (expNum >= 2 && expNum <= 4) {
+                return !highLevel.some(w => titleLower.includes(w)) && 
+                       !seniorLevel.some(w => titleLower.includes(w)) && 
+                       !juniorLevel.some(w => titleLower.includes(w));
+            } else {
+                return highLevel.some(w => titleLower.includes(w)) || seniorLevel.some(w => titleLower.includes(w));
+            }
+        };
+
+        // 5. Data Mapping
+        const cleanRemote = remoteRes.data.slice(1).filter(j => 
+            filterLogic(j.position, j.tags?.map(t => t.toLowerCase()))
+        ).map(j => ({
+            title: j.position,
+            experience: `${expNum} Yrs`,
+            location: "Remote (Global)",
+            company: j.company || "N/A",
+            url: j.url
+        }));
+
+        const cleanAdzuna = adzunaRes.data.results.filter(j => 
+            filterLogic(j.title.replace(/<\/?[^>]+(>|$)/g, ""))
+        ).map(j => ({
+            title: j.title.replace(/<\/?[^>]+(>|$)/g, ""),
+            experience: `${expNum} Yrs`,
+            location: j.location.display_name || locationInput,
+            company: j.company.display_name || "N/A",
+            url: j.redirect_url
+        }));
+
+        const allJobs = [...cleanAdzuna, ...cleanRemote];
+
+        // 6. Console Logging
+        console.log(`\n--- [ SEARCH RESULTS: ${allJobs.length} ] ---`);
+        allJobs.slice(0, 15).forEach((job, i) => {
+            console.log(`[${i+1}] TITLE: ${job.title}`);
+            console.log(`    🏢 COMP: ${job.company} | 🎓 EXP: ${job.experience} | 📍 LOC: ${job.location}`);
+            console.log(`    🔗 URL: ${job.url.substring(0, 50)}...`);
+            console.log("-------------------------------------------------------");
+        });
+
+        res.status(200).json({
+            status: "Success",
+            count: allJobs.length,
+            data: allJobs
+        });
+
+    } catch (e) {
+        res.status(500).send("Advanced Search Error: " + e.message);
+    }
+};
+
+    // 2-3 வருட அனுபவத்திற்காக நாம் சோதிக்க வேண்டிய முக்கியமான கீவேர்டுகள்
+
+  exports.testRemoteOKTags = async (req, res) => {
+    const userInput = req.query.experience || "fresher";
+    const domainInput = req.query.domain || "react";
+    const locationInput = req.query.location || "chennai"; // யூசர் ஊர் பெயர் கொடுக்கலாம்
+    
+    // 1. Smart Normalizer
+    let searchDomain = domainInput.toLowerCase().trim();
+    if (searchDomain === 'mern') searchDomain = 'react'; 
+    if (searchDomain === 'fullstack') searchDomain = 'full stack';
+    
+    const expNum = (userInput === "fresher") ? 0 : parseInt(userInput);
+
+    console.log(`\n🚀 SEARCHING: ${searchDomain.toUpperCase()} | EXP: ${expNum} Yrs | LOC: ${locationInput}`);
+
+    try {
+        // API Keywords
+        let remoteTag = (expNum >= 5) ? "senior" : (expNum <= 1 ? "junior" : searchDomain);
+
+        const [remoteRes, adzunaRes] = await Promise.all([
+            axios.get(`https://remoteok.com/api?tag=${remoteTag}`, { headers: { 'User-Agent': 'Mozilla/5.0' } }).catch(() => ({ data: [] })),
+            axios.get(`https://api.adzuna.com/v1/api/jobs/in/search/1`, {
+                params: {
+                    app_id: 'YOUR_APP_ID',
+                    app_key: 'YOUR_APP_KEY',
+                    results_per_page: 50,
+                    what: searchDomain,
+                    where: locationInput // இங்கே லொகேஷன் பில்டர் வேலை செய்யும்
+                }
+            }).catch(() => ({ data: { results: [] } }))
+        ]);
+
+        // 2. STRICT FILTER LOGIC
+        const filterLogic = (title, tags = []) => {
+            const titleLower = title.toLowerCase();
+            const hasDomain = titleLower.includes(searchDomain) || tags.includes(searchDomain);
+            if (!hasDomain) return false;
+
+            const highLevel = ['staff', 'principal', 'architect', 'director', 'head', 'lead', 'manager', 'vp', 'cto'];
+            const seniorLevel = ['senior', 'sr.', 'sr '];
+            const juniorLevel = ['junior', 'intern', 'fresher', 'trainee', 'entry'];
+
+            if (expNum <= 1) {
+                return !highLevel.some(w => titleLower.includes(w)) && !seniorLevel.some(w => titleLower.includes(w));
+            } else if (expNum >= 2 && expNum <= 4) {
+                return !highLevel.some(w => titleLower.includes(w)) && !seniorLevel.some(w => titleLower.includes(w)) && !juniorLevel.some(w => titleLower.includes(w));
+            } else {
+                return highLevel.some(w => titleLower.includes(w)) || seniorLevel.some(w => titleLower.includes(w));
+            }
+        };
+
+        // 3. Processing RemoteOK (World)
+        const cleanRemote = remoteRes.data.slice(1).filter(j => 
+            filterLogic(j.position, j.tags?.map(t => t.toLowerCase()))
+        ).map(j => ({
+            title: j.position,
+            experience: userInput,
+            location: "Remote (Global)",
+            company: j.company || "N/A",
+            link: j.url
+        }));
+
+        // 4. Processing Adzuna (India/Local)
+        const cleanAdzuna = adzunaRes.data.results.filter(j => 
+            filterLogic(j.title.replace(/<\/?[^>]+(>|$)/g, ""))
+        ).map(j => ({
+            title: j.title.replace(/<\/?[^>]+(>|$)/g, ""),
+            experience: userInput,
+            location: j.location.display_name || locationInput,
+            company: j.company.display_name || "N/A",
+            link: j.redirect_url
+        }));
+
+        // 5. Final Output Console Log
+        console.log(`\n--- [ RESULTS FOUND: ${cleanAdzuna.length + cleanRemote.length} ] ---`);
+        
+        const allJobs = [...cleanAdzuna, ...cleanRemote].slice(0, 20);
+
+        allJobs.forEach((job, i) => {
+            console.log(`[${i+1}] TITLE: ${job.title}`);
+            console.log(`    EXP: ${job.experience} | LOC: ${job.location}`);
+            console.log(`    COMP: ${job.company}`);
+            console.log(`    LINK: ${job.link.substring(0, 50)}...`);
+            console.log(`-------------------------------------------------------`);
+        });
+
+        res.status(200).json({ status: "Success", jobsFound: allJobs.length, data: allJobs });
+
+    } catch (e) {
+        res.status(500).send("Search Error: " + e.message);
+    }
+};
+
+
+
+// --- API CONFIGURATION ---
+const ADZUNA_ID = 'a68a7f55';
+const ADZUNA_KEY = '3eb711496d6ebd6e7b8e8f84f31b37ed';
+
+/**
+ * Helper: API டேட்டாவை நமது UI-க்கு ஏற்றவாறு மாற்றும் (Data Normalizer)
+ */
+const formatJob = (job, source) => {
+    if (source === 'adzuna') {
+        return {
+            id: job.id,
+            title: job.title.replace(/<\/?[^>]+(>|$)/g, ""), // HTML Tag-களை நீக்க
+            company: job.company?.display_name || "Confidential",
+            location: job.location?.display_name || "India",
+            url: job.redirect_url,
+            source: 'Adzuna',
+            applyType: 'external', // Adzuna-வுக்கு நேரடி லிங்க்
+            posted: new Date(job.created).toLocaleDateString()
+        };
+    } else {
+        return {
+            id: job.id || Math.random(),
+            title: job.position,
+            company: job.company,
+            location: "Remote (Global)",
+            url: job.url,
+            source: 'RemoteOK',
+            applyType: 'internal', // நமது போர்ட்டல் பார்ம் ஓபன் ஆகும்
+            posted: new Date(job.date).toLocaleDateString()
+        };
+    }
+};
+
+/**
+ * Main Controller: Search & Initial Fetch
+ */
+// controllers/jobController.js
+
+
+exports.searchJobs = async (req, res) => {
+    const searchTerm = req.query.query || "React";
+    const locationTerm = req.query.location || "Chennai";
+    const experience = parseInt(req.query.experience) || 0;
+
+    // ✅ எக்ஸ்பீரியன்ஸ் அடிப்படையில் ஸ்மார்ட் கீவேர்ட்ஸ்
+    let expTag = "";
+    if (experience === 0) expTag = "junior";
+    else if (experience > 0 && experience < 5) expTag = searchTerm.toLowerCase();
+    else expTag = "senior";
+
+    try {
+        const [remoteRes, adzRes] = await Promise.all([
+            // RemoteOK API - Tags-ல் எக்ஸ்பீரியன்ஸ் கீவேர்டையும் சேர்க்கிறோம்
+            axios.get(`https://remoteok.com/api?tag=${searchTerm.toLowerCase()}&tag=${expTag}`, { 
+                headers: { 'User-Agent': 'Mozilla/5.0' } 
+            }).catch(() => ({ data: [] })),
+
+            axios.get(`https://api.adzuna.com/v1/api/jobs/in/search/1`, {
+                params: {
+                    app_id: 'a68a7f55',
+                    app_key: '3eb711496d6ebd6e7b8e8f84f31b37ed',
+                    results_per_page: 20,
+                    what: searchTerm,
+                    where: locationTerm
+                }
+            }).catch(() => ({ data: { results: [] } }))
+        ]);
+
+        // ✅ RemoteOK - அதிகப்படியான விபரங்களை எடுக்கிறோம்
+        const remoteJobs = (Array.isArray(remoteRes.data) ? remoteRes.data.slice(1, 15) : [])
+            .map(job => ({
+                id: job.id,
+                title: job.position,
+                company: job.company,
+                location: job.location || "Remote (Global)",
+                url: job.url,
+                source: 'RemoteOK',
+                applyType: 'internal',
+                posted: new Date(job.date).toLocaleDateString(),
+                // புதிய விபரங்கள்
+                description: job.description, // முழு விபரம்
+                tags: job.tags || [], // தேவையான ஸ்கில்ஸ்
+                salary: job.salary_min ? `${job.salary_min} - ${job.salary_max}` : "Negotiable",
+                experienceRequired: experience === 0 ? "Fresher/Junior" : `${experience}+ Years`
+            }));
+
+        const adzunaJobs = (adzRes.data.results || []).map(job => ({
+            id: job.id,
+            title: job.title.replace(/<\/?[^>]+(>|$)/g, ""),
+            company: job.company?.display_name,
+            location: job.location?.display_name,
+            url: job.redirect_url,
+            source: 'Adzuna',
+            applyType: 'external',
+            posted: new Date(job.created).toLocaleDateString(),
+            description: job.description,
+            experienceRequired: `${experience}+ Years`
+        }));
+
+        res.status(200).json([...adzunaJobs, ...remoteJobs].sort(() => Math.random() - 0.5));
+
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+exports.testAdzunaKeywords = async (req, res) => {
+    // 0 எக்ஸ்பீரியன்ஸ்க்காக நாம் சோதிக்க வேண்டிய பல வார்த்தைகள்
+    const keywords = ["fresher", "trainee", "intern", "graduate", "entry level", "0 years experience"];
+    const domain = req.query.domain || "Javascript";
+
+    console.log(`\n🚀 Testing Adzuna with Multiple Keywords for ${domain}...`);
+
+    try {
+        for (let word of keywords) {
+            const searchTerm = `${domain} ${word}`;
+            const response = await axios.get(`https://api.adzuna.com/v1/api/jobs/in/search/1`, {
+                params: {
+                    app_id: 'a68a7f55',
+                    app_key: '3eb711496d6ebd6e7b8e8f84f31b37ed',
+                    results_per_page: 3, // ஒவ்வொரு வார்த்தைக்கும் முதல் 3 முடிவுகள்
+                    what: searchTerm,
+                    where: 'india'
+                }
+            }).catch(() => ({ data: { results: [] } }));
+
+            const results = response.data.results || [];
+            console.log(`\n🔎 KEYWORD: "${searchTerm}" -> FOUND: ${results.length} jobs`);
+            
+            results.forEach((job, i) => {
+                console.log(`   [${i+1}] ${job.title.replace(/<\/?[^>]+(>|$)/g, "").substring(0, 50)}`);
+            });
+        }
+        res.send("Adzuna multi-keyword test finished! Check terminal.");
+    } catch (e) { res.status(500).send(e.message); }
+};

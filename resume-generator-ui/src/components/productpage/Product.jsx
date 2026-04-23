@@ -720,6 +720,10 @@ const confirmSelection = () => {
       <button onClick={() => setMockDetailsOpen(true)}>
         Go to Interview
       </button>
+
+      <Link to="/apply-jobs">
+    <button >go to jop page</button>
+    </Link>
      
  </div>
 

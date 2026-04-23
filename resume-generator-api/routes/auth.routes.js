@@ -110,6 +110,12 @@ const {
   getAllCompletedMocks, 
   getInterviewVideo,
   saveInterviewResults,
+  searchJobs,
+  searchMuseJobs,
+  testAdvancedSearch,
+  testRemoteOKTags,
+  testAdzunaKeywords,
+
 
                       // 🔥 NEW: Photo upload handler
 } = require("../controllers/auth.controller");
@@ -156,6 +162,23 @@ router.get(
 
 
 
+
+
+
+
+
+
+
+
+
+
+router.get('/test-remoteok',testRemoteOKTags);
+router.get('/test-adzuna',testAdzunaKeywords);
+router.get('/test-fresher',testAdvancedSearch);
+
+// backend routes/jobRoutes.js
+router.get('/search-muse-jobs',searchMuseJobs);
+router.get('/search-jobs',searchJobs);
 // இது verifyToken மிடில்வேயருக்கு கீழே இருக்க வேண்டும்
 router.get("/completed-mocks", verifyToken, getAllCompletedMocks);
 router.get("/interview-video/:id", getInterviewVideo);
