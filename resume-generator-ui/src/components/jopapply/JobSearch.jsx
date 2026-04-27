@@ -644,7 +644,34 @@ const JobPortal = () => {
     
     const [viewingJob, setViewingJob] = useState(null); 
     const [showApplyForm, setShowApplyForm] = useState(false);
+    const [appliedJobs, setAppliedJobs] = useState([]);
 
+
+
+    // அப்ளை செய்த வேலைகளை சேமிக்க ஒரு ஸ்டேட்
+
+const markAsApplied = async (job) => {
+    try {
+        // Backend API-க்கு டேட்டாவை அனுப்புதல்
+        const response = await API.post('/apply-job', {
+            jobName: job.title,
+            company: job.company,
+            location: job.location,
+            experience: job.experienceRequired || 'Not Specified',
+            portal: job.source, // Adzuna, AI Engine, or Remote
+            appliedTime: new Date().toISOString() // தற்போதைய நேரம்
+        });
+
+        if (response.status === 200 || response.status === 201) {
+            // வெற்றிகரமாக சேமிக்கப்பட்டால் UI-ல் பட்டனை மாற்ற அந்த டைட்டிலை சேமிக்கிறோம்
+            setAppliedJobs(prev => [...prev, job.title]);
+            alert("Job marked as applied in your records! ✅");
+        }
+    } catch (err) {
+        console.error("Failed to store application info:", err);
+        alert("Login required or Database connection error!");
+    }
+};
     useEffect(() => {
         autoFetchInitialJobs();
     }, []);
@@ -767,6 +794,17 @@ const JobPortal = () => {
                                   job.source === 'AI Engine' ? 'bg-purple-600 text-white' : 'bg-gray-900 text-white'}`}
                             >
                                 {job.source === 'Adzuna' ? 'APPLY DIRECT ↗' : 'VIEW DETAILS'}
+                            </button>
+
+                            <button 
+                             onClick={() => markAsApplied(job)}
+                             disabled={appliedJobs.includes(job.title)}
+                              className={`px-8 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all
+                              ${appliedJobs.includes(job.title) 
+                                ? 'bg-emerald-500 text-white cursor-default shadow-none' 
+                               : 'bg-white border-2 border-gray-200 text-gray-500 hover:border-emerald-500 hover:text-emerald-600'}`}
+                              >
+                      {appliedJobs.includes(job.title) ? 'Applied ✅' : 'Mark Applied'}
                             </button>
                         </div>
                     ))

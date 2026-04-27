@@ -321,15 +321,54 @@
 }
 
 /* ==================== RIGHT SIDE - OTHER FEATURES ==================== */
+/* ==================== RIGHT SIDE - OTHER FEATURES ==================== */
+/* ==================== RIGHT SIDE - OTHER FEATURES ==================== */
 .other-features-section {
   flex: 1;
   background-color: #f5f7fa;
-  padding: 30px;
-  overflow: hidden;
+  padding: 20px; /* மொபைலுக்காக கொஞ்சம் குறைத்துள்ளேன் */
+  
+  /* ✅ மொபைல் மற்றும் டெஸ்க்டாப் இரண்டிற்கும் ஏற்ற ஸ்க்ரோல் */
+  overflow-y: auto; 
+  -webkit-overflow-scrolling: touch; /* iOS போன்களில் ஸ்மூத் ஸ்க்ரோலிங்கிற்கு */
+  
   display: flex;
   flex-direction: column;
   gap: 15px;
-  height: 100%;
+
+  /* 🔥 இதுதான் முக்கியம்: மொபைலில் உயரம் சரியாக இருக்க */
+  height: auto; 
+  min-height: 100%; 
+}
+
+/* 📱 மொபைல் போன்களுக்காக மட்டும் (Media Query) */
+@media (max-width: 768px) {
+  .other-features-section {
+    padding: 15px;
+    height: auto; /* மொபைலில் கன்டென்ட் எவ்வளவு இருக்கோ அவ்வளவு உயரம் */
+    overflow-y: visible; /* மெயின் பேஜ் ஸ்க்ரோல் ஆகட்டும் */
+  }
+  
+  .body-container {
+    display: flex;
+    flex-direction: column; /* மொபைலில் லெஃப்ட் மற்றும் ரைட் சைடு ஒன்றாக கீழே வரும் */
+    height: auto;
+    overflow: visible;
+  }
+}
+
+/* ஸ்க்ரோல் பார் டிசைன் (விருப்பப்பட்டால் சேர்க்கவும்) */
+.other-features-section::-webkit-scrollbar {
+  width: 8px;
+}
+
+.other-features-section::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 10px;
+}
+
+.other-features-section::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
 }
 
 .other-features-section a {

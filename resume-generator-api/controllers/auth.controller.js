@@ -9,6 +9,7 @@ require("dotenv").config();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const Application = require("../models/Application");
 
 
 const puppeteer = require("puppeteer");
@@ -4827,4 +4828,127 @@ exports.testJoobleAPI = async (req, res) => {
         console.error("Groq API Error:", error.message);
         res.status(500).json([]); // எரர் வந்தால் வெறும் அரே அனுப்புவோம்
     }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// orm concept applied jop deatils add in db 
+
+
+
+
+
+exports.applyForJob = async (req, res) => {
+  try {
+    const { jobName, company, location, portal, experience } = req.body;
+    const userId = req.user.id; // JWT-ல் இருந்து வரும் பயனர் ஐடி
+
+    // SQL எழுதத் தேவையில்லை, ORM ஃபங்க்ஷன் போதுமானது
+    const newApp = await Application.create({
+      userId,
+      jobName,
+      company,
+      location,
+      portal,
+      experience
+    });
+
+    res.status(201).json({
+      message: "Applied successfully via ORM! ✅",
+      data: newApp
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "ORM failed to save data" });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// பயனர் விண்ணப்பித்த வேலைகளை மட்டும் எடுக்க
+exports.getUserApplications = async (req, res) => {
+  try {
+    const userId = req.user.id; // JWT verifyToken மிடில்வேரில் இருந்து வருவது
+
+    // ORM மூலம் அந்த குறிப்பிட்ட userId கொண்ட டேட்டாவை மட்டும் தேடுகிறோம்
+    const applications = await Application.findAll({
+      where: { userId: userId },
+      order: [['createdAt', 'DESC']] // சமீபத்தில் அப்ளை செய்தவை முதலில் வரும்
+    });
+
+    res.status(200).json(applications);
+  } catch (error) {
+    console.error("Error fetching user applications:", error);
+    res.status(500).json({ error: "Failed to fetch application data" });
+  }
 };

@@ -116,7 +116,8 @@ const {
   testRemoteOKTags,
   testAdzunaKeywords,
  testJoobleAPI,
-
+ applyForJob,
+getUserApplications,//applied jops get in db ok 
 
 
                       // 🔥 NEW: Photo upload handler
@@ -171,8 +172,8 @@ router.get(
 
 
 
-
-
+router.get("/user-applications", verifyToken, getUserApplications);
+router.post("/apply-job", verifyToken,applyForJob);
 router.get('/test-jooble', testJoobleAPI);
 router.get('/test-remoteok',testRemoteOKTags);
 router.get('/test-adzuna',testAdzunaKeywords);

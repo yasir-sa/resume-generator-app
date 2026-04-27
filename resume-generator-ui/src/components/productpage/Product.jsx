@@ -57,9 +57,61 @@ const [selectedTempResume, setSelectedTempResume] = useState(null);
 
 const previewRef = useRef(null);   // iframe preview
 const downloadRef = useRef(null); // hidden download
-
+// Product.jsx உள்ளே மற்ற ஸ்டேட்களுக்கு கீழே இதைச் சேர்க்கவும்
+const [appliedJobs, setAppliedJobs] = useState([]);
+const [jobsLoading, setJobsLoading] = useState(false);
 
 // possible values: "view" | "edit" | "delete"
+
+
+
+
+
+
+
+
+
+
+
+const fetchAppliedJobs = async () => {
+    setJobsLoading(true);
+    try {
+        const response = await API.get("/user-applications"); // உங்கள் API endpoint
+        setAppliedJobs(response.data);
+    } catch (error) {
+        console.error("Error fetching applied jobs:", error);
+    } finally {
+        setJobsLoading(false);
+    }
+};
+
+// பக்கம் லோட் ஆகும் போது இதை அழைக்க useEffect
+useEffect(() => {
+    fetchAppliedJobs();
+}, []);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   const handleLogout = async() => {
@@ -655,45 +707,95 @@ const confirmSelection = () => {
       go to resume creator page 
       </button>
     </Link>
-<div className="resume-titeles">
+<div className="flex gap-4 p-4 overflow-x-auto overflow-y-hidden scrollbar-hide snap-x md:flex-col md:overflow-y-auto md:max-h-[70vh] custom-scrollbar">
   {FullTitleName.map((title) => (
-    <div className="title-one" key={title.titleId} onClick={()=>openpreviewtitle(title.titleId)}>
+    <div 
+      key={title.titleId} 
+      onClick={() => openpreviewtitle(title.titleId)}
+      className={`min-w-[220px] max-w-[220px] md:min-w-full snap-center flex flex-col p-4 rounded-2xl border-2 transition-all duration-300 cursor-pointer shadow-sm relative
+        ${previewid === title.titleId 
+          ? 'border-blue-500 bg-blue-50 shadow-md scale-[1.02]' 
+          : 'border-gray-100 bg-white hover:border-blue-200 hover:shadow-lg'}`}
+    >
+      
+      {/* Title / Input Section */}
+      <div className="flex-1 mb-3">
+        {editId === title.titleId ? (
+          <input
+            autoFocus
+            className="w-full px-3 py-2 border-2 border-blue-400 rounded-xl outline-none focus:ring-4 ring-blue-100 font-semibold text-gray-700 transition-all"
+            value={changetitle}
+            onChange={(e) => setchangetitle(e.target.value)}
+            onClick={(e) => e.stopPropagation()} 
+          />
+        ) : (
+          <span className={`text-base font-bold block truncate leading-relaxed ${previewid === title.titleId ? 'text-blue-700' : 'text-gray-800'}`}>
+            {title.titleName}
+          </span>
+        )}
+      </div>
 
-      {/* Title or Input */}
-      {editId === title.titleId ? (
-        <input
-          value={changetitle}
-          onChange={(e) => setchangetitle(e.target.value)}
-        />
-      ) : (
-        <span>{title.titleName}</span>
+      {/* Buttons Section */}
+      <div className="flex items-center gap-2 mt-2">
+        {editId === title.titleId ? (
+          <div className="flex gap-2 w-full">
+            <button 
+              onClick={(e) => { e.stopPropagation(); newtitlesave(title.titleId); }}
+              className="flex-1 py-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold rounded-lg hover:brightness-110 active:scale-95 transition-all shadow-sm"
+            >
+              Ok
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); canceledit(); }}
+              className="flex-1 py-1.5 bg-gray-100 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-200 active:scale-95 transition-all"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : deleteId === title.titleId ? (
+          <div className="flex gap-2 w-full">
+            <button 
+              onClick={(e) => { e.stopPropagation(); confirmDelete(title.titleId); }}
+              className="flex-1 py-1.5 bg-gradient-to-r from-red-500 to-rose-600 text-white text-xs font-bold rounded-lg animate-pulse hover:brightness-110 active:scale-95 transition-all shadow-sm"
+            >
+              Confirm
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); cancelDelete(); }}
+              className="flex-1 py-1.5 bg-gray-100 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-200 active:scale-95 transition-all"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-4 items-center">
+            <button 
+              onClick={(e) => { e.stopPropagation(); edittitleopen(title.titleId); }}
+              className="text-xs font-extrabold uppercase tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-70 transition-all"
+            >
+              Edit
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); deletetitleopen(title.titleId); }}
+              className="text-xs font-extrabold uppercase tracking-wider text-red-500 hover:text-red-700 transition-all"
+            >
+              Delete
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Active Indicator Dot */}
+      {previewid === title.titleId && (
+        <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 border-2 border-white rounded-full flex items-center justify-center shadow-sm">
+           <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></div>
+        </div>
       )}
-
- {/* Buttons */}
-<div className="btn-container-title">
-  {editId === title.titleId ? (
-    <>
-      <button onClick={(e) => { e.stopPropagation(); newtitlesave(title.titleId); }}>Ok</button>
-      <button onClick={(e) => { e.stopPropagation(); canceledit(); }}>Cancel</button>
-    </>
-  ) : deleteId === title.titleId ? (
-    <>
-      <button onClick={(e) => { e.stopPropagation(); confirmDelete(title.titleId); }}>Confirm</button>
-      <button onClick={(e) => { e.stopPropagation(); cancelDelete(); }}>Cancel</button>
-    </>
-  ) : (
-    <>
-      <button onClick={(e) => { e.stopPropagation(); edittitleopen(title.titleId); }}>Edit</button>
-      <button onClick={(e) => { e.stopPropagation(); deletetitleopen(title.titleId); }}>Delete</button>
-    </>
-  )}
-</div>
-
-
-
     </div>
   ))}
 </div>
+
+
 
 
 
@@ -724,6 +826,50 @@ const confirmSelection = () => {
       <Link to="/apply-jobs">
     <button >go to jop page</button>
     </Link>
+    
+<div className="applied-jobs-section" style={{ marginTop: '30px', padding: '20px' }}>
+    <h2 style={{ marginBottom: '15px', color: '#333' }}>Applied Job Tracker 🚀</h2>
+    
+    {jobsLoading ? (
+        <p>Loading your applications...</p>
+    ) : appliedJobs.length > 0 ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '15px' }}>
+            {appliedJobs.map((job) => (
+                <div key={job.id} style={{
+                    background: '#fff',
+                    padding: '15px',
+                    borderRadius: '15px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    borderLeft: `6px solid ${job.portal === 'AI Engine' ? '#9333ea' : '#f97316'}`
+                }}>
+                    <h3 style={{ fontSize: '16px', margin: '0 0 5px 0' }}>{job.jobName}</h3>
+                    <p style={{ fontSize: '12px', color: '#666', margin: '0' }}>🏢 {job.company}</p>
+                    <p style={{ fontSize: '12px', color: '#666', margin: '5px 0' }}>📍 {job.location}</p>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
+                        <span style={{
+                            fontSize: '10px',
+                            background: '#f0f0f0',
+                            padding: '3px 8px',
+                            borderRadius: '10px',
+                            fontWeight: 'bold'
+                        }}>
+                            {job.portal}
+                        </span>
+                        <span style={{ fontSize: '10px', color: '#999' }}>
+                            {new Date(job.appliedTime).toLocaleDateString()}
+                        </span>
+                    </div>
+                </div>
+            ))}
+        </div>
+    ) : (
+        <div style={{ textAlign: 'center', padding: '20px', background: '#f9f9f9', borderRadius: '15px' }}>
+            <p>No jobs applied yet. Go to Job Page to start! 🔍</p>
+        </div>
+    )}
+</div>
+
      
  </div>
 
@@ -863,7 +1009,6 @@ const confirmSelection = () => {
   </div>
   
 </div>
-
 
 
 
