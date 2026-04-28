@@ -124,6 +124,24 @@ getUserApplications,//applied jops get in db ok
 } = require("../controllers/auth.controller");
 
 // 🔹 Google OAuth start
+// router.get(
+//   "/auth/google",
+//   passport.authenticate("google", {
+//     scope: ["profile", "email"],
+//   })
+// );
+
+// // 🔹 Google OAuth callback
+// router.get(
+//   "/auth/google/callback",
+//   passport.authenticate("google", {
+//     failureRedirect: "/login",
+//     session: false,
+//   }),
+//   googlelogin
+// );
+
+// 🔹 Google OAuth start
 router.get(
   "/auth/google",
   passport.authenticate("google", {
@@ -135,8 +153,7 @@ router.get(
 router.get(
   "/auth/google/callback",
   passport.authenticate("google", {
-    failureRedirect: "/login",
-    session: false,
+    failureRedirect: process.env.FRONTEND_URL + "/login",
   }),
   googlelogin
 );
