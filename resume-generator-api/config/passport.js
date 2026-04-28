@@ -58,6 +58,35 @@
 
 
 
+// const passport = require("passport");
+// const GoogleStrategy = require("passport-google-oauth20").Strategy;
+
+// passport.use(
+//   new GoogleStrategy(
+//     {
+//       clientID: process.env.GOOGLE_CLIENT_ID,
+//       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+
+//       callbackURL:
+//         process.env.NODE_ENV === "production"
+//           ? "https://resume-generator-app-1.onrender.com/api/auth/google/callback"
+//           : "http://localhost:5000/api/auth/google/callback",
+//     },
+//     (accessToken, refreshToken, profile, done) => {
+//       console.log("ACCESS TOKEN:", accessToken);
+//       console.log("PROFILE:", profile);
+
+//       // 🔥 Later DB save logic here
+//       return done(null, profile);
+//     }
+//   )
+// );
+
+// passport.serializeUser((user, done) => done(null, user));
+// passport.deserializeUser((user, done) => done(null, user));
+
+// module.exports = passport;
+
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
@@ -66,17 +95,12 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-
-      callbackURL:
-        process.env.NODE_ENV === "production"
-          ? "https://resume-generator-app-1.onrender.com/api/auth/google/callback"
-          : "http://localhost:5000/api/auth/google/callback",
+      callbackURL: process.env.GOOGLE_CALLBACK_URL,
     },
     (accessToken, refreshToken, profile, done) => {
       console.log("ACCESS TOKEN:", accessToken);
       console.log("PROFILE:", profile);
 
-      // 🔥 Later DB save logic here
       return done(null, profile);
     }
   )

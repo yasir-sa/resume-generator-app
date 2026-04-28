@@ -1,6 +1,7 @@
 import React from 'react'
 import "./loginform.css"
 import { useState } from 'react'
+import { useEffect } from "react";
 import API from "../../api.js";
 import { Link } from "react-router-dom";
 import { useNavigate } from 'react-router-dom';
@@ -9,12 +10,22 @@ import {FcGoogle} from "react-icons/fc";
 
 
 
-
-
-
 const Loginform = () => {
  
     const navigate=useNavigate()
+
+
+
+
+useEffect(() => {
+  const isProduction = import.meta.env.MODE === "production";
+
+  console.log(
+    isProduction ? "RENDER 🚀 FRONTEND" : "LOCAL 💻 FRONTEND"
+  );
+
+  console.log("Current URL:", window.location.href);
+}, []);
 
    
 
@@ -64,6 +75,21 @@ const Googlelogin = () => {
       : "http://localhost:5000";
 
   window.location.href = `${BASE_URL}/api/auth/google`;
+
+  const isProduction = import.meta.env.MODE === "production";
+
+  console.log(
+    isProduction ? "RENDER 🚀 FRONTEND CLICK" : "LOCAL 💻 FRONTEND CLICK"
+  );
+
+  console.log("Login button clicked at:", window.location.href);
+
+  const BASE_URL = isProduction
+    ? "https://resume-generator-app-1.onrender.com"
+    : "http://localhost:5000";
+
+  window.location.href = `${BASE_URL}/api/auth/google`;
+
 };
 
 

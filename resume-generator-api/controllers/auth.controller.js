@@ -461,41 +461,131 @@ exports.logout =(req,res)=>{
 //     return res.status(500).send("Server Error");
 //   }
 // };
+// exports.googlelogin = async (req, res) => {
+//   try {
+//     const frontendURL =
+//       process.env.NODE_ENV === "production"
+//         ? process.env.FRONTEND_URL
+//         : "http://localhost:5173";
+
+//     // 1️⃣ Already logged in check
+//     if (req.cookies.token) {
+//       return res.redirect(`${frontendURL}/login`);
+//     }
+
+//     let user;
+
+//     // 2️⃣ Get Google profile
+//     const profile = req.user;
+
+//     const email = profile.emails?.[0]?.value;
+//     const name = profile.displayName;
+//     const googleid = profile.id;
+//     const photosrc = profile.photos?.[0]?.value;
+
+//     console.log("PROFILE:", email, name, googleid);
+
+//     // 3️⃣ Check existing user
+//     const userQuery = await pool.query(
+//       "SELECT * FROM registertable WHERE email = $1",
+//       [email]
+//     );
+
+//     if (userQuery.rows.length > 0) {
+//       const updateResult = await pool.query(
+//         `UPDATE registertable
+//          SET name=$1, google_id=$2, picture=$3, provider='google', verification=true,
+//              password=COALESCE(password, '')
+//          WHERE email=$4
+//          RETURNING *`,
+//         [name, googleid, photosrc, email]
+//       );
+
+//       user = updateResult.rows[0];
+//     } else {
+//       const insertResult = await pool.query(
+//         `INSERT INTO registertable 
+//          (name, email, password, provider, google_id, picture, verification)
+//          VALUES ($1, $2, '', 'google', $3, $4, true)
+//          RETURNING *`,
+//         [name, email, googleid, photosrc]
+//       );
+
+//       user = insertResult.rows[0];
+//     }
+
+//     // 4️⃣ Create JWT
+//     const token = jwt.sign(
+//       {
+//         id: user.id,
+//         email: user.email,
+//         provider: user.provider,
+//       },
+//       process.env.JWT_SECRET,
+//       {
+//         expiresIn: process.env.JWT_EXPIRE,
+//       }
+//     );
+
+//     // 5️⃣ Set Cookie (CRITICAL FIX)
+//     res.cookie("token", token, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production", // 🔥
+//       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 🔥
+//       maxAge: 24 * 60 * 60 * 1000,
+//     });
+
+//     // 6️⃣ Redirect (FIXED)
+//  const redirectURL = new URL("/product", frontendURL).toString();
+// return res.redirect(redirectURL);
+//   } catch (error) {
+//     console.error("Google login Error:", error);
+//     return res.status(500).send("Server Error");
+//   }
+// };
 exports.googlelogin = async (req, res) => {
   try {
-    const frontendURL =
-      process.env.NODE_ENV === "production"
-        ? process.env.FRONTEND_URL
-        : "http://localhost:5173";
+    // 🌐 FORCE SAFE ENV DETECTION
+ const isProduction =
+  process.env.NODE_ENV === "production" ||
+  process.env.RENDER === "true";
 
-    // 1️⃣ Already logged in check
+console.log(
+  isProduction ? "RENDER 🚀 ENV" : "LOCAL 💻 ENV"
+);
+    // 🔥 ONLY ALLOWED BASE URLs
+    const baseURL = isProduction
+      ? "https://resume-generator-app-1.onrender.com"
+      : "http://localhost:5000";
+
+    // 1️⃣ Already logged in
     if (req.cookies.token) {
-      return res.redirect(`${frontendURL}/login`);
+      return res.redirect(`${baseURL}/login`);
     }
 
-    let user;
-
-    // 2️⃣ Get Google profile
     const profile = req.user;
+
+    if (!profile) {
+      return res.status(400).send("Google profile not found");
+    }
 
     const email = profile.emails?.[0]?.value;
     const name = profile.displayName;
     const googleid = profile.id;
     const photosrc = profile.photos?.[0]?.value;
 
-    console.log("PROFILE:", email, name, googleid);
-
-    // 3️⃣ Check existing user
+    // 2️⃣ DB check
     const userQuery = await pool.query(
       "SELECT * FROM registertable WHERE email = $1",
       [email]
     );
 
+    let user;
+
     if (userQuery.rows.length > 0) {
       const updateResult = await pool.query(
         `UPDATE registertable
-         SET name=$1, google_id=$2, picture=$3, provider='google', verification=true,
-             password=COALESCE(password, '')
+         SET name=$1, google_id=$2, picture=$3, provider='google', verification=true
          WHERE email=$4
          RETURNING *`,
         [name, googleid, photosrc, email]
@@ -514,7 +604,7 @@ exports.googlelogin = async (req, res) => {
       user = insertResult.rows[0];
     }
 
-    // 4️⃣ Create JWT
+    // 3️⃣ JWT
     const token = jwt.sign(
       {
         id: user.id,
@@ -523,27 +613,28 @@ exports.googlelogin = async (req, res) => {
       },
       process.env.JWT_SECRET,
       {
-        expiresIn: process.env.JWT_EXPIRE,
+        expiresIn: process.env.JWT_EXPIRE || "1d",
       }
     );
 
-    // 5️⃣ Set Cookie (CRITICAL FIX)
+    // 4️⃣ Cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // 🔥
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 🔥
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
-    // 6️⃣ Redirect (FIXED)
-    return res.redirect(`${frontendURL}/product`);
+    // 5️⃣ 🔥 HARD SAFE REDIRECT (NO CHANCE FOR undefined)
+    const redirectURL = `${baseURL}/product`;
+
+    return res.redirect("http://localhost:5000/product");
 
   } catch (error) {
     console.error("Google login Error:", error);
     return res.status(500).send("Server Error");
   }
 };
-
 
 
 
