@@ -31,3 +31,12 @@ function App() {
 }
 
 export default App;
+// {
+//   "name": "resume-generator-all",
+//   "version": "1.0.0",
+//   "scripts": {
+//     "build": "cd resume-generator-ui && npm install && npm run build",
+//     "install-backend": "cd resume-generator-api && npm install",
+//     "start": "cd resume-generator-api && node server.js"
+//   }
+// }
