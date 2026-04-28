@@ -1,5 +1,5 @@
 import React from "react";
-import "./Home.css";
+import "./home.css";
 import { useNavigate } from "react-router-dom";
 // import Cookies from 'js-cookie';
 import API from"../../api.js"
