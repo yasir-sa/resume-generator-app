@@ -376,13 +376,105 @@ exports.logout =(req,res)=>{
 
 
 
+// exports.googlelogin = async (req, res) => {
+//   try {
+//     // 1️⃣ Check if user already has a token cookie
+//     if (req.cookies.token) {
+//       return res.redirect("http://localhost:5000/login");
+//     }
+//     let user;
+//     // 2️⃣ Get Google profile
+//     const profile = req.user;
+
+//     const email = profile.emails?.[0]?.value;
+//     const name = profile.displayName;
+//     const googleid = profile.id;
+//     const photosrc = profile.photos?.[0]?.value;
+
+//     console.log("yasir this profile data:", email, name, googleid, photosrc);
+
+//     // 3️⃣ Check if email already exists in registertable
+//     const userQuery = await pool.query(
+//       "SELECT * FROM registertable WHERE email = $1",
+//       [email]
+//     );
+
+//     if (userQuery.rows.length > 0) {
+//       // 4️⃣ Existing user → update Google info + verification=true + provider='google'
+//       const ubdateResult =await pool.query(
+//         `UPDATE registertable
+//          SET name=$1, google_id=$2, picture=$3, provider='google', verification=true,
+//              password=COALESCE(password, '')   -- keep existing password or empty if null
+//          WHERE email=$4
+//          RETURNING *`,
+//         [name, googleid, photosrc, email]
+//       );
+//         user = ubdateResult.rows[0];
+      
+//       console.log("Existing Google user updated ✅ (provider=google, verification=true)");
+//     } else {
+//       // 5️⃣ New user → insert row with dummy password, verification=true, provider='google'
+//       const insertResult = await pool.query(
+//         `INSERT INTO registertable 
+//          (name, email, password, provider, google_id, picture, verification)
+//          VALUES ($1, $2, '', 'google', $3, $4, true)
+//          RETURNING *`,
+//         [name, email, googleid, photosrc]
+//       );
+//       user=insertResult.rows[0]
+//       console.log("New Google user inserted ✅ (provider=google, verification=true)");
+    
+    
+//     }
+       
+
+//     const token = jwt.sign(
+//       {
+//         id:user.id,
+//         email:user.email,
+//         provider:user.provider,
+//       },
+//       process.env.JWT_SECRET,
+//       {
+//         expiresIn:process.env.JWT_EXPIRE,
+//       }
+//     )
+
+
+//     res.cookie("token",token,{
+//       httpOnly: true,
+//       secure: false,
+//       sameSite: "lax",
+//        maxAge: 24 * 60 * 60 * 1000,
+//     });
+
+
+
+
+
+
+//     // 6️⃣ Redirect user after Google login
+//     return res.redirect("http://localhost:5000/product");
+
+//   } catch (error) {
+//     console.error("Google login Error:", error);
+//     return res.status(500).send("Server Error");
+//   }
+// };
 exports.googlelogin = async (req, res) => {
   try {
-    // 1️⃣ Check if user already has a token cookie
+    const frontendURL =
+      process.env.NODE_ENV === "production"
+        ? process.env.FRONTEND_URL
+        : "http://localhost:5173";
+
+    // 1️⃣ Already logged in check
     if (req.cookies.token) {
-      return res.redirect("http://localhost:5000/login");
+      return res.redirect(`${frontendURL}/login`);
     }
+
     let user;
+
     // 2️⃣ Get Google profile
     const profile = req.user;
 
@@ -391,29 +483,26 @@ exports.googlelogin = async (req, res) => {
     const googleid = profile.id;
     const photosrc = profile.photos?.[0]?.value;
 
-    console.log("yasir this profile data:", email, name, googleid, photosrc);
+    console.log("PROFILE:", email, name, googleid);
 
-    // 3️⃣ Check if email already exists in registertable
+    // 3️⃣ Check existing user
     const userQuery = await pool.query(
       "SELECT * FROM registertable WHERE email = $1",
       [email]
     );
 
     if (userQuery.rows.length > 0) {
-      // 4️⃣ Existing user → update Google info + verification=true + provider='google'
-      const ubdateResult =await pool.query(
+      const updateResult = await pool.query(
         `UPDATE registertable
          SET name=$1, google_id=$2, picture=$3, provider='google', verification=true,
-             password=COALESCE(password, '')   -- keep existing password or empty if null
+             password=COALESCE(password, '')
          WHERE email=$4
          RETURNING *`,
         [name, googleid, photosrc, email]
       );
-        user = ubdateResult.rows[0];
-      
-      console.log("Existing Google user updated ✅ (provider=google, verification=true)");
+
+      user = updateResult.rows[0];
     } else {
-      // 5️⃣ New user → insert row with dummy password, verification=true, provider='google'
       const insertResult = await pool.query(
         `INSERT INTO registertable 
          (name, email, password, provider, google_id, picture, verification)
@@ -421,47 +510,39 @@ exports.googlelogin = async (req, res) => {
          RETURNING *`,
         [name, email, googleid, photosrc]
       );
-      user=insertResult.rows[0]
-      console.log("New Google user inserted ✅ (provider=google, verification=true)");
-    
-    
-    }
-       
 
+      user = insertResult.rows[0];
+    }
+
+    // 4️⃣ Create JWT
     const token = jwt.sign(
       {
-        id:user.id,
-        email:user.email,
-        provider:user.provider,
+        id: user.id,
+        email: user.email,
+        provider: user.provider,
       },
       process.env.JWT_SECRET,
       {
-        expiresIn:process.env.JWT_EXPIRE,
+        expiresIn: process.env.JWT_EXPIRE,
       }
-    )
+    );
 
-
-    res.cookie("token",token,{
+    // 5️⃣ Set Cookie (CRITICAL FIX)
+    res.cookie("token", token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-       maxAge: 24 * 60 * 60 * 1000,
+      secure: process.env.NODE_ENV === "production", // 🔥
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 🔥
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
-
-
-
-
-
-    // 6️⃣ Redirect user after Google login
-    return res.redirect("http://localhost:5000/product");
+    // 6️⃣ Redirect (FIXED)
+    return res.redirect(`${frontendURL}/product`);
 
   } catch (error) {
     console.error("Google login Error:", error);
     return res.status(500).send("Server Error");
   }
 };
-
 
 
 
