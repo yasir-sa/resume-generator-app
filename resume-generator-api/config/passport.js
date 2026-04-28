@@ -28,37 +28,7 @@
 
 
 
-// // module.exports = passport;
-
-//importand
-// const passport = require("passport");
-// const GoogleStrategy = require("passport-google-oauth20").Strategy;
-
-// passport.use(
-//   new GoogleStrategy(
-//     {
-//       clientID: "412807923502-9muib2nmglgkcm973jckrr542nrflvbd.apps.googleusercontent.com",
-//       clientSecret: "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",
-//       callbackURL: "http://localhost:5000/api/auth/google/callback",
-//     },
-//     (accessToken, refreshToken, profile, done) => {
-//       console.log("ACCESS TOKEN:", accessToken); // Token check
-//       console.log("PROFILE:", profile);         // Name, email, picture check
-//       return done(null, profile);
-//     }
-//   )
-// );
-
-// passport.serializeUser((user, done) => done(null, user));
-// passport.deserializeUser((user, done) => done(null, user));
-
-
-
-
 // module.exports = passport;
-
-
-
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
@@ -67,15 +37,11 @@ passport.use(
     {
       clientID: "412807923502-9muib2nmglgkcm973jckrr542nrflvbd.apps.googleusercontent.com",
       clientSecret: "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",
-      
-      // இங்கே மாற்றவும் 👇
-      callbackURL: process.env.NODE_ENV === "production" 
-        ? "https://resume-generator-app-deg4.onrender.com/api/auth/google/callback" 
-        : "http://localhost:5000/api/auth/google/callback",
+      callbackURL: "http://localhost:5000/api/auth/google/callback",
     },
     (accessToken, refreshToken, profile, done) => {
-      console.log("ACCESS TOKEN:", accessToken);
-      console.log("PROFILE:", profile);
+      console.log("ACCESS TOKEN:", accessToken); // Token check
+      console.log("PROFILE:", profile);         // Name, email, picture check
       return done(null, profile);
     }
   )
@@ -83,5 +49,8 @@ passport.use(
 
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
+
+
+
 
 module.exports = passport;

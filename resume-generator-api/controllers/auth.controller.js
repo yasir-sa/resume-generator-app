@@ -156,13 +156,8 @@ exports.verifyOTP = async (req, res) => {
 
 
 exports.userlogin = async(req,res)=>{
-    // if (req.cookies.token) {
-    //   return res.redirect("http://localhost:5000/login");
-    // }
     if (req.cookies.token) {
-        // Render-ல் இருந்தால் '/' அல்லது '/product' க்கு அனுப்பவும்
-        const redirectUrl = process.env.NODE_ENV === "production" ? "/login" : "http://localhost:5000/login";
-        return res.redirect(redirectUrl);
+      return res.redirect("http://localhost:5000/login");
     }
   
   
@@ -212,19 +207,12 @@ exports.userlogin = async(req,res)=>{
         {expiresIn:process.env.JWT_EXPIRE}
        )
 
-      //  res.cookie("token",token,{
-      //   httpOnly:true,
-      //   secure:false,
-      //   sameSite:"lax",
-      //   maxAge:24 * 60 * 60 * 1000
-      //  });
-      res.cookie("token", token, {
-        httpOnly: true,
-        // Render-ல் (https) இருந்தால் secure true ஆக இருக்க வேண்டும்
-        secure: process.env.NODE_ENV === "production", 
-        sameSite: "lax",
-        maxAge: 24 * 60 * 60 * 1000
-    });
+       res.cookie("token",token,{
+        httpOnly:true,
+        secure:false,
+        sameSite:"lax",
+        maxAge:24 * 60 * 60 * 1000
+       });
 
 
       res.status(200).json({
