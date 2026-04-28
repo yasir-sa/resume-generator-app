@@ -54,10 +54,20 @@ catch(error){
 
 
 
-const Googlelogin =()=>{
-    window.location.href = "http://localhost:5000/api/auth/google";
-}
+// const Googlelogin =()=>{
+//     window.location.href = "http://localhost:5000/api/auth/google";
+// }
+const Googlelogin = () => {
+    // தற்போது நீங்கள் எந்த URL-ல் இருக்கிறீர்களோ அதையே இது எடுக்கும்
+    const currentOrigin = window.location.origin; 
+    
+    // லோக்கலில் இருந்தால் 5000 போர்ட்டுக்கும், ரெண்டரில் இருந்தால் அதே URL-க்கும் அனுப்பும்
+    const backendUrl = currentOrigin.includes("localhost") 
+        ? "http://localhost:5000" 
+        : currentOrigin;
 
+    window.location.href = `${backendUrl}/api/auth/google`;
+}
 
 
 
