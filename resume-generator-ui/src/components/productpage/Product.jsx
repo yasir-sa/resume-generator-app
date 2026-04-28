@@ -1,5 +1,5 @@
 import React from "react";
-import "./product.css";
+import "./Product.css";
 import { useNavigate } from "react-router-dom";
 import API from "../../api.js"
 import { FaPlus } from "react-icons/fa"; 
