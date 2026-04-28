@@ -1,6 +1,6 @@
 import './App.css';
 import Chatbox from './components/chatbox/Chatbox';
-import Home from './components/homepage/home';
+import Home from './components/homepage/Home';
 import Loginform from './components/loginform/Loginform';
 import Product from './components/productpage/Product';
 import Register from './components/registerfrom/Register';
