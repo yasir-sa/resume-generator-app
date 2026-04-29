@@ -10,7 +10,7 @@ import Screeninterview from './components/Screeninterview/Screeninterview';
 import SuccessInterview from './components/successinterview/SuccessInterview';
 import CompletedMock from './components/completemock/CompletedMock';
 import JobSearch from './components/jopapply/JobSearch';
-
+import GlobalUrlGuard from './components/GlobalUrlGuard';
 function App() {
   return (
     <>
