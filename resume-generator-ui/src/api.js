@@ -10,23 +10,53 @@
 
 // export default API;
 
+// import axios from "axios";
+
+// // 🔥 Detect environment (local or production)
+// const BASE_URL =
+//   window.location.hostname === "localhost"
+//     ? "http://localhost:5000/api"
+//     : "https://your-render-url.onrender.com/api"; // 🔁 change this
+
+// const API = axios.create({
+//   baseURL: BASE_URL,
+//   headers: {
+//     "Content-Type": "application/json",
+//   },
+//   withCredentials: true, // 🔥 important for cookies (Google login)
+// });
+
+// // 🔥 Automatically attach token
+// API.interceptors.request.use((req) => {
+//   const token = localStorage.getItem("token");
+
+//   if (token) {
+//     req.headers.Authorization = `Bearer ${token}`;
+//   }
+
+//   return req;
+// });
+
+// export default API;
+
+
 import axios from "axios";
 
-// 🔥 Detect environment (local or production)
+// 🔥 Detect environment
 const BASE_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:5000/api"
-    : "https://your-render-url.onrender.com/api"; // 🔁 change this
+    : "https://resume-generator-app-2.onrender.com/api"; // ✅ your real backend URL
 
 const API = axios.create({
   baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // 🔥 important for cookies (Google login)
+  withCredentials: true, // 🔥 very important for cookies
 });
 
-// 🔥 Automatically attach token
+// 🔥 Attach token automatically
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem("token");
 

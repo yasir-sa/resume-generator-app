@@ -434,12 +434,18 @@ exports.googlelogin = async (req, res) => {
       }
     );
 
+    // res.cookie("token", token, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: "lax",
+    //   maxAge: 24 * 60 * 60 * 1000,
+    // });
     res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 24 * 60 * 60 * 1000,
-    });
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production", // HTTPS only in Render
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  maxAge: 24 * 60 * 60 * 1000,
+});
 
     // 🔥 FINAL REDIRECT FIX
 const BASE =
