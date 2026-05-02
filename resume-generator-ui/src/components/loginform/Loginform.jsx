@@ -51,14 +51,14 @@ catch(error){
 
 
 }
-
+https://resume-generator-app-2.onrender.com/
 
 
 const Googlelogin = () => {
   const BASE =
     window.location.hostname === "localhost"
       ? "http://localhost:5000"
-      : "https://your-render-url.onrender.com"; // 🔁 change this
+      : "https://resume-generator-app-2.onrender.com"; // 🔁 change this
 
   window.location.href = `${BASE}/api/auth/google`;
 };
@@ -114,9 +114,9 @@ const Googlelogin = () => {
 >
   <FcGoogle size={20}/> continue with google
 </button>
-<button onClick={() => window.location.href = "http://localhost:5000/auth/google"}>
+{/* <button onClick={() => window.location.href = "http://localhost:5000/auth/google"}>
   Login with Google
-</button>
+</button> */}
 
 
 
