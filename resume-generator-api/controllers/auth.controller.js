@@ -442,11 +442,12 @@ exports.googlelogin = async (req, res) => {
     });
 
     // 🔥 FINAL REDIRECT FIX
-    return res.redirect(
-      process.env.NODE_ENV === "production"
-        ? `${process.env.FRONTEND_URL}/product`
-        : "http://localhost:5000/product"
-    );
+const BASE =
+  process.env.NODE_ENV === "production"
+    ? process.env.FRONTEND_URL
+    : "http://localhost:5000";
+
+return res.redirect(`${BASE}/product`);
 
   } catch (error) {
     console.error("Google login Error:", error);

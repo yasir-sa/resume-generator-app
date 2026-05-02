@@ -32,16 +32,21 @@
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
+const BASE_URL =
+  process.env.NODE_ENV === "production"
+    ? process.env.BACKEND_URL   // 🔥 important
+    : "http://localhost:5000";
+
 passport.use(
   new GoogleStrategy(
     {
-      clientID: "412807923502-9muib2nmglgkcm973jckrr542nrflvbd.apps.googleusercontent.com",
-      clientSecret: "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",
-      callbackURL: "http://localhost:5000/api/auth/google/callback",
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: `${BASE_URL}/api/auth/google/callback`,
     },
     (accessToken, refreshToken, profile, done) => {
-      console.log("ACCESS TOKEN:", accessToken); // Token check
-      console.log("PROFILE:", profile);         // Name, email, picture check
+      console.log("ACCESS TOKEN:", accessToken);
+      console.log("PROFILE:", profile);
       return done(null, profile);
     }
   )
@@ -49,8 +54,5 @@ passport.use(
 
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
-
-
-
 
 module.exports = passport;
