@@ -2,9 +2,8 @@
   "name": "resume-generator-all",
   "version": "1.0.0",
   "scripts": {
-    "install-ui": "cd resume-generator-ui && npm install",
-    "install-api": "cd resume-generator-api && npm install",
-    "build": "npm run install-ui && cd resume-generator-ui && npm run build",
+    "build": "cd resume-generator-ui && npm install && npx vite build",
+    "install-backend": "cd resume-generator-api && npm install",
     "start": "cd resume-generator-api && node server.js"
   }
 }
