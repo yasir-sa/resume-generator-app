@@ -135,7 +135,10 @@ router.get(
 router.get(
   "/auth/google/callback",
   passport.authenticate("google", {
-    failureRedirect: "/login",
+    failureRedirect:
+      process.env.NODE_ENV === "production"
+        ? `${process.env.FRONTEND_URL}/login`
+        : "http://localhost:5000/login",
     session: false,
   }),
   googlelogin
@@ -192,7 +195,7 @@ router.post(
   saveInterviewResults
 );
 router.post("/download-pdf", downloadPDF);
-router.post("/auth/interview-results", getInterviewResults);
+router.post("/auth/interview-results", verifyToken, getInterviewResults);
 router.post('/interview/store-context', storeContext);
 router.get("/getresumeformock", verifyToken, getresumesformock);
 router.post("/interview/chat",sendinterviewchat)

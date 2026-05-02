@@ -12,6 +12,7 @@
   "dependencies": {
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
+    "@vitejs/plugin-react": "^5.1.1",
     "axios": "^1.13.2",
     "canvas-confetti": "^1.9.4",
     "html2canvas": "^1.4.1",
@@ -24,10 +25,8 @@
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.12.0",
     "tesseract.js": "^7.0.0",
-    "three": "^0.183.2"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^5.1.1",
+    "three": "^0.183.2",
     "vite": "^7.2.4"
-  }
+  },
+  "devDependencies": {}
 }

@@ -197,34 +197,43 @@
 
 
 
-
 const express = require("express");
 const path = require("path");
 const cors = require("cors");
 require("dotenv").config();
 const cookieParser = require("cookie-parser");
-const passport = require("./config/passport"); 
+const passport = require("./config/passport");
 const session = require("express-session");
 
 const app = express();
 
 // ====================
-// Middleware & CORS
+// Render Proxy Fix
+// ====================
+app.set("trust proxy", 1);
+
+// ====================
+// Middleware
 // ====================
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
-// Render-ல் டிப்ளாய் செய்யும்போது CORS-ஐ இப்படி மாற்றுவது நல்லது
+// ====================
+// CORS Setup (PRODUCTION SAFE)
+// ====================
 app.use(
   cors({
-    origin: process.env.NODE_ENV === 'production' ? true : "http://localhost:5173", 
+    origin: [
+      process.env.FRONTEND_URL,
+      "http://localhost:5173"
+    ],
     credentials: true,
   })
 );
 
 // ====================
-// Session Setup
+// Session Setup (Google Login SAFE)
 // ====================
 app.use(
   session({
@@ -232,18 +241,23 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === 'production', // Production-ல் மட்டும் true
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     },
   })
 );
 
+// ====================
+// Passport
+// ====================
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Static files for uploads
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// ====================
+// Static files (uploads)
+// ====================
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ====================
 // API Routes
@@ -256,28 +270,25 @@ app.get("/helo", (req, res) => {
 });
 
 // ====================
-// React Frontend Serving (CRITICAL ORDER)
+// React Build Serve
 // ====================
+const uiDistPath = path.join(__dirname, "../resume-generator-ui/dist");
 
-// UI ஃபோல்டரின் சரியான பாதையை இங்கே குறிப்பிடுகிறோம்
-const uiDistPath = path.join(__dirname, '../resume-generator-ui/dist');
-
-// Static கோப்புகளை வழங்கவும்
 app.use(express.static(uiDistPath));
 
-// மற்ற அனைத்து URL-களுக்கும் UI-ன் index.html-ஐ வழங்கவும் (இது தான் கடைசியாக இருக்க வேண்டும்)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(uiDistPath, 'index.html'));
+// SPA fallback route
+app.get("*", (req, res) => {
+  res.sendFile(path.join(uiDistPath, "index.html"));
 });
 
 // ====================
 // Start Server
 // ====================
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
-
 
 
 
