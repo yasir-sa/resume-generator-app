@@ -10,14 +10,20 @@
 
 // export default API;
 
-
 import axios from "axios";
 
+// 🔥 Detect environment (local or production)
+const BASE_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:5000/api"
+    : "https://your-render-url.onrender.com/api"; // 🔁 change this
+
 const API = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: BASE_URL,
   headers: {
-    "Content-Type": "application/json"
-  }
+    "Content-Type": "application/json",
+  },
+  withCredentials: true, // 🔥 important for cookies (Google login)
 });
 
 // 🔥 Automatically attach token

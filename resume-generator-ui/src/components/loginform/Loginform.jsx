@@ -54,10 +54,14 @@ catch(error){
 
 
 
-const Googlelogin =()=>{
-    window.location.href = "http://localhost:5000/api/auth/google";
-}
+const Googlelogin = () => {
+  const BASE =
+    window.location.hostname === "localhost"
+      ? "http://localhost:5000"
+      : "https://your-render-url.onrender.com"; // 🔁 change this
 
+  window.location.href = `${BASE}/api/auth/google`;
+};
 
 
 
