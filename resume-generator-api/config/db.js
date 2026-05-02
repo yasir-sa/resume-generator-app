@@ -33,21 +33,26 @@
 
 
 // db.js
+
+
 const { Pool } = require("pg");
-const { Sequelize } = require("sequelize"); // Sequelize-ஐ இம்போர்ட் செய்கிறோம்
+const { Sequelize } = require("sequelize");
 require("dotenv").config();
 
-// 1. பழைய Pool செட்டப் (மற்ற டேபிள்களுக்கு)
+// 🔥 Pool (pg)
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT,
-  ssl: { rejectUnauthorized: false },
+  ssl: {
+    require: true,
+    rejectUnauthorized: false,
+  },
 });
 
-// 2. புதிய ORM (Sequelize) செட்டப்
+// 🔥 Sequelize (ORM)
 const sequelize = new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,
@@ -56,19 +61,62 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     dialect: "postgres",
+    logging: false,
     dialectOptions: {
-      ssl: { require: true, rejectUnauthorized: false },
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
     },
-    logging: false, // SQL கமாண்ட்களை கன்சோலில் காட்டாமல் இருக்க
   }
 );
 
-// கனெக்ஷனை உறுதி செய்தல்
-sequelize.authenticate()
+// 🔥 Test connection
+sequelize
+  .authenticate()
   .then(() => console.log("ORM Connected to Neon DB ✅"))
-  .catch(err => console.error("ORM Connection error ❌", err));
+  .catch((err) => console.error("ORM Connection error ❌", err));
 
 module.exports = {
-  query: (text, params) => pool.query(text, params), // பழைய Pool
-  sequelize, // புதிய ORM இன்ஸ்டன்ஸ்
+  query: (text, params) => pool.query(text, params),
+  sequelize,
 };
+// const { Pool } = require("pg");
+// const { Sequelize } = require("sequelize"); // Sequelize-ஐ இம்போர்ட் செய்கிறோம்
+// require("dotenv").config();
+
+// // 1. பழைய Pool செட்டப் (மற்ற டேபிள்களுக்கு)
+// const pool = new Pool({
+//   user: process.env.DB_USER,
+//   host: process.env.DB_HOST,
+//   database: process.env.DB_NAME,
+//   password: process.env.DB_PASSWORD,
+//   port: process.env.DB_PORT,
+//   ssl: { rejectUnauthorized: false },
+// });
+
+// // 2. புதிய ORM (Sequelize) செட்டப்
+// const sequelize = new Sequelize(
+//   process.env.DB_NAME,
+//   process.env.DB_USER,
+//   process.env.DB_PASSWORD,
+//   {
+//     host: process.env.DB_HOST,
+//     port: process.env.DB_PORT,
+//     dialect: "postgres",
+//     dialectOptions: {
+//       ssl: { require: true, rejectUnauthorized: false },
+//     },
+//     logging: false, // SQL கமாண்ட்களை கன்சோலில் காட்டாமல் இருக்க
+//   }
+// );
+
+// // கனெக்ஷனை உறுதி செய்தல்
+// sequelize.authenticate()
+//   .then(() => console.log("ORM Connected to Neon DB ✅"))
+//   .catch(err => console.error("ORM Connection error ❌", err));
+
+// module.exports = {
+//   query: (text, params) => pool.query(text, params), // பழைய Pool
+//   sequelize, // புதிய ORM இன்ஸ்டன்ஸ்
+// };
