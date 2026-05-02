@@ -34,7 +34,7 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
 const BASE_URL =
   process.env.NODE_ENV === "production"
-    ? process.env.BACKEND_URL   // 🔥 important
+    ? process.env.BACKEND_URL   // 🔥 use env
     : "http://localhost:5000";
 
 passport.use(
@@ -45,8 +45,6 @@ passport.use(
       callbackURL: `${BASE_URL}/api/auth/google/callback`,
     },
     (accessToken, refreshToken, profile, done) => {
-      console.log("ACCESS TOKEN:", accessToken);
-      console.log("PROFILE:", profile);
       return done(null, profile);
     }
   )
@@ -56,3 +54,30 @@ passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
 module.exports = passport;
+// const passport = require("passport");
+// const GoogleStrategy = require("passport-google-oauth20").Strategy;
+
+// const BASE_URL =
+//   process.env.NODE_ENV === "production"
+//     ? process.env.BACKEND_URL   // 🔥 important
+//     : "http://localhost:5000";
+
+// passport.use(
+//   new GoogleStrategy(
+//     {
+//       clientID: process.env.GOOGLE_CLIENT_ID,
+//       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+//       callbackURL: `${BASE_URL}/api/auth/google/callback`,
+//     },
+//     (accessToken, refreshToken, profile, done) => {
+//       console.log("ACCESS TOKEN:", accessToken);
+//       console.log("PROFILE:", profile);
+//       return done(null, profile);
+//     }
+//   )
+// );
+
+// passport.serializeUser((user, done) => done(null, user));
+// passport.deserializeUser((user, done) => done(null, user));
+
+// module.exports = passport;
