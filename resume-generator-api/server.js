@@ -290,9 +290,9 @@ const session = require("express-session");
 const app = express();
 
 // ====================
-// IMPORTANT (Render Proxy Fix)
+// Render Proxy Fix
 // ====================
-app.set("trust proxy", 1); // 🔥 very important for Render
+app.set("trust proxy", 1);
 
 // ====================
 // Middleware
@@ -302,20 +302,20 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
 // ====================
-// CORS (FIXED)
+// CORS Setup (PRODUCTION SAFE)
 // ====================
 app.use(
   cors({
-    origin:
-      process.env.NODE_ENV === "production"
-        ? process.env.FRONTEND_URL // 🔥 must set in Render ENV
-        : "http://localhost:5173",
+    origin: [
+      process.env.FRONTEND_URL,
+      "http://localhost:5173"
+    ],
     credentials: true,
   })
 );
 
 // ====================
-// Session Setup
+// Session Setup (Google Login SAFE)
 // ====================
 app.use(
   session({
@@ -323,23 +323,26 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production", // HTTPS only
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-      sameSite: "none", // 🔥 required for Google login
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     },
   })
 );
 
+// ====================
+// Passport
+// ====================
 app.use(passport.initialize());
 app.use(passport.session());
 
 // ====================
-// Static uploads
+// Static files (uploads)
 // ====================
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ====================
-// API Routes (FIRST)
+// API Routes
 // ====================
 const authRoutes = require("./routes/auth.routes");
 app.use("/api", authRoutes);
@@ -349,13 +352,13 @@ app.get("/helo", (req, res) => {
 });
 
 // ====================
-// React Frontend (AFTER API)
+// React Build Serve
 // ====================
 const uiDistPath = path.join(__dirname, "../resume-generator-ui/dist");
 
 app.use(express.static(uiDistPath));
 
-// React routing handle
+// SPA fallback route
 app.get("*", (req, res) => {
   res.sendFile(path.join(uiDistPath, "index.html"));
 });
@@ -364,11 +367,10 @@ app.get("*", (req, res) => {
 // Start Server
 // ====================
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
-
-
 
 
 
