@@ -3585,48 +3585,113 @@ Analyze the provided datasets to generate a highly accurate, consistent candidat
 
 
 
+// exports.downloadPDF = async (req, res) => {
+//   try {
+//     const { html } = req.body;
+
+//     if (!html) {
+//       return res.status(400).send("No HTML provided");
+//     }
+
+//     const browser = await puppeteer.launch({
+//       headless: "new",
+//       args: ["--no-sandbox", "--disable-setuid-sandbox"]
+//     });
+
+//     const page = await browser.newPage();
+
+//     await page.setContent(html, {
+//       waitUntil: "networkidle0"
+//     });
+
+//     await page.emulateMediaType("screen");
+
+//     const pdfBuffer = await page.pdf({
+//       format: "A4",
+//       printBackground: true,
+//       preferCSSPageSize: true
+//     });
+
+//     await browser.close();
+
+//     // 🔥 VERY IMPORTANT FIX
+//     res.setHeader("Content-Type", "application/pdf");
+//     res.setHeader("Content-Length", pdfBuffer.length);
+
+//     res.end(pdfBuffer);   // ❗ use end instead of send
+
+//   } catch (error) {
+//     console.error("PDF error:", error);
+//     res.status(500).send("PDF generation failed");
+//   }
+// };
+
 exports.downloadPDF = async (req, res) => {
   try {
     const { html } = req.body;
 
+    // Check HTML exists
     if (!html) {
-      return res.status(400).send("No HTML provided");
+      return res.status(400).json({
+        message: "No HTML provided",
+      });
     }
 
+    // Launch Puppeteer
     const browser = await puppeteer.launch({
-      headless: "new",
-      args: ["--no-sandbox", "--disable-setuid-sandbox"]
+      headless: true,
+      executablePath: puppeteer.executablePath(),
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+      ],
     });
 
     const page = await browser.newPage();
 
+    // Load HTML
     await page.setContent(html, {
-      waitUntil: "networkidle0"
+      waitUntil: "networkidle0",
     });
 
+    // Use screen styles
     await page.emulateMediaType("screen");
 
+    // Generate PDF
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
-      preferCSSPageSize: true
+      preferCSSPageSize: true,
     });
 
+    // Close browser
     await browser.close();
 
-    // 🔥 VERY IMPORTANT FIX
+    // Send PDF response
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Length", pdfBuffer.length);
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=resume.pdf"
+    );
 
-    res.end(pdfBuffer);   // ❗ use end instead of send
+    res.setHeader(
+      "Content-Length",
+      pdfBuffer.length
+    );
+
+    return res.end(pdfBuffer);
 
   } catch (error) {
-    console.error("PDF error:", error);
-    res.status(500).send("PDF generation failed");
+
+    console.error("PDF ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "PDF generation failed",
+      error: error.message,
+    });
   }
 };
-
-
 
 
 
