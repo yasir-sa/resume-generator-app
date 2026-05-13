@@ -1,6 +1,10 @@
 {
   "name": "resume-generator-api",
   "version": "1.0.0",
+    "engines": {
+    "node": "22.x"
+  },
+
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
