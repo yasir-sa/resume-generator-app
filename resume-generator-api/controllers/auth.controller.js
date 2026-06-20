@@ -3594,6 +3594,9 @@ exports.downloadPDF = async (req, res) => {
 
     const browser = await puppeteer.launch({
       headless: "new",
+      executablePath: process.env.NODE_ENV === "production"
+        ? "/usr/bin/chromium-browser"
+        : undefined,
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
