@@ -54,12 +54,13 @@ catch(error){
 
 
 const Googlelogin = () => {
-  const BASE =
+  const BACKEND =
     window.location.hostname === "localhost"
       ? "http://localhost:5000"
       : "https://resume-generator-app-2.onrender.com";
 
-  window.location.href = `${BASE}/api/auth/google`;
+  const origin = window.location.origin;
+  window.location.href = `${BACKEND}/api/auth/google?origin=${encodeURIComponent(origin)}`;
 };
 
 

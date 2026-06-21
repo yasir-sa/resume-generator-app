@@ -123,13 +123,14 @@ getUserApplications,//applied jops get in db ok
                       // 🔥 NEW: Photo upload handler
 } = require("../controllers/auth.controller");
 
-// 🔹 Google OAuth start
-router.get(
-  "/auth/google",
+// 🔹 Google OAuth start — pass origin as state so we redirect back to correct domain
+router.get("/auth/google", (req, res, next) => {
+  const origin = req.query.origin || process.env.FRONTEND_URL;
   passport.authenticate("google", {
     scope: ["profile", "email"],
-  })
-);
+    state: origin,
+  })(req, res, next);
+});
 
 // 🔹 Google OAuth callback
 router.get(
@@ -141,6 +142,10 @@ router.get(
         : "http://localhost:5000/login",
     session: false,
   }),
+  (req, res, next) => {
+    req.originUrl = req.query.state || process.env.FRONTEND_URL;
+    next();
+  },
   googlelogin
 );
 

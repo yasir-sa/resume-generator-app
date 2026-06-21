@@ -378,11 +378,10 @@ exports.logout =(req,res)=>{
 exports.googlelogin = async (req, res) => {
   try {
     if (req.cookies.token) {
-      return res.redirect(
-        process.env.NODE_ENV === "production"
-          ? `${process.env.FRONTEND_URL}/product`
-          : "http://localhost:5000/product"
-      );
+      const BASE = process.env.NODE_ENV === "production"
+        ? (req.originUrl || process.env.FRONTEND_URL)
+        : "http://localhost:5000";
+      return res.redirect(`${BASE}/product`);
     }
 
     let user;
@@ -447,13 +446,13 @@ exports.googlelogin = async (req, res) => {
   maxAge: 24 * 60 * 60 * 1000,
 });
 
-    // 🔥 FINAL REDIRECT FIX
-const BASE =
-  process.env.NODE_ENV === "production"
-    ? process.env.FRONTEND_URL
-    : "http://localhost:5000";
+    // redirect back to whichever frontend the user came from
+    const BASE =
+      process.env.NODE_ENV === "production"
+        ? (req.originUrl || process.env.FRONTEND_URL)
+        : "http://localhost:5000";
 
-return res.redirect(`${BASE}/product`);
+    return res.redirect(`${BASE}/product`);
 
   } catch (error) {
     console.error("Google login Error:", error);
