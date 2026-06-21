@@ -228,8 +228,9 @@ app.use(
   cors({
     origin: [
       process.env.FRONTEND_URL,
+      process.env.VERCEL_FRONTEND_URL,
       "http://localhost:5173"
-    ],
+    ].filter(Boolean),
     credentials: true,
   })
 );
