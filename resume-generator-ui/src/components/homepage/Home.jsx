@@ -24,7 +24,7 @@ const Home = () => {
         <div className="nav-title">ResumeGenerator</div>
         <div className="nav-buttons">
           <button className="nav-btn login" onClick={() => navigate("/login")}>
-            Login
+            Login yasir
           </button>
           <button className="nav-btn product" onClick={handleProductClick}>
             Product
