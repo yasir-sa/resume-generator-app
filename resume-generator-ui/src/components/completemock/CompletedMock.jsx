@@ -202,7 +202,7 @@ const CompletedMock = () => {
                     key={selectedMock.id} 
                     controls 
                     className="w-full rounded-xl bg-black aspect-video border border-gray-800"
-                    src={`http://localhost:5000/api/interview-video/${selectedMock.id}`} 
+                    src={`/api/interview-video/${selectedMock.id}`} 
                   />
                 </div>
                 <div className="bg-[#121216] border border-gray-800/50 p-6 rounded-2xl flex flex-col h-[400px]">

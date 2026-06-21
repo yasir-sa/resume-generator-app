@@ -1,4 +1,4 @@
-const pool = require("../config/db");
+﻿const pool = require("../config/db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken"); 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
@@ -12,8 +12,6 @@ const fs = require('fs');
 const Application = require("../models/Application");
 
 
-const puppeteerCore = require("puppeteer-core");
-const chromium = require("@sparticuz/chromium-min");
 const { PDFDocument } = require("pdf-lib");
 
 
@@ -3629,142 +3627,8 @@ Analyze the provided datasets to generate a highly accurate, consistent candidat
 
 
 exports.downloadPDF = async (req, res) => {
-  let browser = null;
-  try {
-    const { htmlPages } = req.body;
-
-    if (!htmlPages || !Array.isArray(htmlPages) || htmlPages.length === 0) {
-      return res.status(400).send("No HTML pages provided");
-    }
-
-    if (process.env.VERCEL || process.env.RENDER) {
-      // Serverless/cloud Chromium for Vercel and Render (no bundled Chrome)
-      browser = await puppeteerCore.launch({
-        args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(
-          "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar"
-        ),
-        headless: chromium.headless,
-      });
-    } else {
-      // Local Windows/Mac — dynamically require puppeteer (not bundled in production)
-      const puppeteer = eval('require')('puppeteer');
-      browser = await puppeteer.launch({ headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"] });
-    }
-
-    // ஒவ்வொரு page-ஐயும் தனியா render பண்ணி PDF எடுக்கும்
-    const A4_HEIGHT_PX = 1123;
-    const singlePageBuffers = [];
-
-    for (const pageHtml of htmlPages) {
-      const tab = await browser.newPage();
-      await tab.setViewport({ width: 794, height: 2000, deviceScaleFactor: 1 });
-      await tab.setContent(pageHtml, { waitUntil: "domcontentloaded", timeout: 30000 });
-      await new Promise((resolve) => setTimeout(resolve, 600));
-
-      // Step 1: Clean CSS — min-height reset, background, padding remove
-      await tab.addStyleTag({
-        content: `
-          html, body {
-            background: #ffffff !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            min-height: 0 !important;
-            height: auto !important;
-          }
-          * { box-shadow: none !important; }
-          body > div, body > main, body > section {
-            border-radius: 0 !important;
-            max-width: 100% !important;
-            width: 100% !important;
-            margin: 0 !important;
-          }
-        `
-      });
-
-      // Step 2: Layout recalculate ஆக wait பண்ணும்
-      await new Promise((resolve) => setTimeout(resolve, 400));
-
-      // Step 3: Actual content height — getBoundingClientRect for accuracy
-      const contentHeight = await tab.evaluate(() => {
-        document.body.style.setProperty("min-height", "0", "important");
-        document.documentElement.style.setProperty("min-height", "0", "important");
-        void document.body.offsetHeight; // force reflow
-        // Find the true bottom of all rendered elements
-        const allEls = document.body.querySelectorAll("*");
-        let maxBottom = 0;
-        allEls.forEach((el) => {
-          const rect = el.getBoundingClientRect();
-          if (rect.bottom > maxBottom) maxBottom = rect.bottom;
-        });
-        return maxBottom > 50 ? maxBottom : document.body.scrollHeight;
-      });
-
-      // Step 4: Scale to fill A4 — 30px safety buffer so bottom content never clips
-      const safeA4 = A4_HEIGHT_PX - 30;
-      const zoom = (safeA4 / contentHeight).toFixed(4);
-      await tab.addStyleTag({
-        content: `
-          html { height: ${A4_HEIGHT_PX}px !important; overflow: hidden !important; }
-          body { zoom: ${zoom} !important; margin: 0 !important; }
-        `
-      });
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
-      await tab.emulateMediaType("screen");
-
-      const rawPdf = await tab.pdf({ format: "A4", printBackground: true });
-      await tab.close();
-
-      // pdf-lib: page 1 மட்டும் extract பண்ணும் (blank pages remove)
-      const rawDoc = await PDFDocument.load(rawPdf);
-      const singleDoc = await PDFDocument.create();
-      const [firstPage] = await singleDoc.copyPages(rawDoc, [0]);
-      singleDoc.addPage(firstPage);
-      singlePageBuffers.push(await singleDoc.save());
-    }
-
-    // எல்லா pages merge பண்ணும்
-    const mergedPdf = await PDFDocument.create();
-    for (const buffer of singlePageBuffers) {
-      const pdf = await PDFDocument.load(buffer);
-      const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-      pages.forEach((page) => mergedPdf.addPage(page));
-    }
-
-    const finalPdf = await mergedPdf.save();
-
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Length", finalPdf.length);
-    res.end(Buffer.from(finalPdf));
-
-  } catch (error) {
-    console.error("PDF error:", error.message);
-    res.status(500).json({ error: error.message });
-  } finally {
-    if (browser) await browser.close();
-  }
+  return res.status(501).json({ error: 'PDF generation is handled client-side' });
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 exports.saveInterviewResults = async (req, res) => {

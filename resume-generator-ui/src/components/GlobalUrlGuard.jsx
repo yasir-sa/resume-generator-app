@@ -9,7 +9,7 @@ const GlobalUrlGuard = () => {
     if (currentURL.includes("/undefined/")) {
       const base = isLocal
         ? "http://localhost:5000"
-        : "http://localhost:5000/product";
+        : window.location.origin;
 
       window.location.replace(`${base}/product`);
     }
