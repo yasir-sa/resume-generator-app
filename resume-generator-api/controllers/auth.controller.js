@@ -12,7 +12,6 @@ const fs = require('fs');
 const Application = require("../models/Application");
 
 
-const puppeteer = require("puppeteer");
 const puppeteerCore = require("puppeteer-core");
 const chromium = require("@sparticuz/chromium-min");
 const { PDFDocument } = require("pdf-lib");
@@ -3649,7 +3648,8 @@ exports.downloadPDF = async (req, res) => {
         headless: chromium.headless,
       });
     } else {
-      // Local Windows/Mac — use full puppeteer with bundled Chrome
+      // Local Windows/Mac — dynamically require puppeteer (not bundled in production)
+      const puppeteer = eval('require')('puppeteer');
       browser = await puppeteer.launch({ headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"] });
     }
 

@@ -5,8 +5,7 @@
   "outputDirectory": "resume-generator-ui/dist",
   "functions": {
     "api/index.js": {
-      "maxDuration": 60,
-      "includeFiles": "resume-generator-api/**"
+      "maxDuration": 60
     }
   },
   "rewrites": [
