@@ -57,7 +57,7 @@ const Googlelogin = () => {
   const BASE =
     window.location.hostname === "localhost"
       ? "http://localhost:5000"
-      : window.location.origin;
+      : "https://resume-generator-app-2.onrender.com";
 
   window.location.href = `${BASE}/api/auth/google`;
 };

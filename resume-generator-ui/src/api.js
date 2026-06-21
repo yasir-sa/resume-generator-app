@@ -46,7 +46,7 @@ import axios from "axios";
 const BASE_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:5000/api"
-    : "/api";
+    : "https://resume-generator-app-2.onrender.com/api";
 
 const API = axios.create({
   baseURL: BASE_URL,
