@@ -1,0 +1,6 @@
+node_modules
+resume-generator-api/node_modules
+resume-generator-ui/node_modules
+resume-generator-api/dist
+.env
+*.log

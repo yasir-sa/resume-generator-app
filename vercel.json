@@ -4,13 +4,13 @@
   "buildCommand": "npm --prefix resume-generator-ui run build",
   "outputDirectory": "resume-generator-ui/dist",
   "functions": {
-    "resume-generator-api/server.js": {
-      "maxDuration": 60
+    "api/index.js": {
+      "maxDuration": 60,
+      "includeFiles": "resume-generator-api/**"
     }
   },
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/resume-generator-api/server.js" },
-    { "source": "/helo", "destination": "/resume-generator-api/server.js" },
-    { "source": "/uploads/:path*", "destination": "/resume-generator-api/server.js" }
+    { "source": "/helo", "destination": "/api/index.js" },
+    { "source": "/uploads/:path*", "destination": "/api/index.js" }
   ]
 }
