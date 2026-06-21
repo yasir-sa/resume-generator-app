@@ -10,6 +10,9 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const Application = require("../models/Application");
+const puppeteerCore = require("puppeteer-core");
+const chromium = require("@sparticuz/chromium-min");
+const { PDFDocument } = require("pdf-lib");
 
 
 const { PDFDocument } = require("pdf-lib");
@@ -3626,7 +3629,112 @@ Analyze the provided datasets to generate a highly accurate, consistent candidat
 
 
 exports.downloadPDF = async (req, res) => {
-  return res.status(501).json({ error: 'PDF generation is handled client-side' });
+  let browser = null;
+  try {
+    const { htmlPages } = req.body;
+
+    if (!htmlPages || !Array.isArray(htmlPages) || htmlPages.length === 0) {
+      return res.status(400).send("No HTML pages provided");
+    }
+
+    if (process.env.VERCEL || process.env.RENDER) {
+      browser = await puppeteerCore.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(
+          "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar"
+        ),
+        headless: chromium.headless,
+      });
+    } else {
+      const puppeteer = eval('require')('puppeteer');
+      browser = await puppeteer.launch({ headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"] });
+    }
+
+    const A4_HEIGHT_PX = 1123;
+    const singlePageBuffers = [];
+
+    for (const pageHtml of htmlPages) {
+      const tab = await browser.newPage();
+      await tab.setViewport({ width: 794, height: 2000, deviceScaleFactor: 1 });
+      await tab.setContent(pageHtml, { waitUntil: "domcontentloaded", timeout: 30000 });
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      await tab.addStyleTag({
+        content: `
+          html, body {
+            background: #ffffff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            min-height: 0 !important;
+            height: auto !important;
+          }
+          * { box-shadow: none !important; }
+          body > div, body > main, body > section {
+            border-radius: 0 !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
+          }
+        `
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 400));
+
+      const contentHeight = await tab.evaluate(() => {
+        document.body.style.setProperty("min-height", "0", "important");
+        document.documentElement.style.setProperty("min-height", "0", "important");
+        void document.body.offsetHeight;
+        const allEls = document.body.querySelectorAll("*");
+        let maxBottom = 0;
+        allEls.forEach((el) => {
+          const rect = el.getBoundingClientRect();
+          if (rect.bottom > maxBottom) maxBottom = rect.bottom;
+        });
+        return maxBottom > 50 ? maxBottom : document.body.scrollHeight;
+      });
+
+      const safeA4 = A4_HEIGHT_PX - 30;
+      const zoom = (safeA4 / contentHeight).toFixed(4);
+      await tab.addStyleTag({
+        content: `
+          html { height: ${A4_HEIGHT_PX}px !important; overflow: hidden !important; }
+          body { zoom: ${zoom} !important; margin: 0 !important; }
+        `
+      });
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      await tab.emulateMediaType("screen");
+
+      const rawPdf = await tab.pdf({ format: "A4", printBackground: true });
+      await tab.close();
+
+      const rawDoc = await PDFDocument.load(rawPdf);
+      const singleDoc = await PDFDocument.create();
+      const [firstPage] = await singleDoc.copyPages(rawDoc, [0]);
+      singleDoc.addPage(firstPage);
+      singlePageBuffers.push(await singleDoc.save());
+    }
+
+    const mergedPdf = await PDFDocument.create();
+    for (const buffer of singlePageBuffers) {
+      const pdf = await PDFDocument.load(buffer);
+      const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+      pages.forEach((page) => mergedPdf.addPage(page));
+    }
+
+    const finalPdf = await mergedPdf.save();
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Length", finalPdf.length);
+    res.end(Buffer.from(finalPdf));
+
+  } catch (error) {
+    console.error("PDF error:", error.message);
+    res.status(500).json({ error: error.message });
+  } finally {
+    if (browser) await browser.close();
+  }
 };
 
 
