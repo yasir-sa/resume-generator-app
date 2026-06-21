@@ -13,9 +13,6 @@ const Application = require("../models/Application");
 const { PDFDocument } = require("pdf-lib");
 
 
-const { PDFDocument } = require("pdf-lib");
-
-
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000);
  
 // const multer = require("multer");
