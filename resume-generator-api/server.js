@@ -204,11 +204,13 @@ require("dotenv").config();
 const cookieParser = require("cookie-parser");
 const passport = require("./config/passport");
 const session = require("express-session");
+const pgSession = require("connect-pg-simple")(session);
+const { Pool } = require("pg");
 
 const app = express();
 
 // ====================
-// Render Proxy Fix
+// Vercel / Render Proxy Fix
 // ====================
 app.set("trust proxy", 1);
 
@@ -233,10 +235,28 @@ app.use(
 );
 
 // ====================
-// Session Setup (Google Login SAFE)
+// Session Setup — PostgreSQL store (works in serverless)
 // ====================
+const sessionPool = new Pool(
+  process.env.DATABASE_URL
+    ? { connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } }
+    : {
+        user: process.env.DB_USER,
+        host: process.env.DB_HOST,
+        database: process.env.DB_NAME,
+        password: process.env.DB_PASSWORD,
+        port: process.env.DB_PORT,
+        ssl: { rejectUnauthorized: false },
+      }
+);
+
 app.use(
   session({
+    store: new pgSession({
+      pool: sessionPool,
+      tableName: "session",
+      createTableIfMissing: true,
+    }),
     secret: process.env.SESSION_SECRET || "google-secret",
     resave: false,
     saveUninitialized: false,
@@ -244,6 +264,7 @@ app.use(
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     },
   })
 );
@@ -255,7 +276,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // ====================
-// Static files (uploads)
+// Static files (uploads) — local dev only; use cloud storage in production
 // ====================
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
@@ -270,25 +291,28 @@ app.get("/helo", (req, res) => {
 });
 
 // ====================
-// React Build Serve
+// React Build Serve — skipped on Vercel (CDN handles it)
 // ====================
-const uiDistPath = path.join(__dirname, "../resume-generator-ui/dist");
-
-app.use(express.static(uiDistPath));
-
-// SPA fallback route
-app.get("*", (req, res) => {
-  res.sendFile(path.join(uiDistPath, "index.html"));
-});
+if (!process.env.VERCEL) {
+  const uiDistPath = path.join(__dirname, "../resume-generator-ui/dist");
+  app.use(express.static(uiDistPath));
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(uiDistPath, "index.html"));
+  });
+}
 
 // ====================
-// Start Server
+// Start Server (local dev only — Vercel invokes the export below)
 // ====================
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`✅ Server running on port ${PORT}`);
+  });
+}
+
+module.exports = app;
 
 
 
