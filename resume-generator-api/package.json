@@ -1,10 +1,9 @@
 {
   "name": "resume-generator-api",
   "version": "1.0.0",
-    "engines": {
+  "engines": {
     "node": "22.x"
   },
-
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
@@ -30,6 +29,7 @@
     "nodemailer": "^7.0.12",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "pdf-lib": "^1.17.1",
     "pg": "^8.16.3",
     "pg-hstore": "^2.3.4",
     "puppeteer": "^24.41.0",

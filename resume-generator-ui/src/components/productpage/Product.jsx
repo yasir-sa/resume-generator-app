@@ -6,8 +6,6 @@ import { FaPlus } from "react-icons/fa";
 import { useState,useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useRef } from "react";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 const Product = () => {
   const navigate = useNavigate();
   const [profile,setprofile]=useState(false)
@@ -349,14 +347,10 @@ useEffect(() => {
 // };
 const resumedownload = async () => {
   try {
-    const fullHTML = buildFullHTML();
-
     const res = await API.post(
       "/download-pdf",
-      { html: fullHTML },
-      {
-        responseType: "blob"
-      }
+      { htmlPages: resumePages },
+      { responseType: "blob" }
     );
 
     // 🔥 IMPORTANT FIX
@@ -423,64 +417,6 @@ const resumedownload = async () => {
 //   `;
 // };
 
-const buildFullHTML = () => {
-  const wrappedPages = resumePages.map(page => {
-    return `
-      <div class="pdf-page">
-        ${page}
-      </div>
-    `;
-  }).join("");
-
-  return `
-    <html>
-      <head>
-        <meta charset="UTF-8" />
-
-        <style>
-          body {
-            margin: 0;
-            padding: 0;
-            background: #ffffff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-          }
-
-          /* 🔥 FIX: force all pages same size */
-          .pdf-page {
-            width: 794px;
-            height: 1123px;
-            background: #fff;
-            overflow: hidden;
-            position: relative;
-
-            page-break-after: always;
-            page-break-inside: avoid;
-          }
-
-          /* 🔥 IMPORTANT: reset inner html issues */
-          .pdf-page * {
-            max-width: 100% !important;
-          }
-
-          /* remove unwanted spacing */
-          * {
-            box-sizing: border-box;
-          }
-
-          p, h1, h2, h3, h4, h5, h6 {
-            margin: 0;
-          }
-        </style>
-      </head>
-
-      <body>
-        ${wrappedPages}
-      </body>
-    </html>
-  `;
-};
 
 
 

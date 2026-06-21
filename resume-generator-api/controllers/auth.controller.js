@@ -13,6 +13,7 @@ const Application = require("../models/Application");
 
 
 const puppeteer = require("puppeteer");
+const { PDFDocument } = require("pdf-lib");
 
 
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000);
@@ -1728,6 +1729,8 @@ STRICT OUTPUT RULES
 - Do NOT wrap HTML inside \`\`\`.
 - Do NOT add explanations or comments.
 - Output must be valid clean HTML.
+- DO NOT add a signature section, "Signature:" line, date line, or any closing statement.
+- DO NOT add "Authorized Signatory", "Candidate Signature", or any similar element.
 
 ==============================
 PHOTO RULE (VERY STRICT)
@@ -1784,6 +1787,46 @@ notableProjects → Notable Projects Section
 publications → Publications Section
 
 If any field exists, it MUST be displayed professionally.
+
+==============================
+STRICT COLOR AND DESIGN RULES (MANDATORY)
+==============================
+- Page background MUST be white (#ffffff)
+- Body background MUST be white (#ffffff)
+- NEVER use dark backgrounds on any section, card, or container
+- NEVER use gradient backgrounds anywhere (no linear-gradient, radial-gradient)
+- NEVER use gradient text (no -webkit-background-clip, no -webkit-text-fill-color)
+- Section headings: dark color (#1a1a2e or #162447) with a simple bottom border line only
+- All text must be dark on white background
+- Skill pills: allowed to have a dark background (#1f4068) with white text only
+- Hyperlinks: allowed to use a single accent color
+- NO colored boxes or dark cards for sections
+- NO decorative colored bars or shapes near the name or title
+- Keep it clean, minimal, ATS-friendly and professional
+
+==============================
+A4 PAGE FILL RULE (CRITICAL)
+==============================
+- HTML output MUST visually fill one complete A4 page (210mm x 297mm).
+- body: margin: 0; padding: 20px 30px; box-sizing: border-box;
+- Body font-size: 13px, line-height: 1.8
+- Section headings: font-size: 15px, margin-bottom: 10px, padding-bottom: 6px
+- Each section: margin-bottom: 20px minimum
+- Summary: line-height: 1.9, font-size: 13.5px
+- DO NOT compress content — use generous spacing to fill the full A4 page height.
+
+==============================
+CONTENT LENGTH RULE (VERY IMPORTANT)
+==============================
+- Every text field MUST be detailed and long enough to wrap to at least 2 lines.
+- Professional Summary: minimum 4-5 sentences. Detailed, specific, multi-line.
+- Work Experience descriptions: minimum 3-4 bullet points per job, each bullet 1-2 full sentences.
+- Projects: minimum 2-3 sentences per project describing tech stack and impact.
+- Achievements, Awards, Volunteering: minimum 2-3 sentences each, not single-line.
+- Certifications: list each with issuing body and year.
+- NEVER write one-word or single-line descriptions — always expand with context and detail.
+- If the provided data is short, elaborate professionally based on the job title and field.
+- Goal: text must WRAP to multiple lines so the page fills naturally without blank space.
 
 ==============================
 LAYOUT STRUCTURE RULE
@@ -3585,49 +3628,113 @@ Analyze the provided datasets to generate a highly accurate, consistent candidat
 
 
 exports.downloadPDF = async (req, res) => {
+  let browser = null;
   try {
-    const { html } = req.body;
+    const { htmlPages } = req.body;
 
-    if (!html) {
-      return res.status(400).send("No HTML provided");
+    if (!htmlPages || !Array.isArray(htmlPages) || htmlPages.length === 0) {
+      return res.status(400).send("No HTML pages provided");
     }
 
-    const browser = await puppeteer.launch({
-      headless: "new",
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--single-process"
-      ]
-    });
+    const isLinux = process.platform === "linux";
+    const args = ["--no-sandbox", "--disable-setuid-sandbox"];
+    if (isLinux) {
+      args.push("--disable-dev-shm-usage", "--disable-gpu", "--single-process");
+    }
 
-    const page = await browser.newPage();
+    browser = await puppeteer.launch({ headless: true, args });
 
-    await page.setContent(html, {
-      waitUntil: "networkidle0"
-    });
+    // ஒவ்வொரு page-ஐயும் தனியா render பண்ணி PDF எடுக்கும்
+    const A4_HEIGHT_PX = 1123;
+    const singlePageBuffers = [];
 
-    await page.emulateMediaType("screen");
+    for (const pageHtml of htmlPages) {
+      const tab = await browser.newPage();
+      await tab.setViewport({ width: 794, height: 2000, deviceScaleFactor: 1 });
+      await tab.setContent(pageHtml, { waitUntil: "domcontentloaded", timeout: 30000 });
+      await new Promise((resolve) => setTimeout(resolve, 600));
 
-    const pdfBuffer = await page.pdf({
-      format: "A4",
-      printBackground: true,
-      preferCSSPageSize: true
-    });
+      // Step 1: Clean CSS — min-height reset, background, padding remove
+      await tab.addStyleTag({
+        content: `
+          html, body {
+            background: #ffffff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            min-height: 0 !important;
+            height: auto !important;
+          }
+          * { box-shadow: none !important; }
+          body > div, body > main, body > section {
+            border-radius: 0 !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
+          }
+        `
+      });
 
-    await browser.close();
+      // Step 2: Layout recalculate ஆக wait பண்ணும்
+      await new Promise((resolve) => setTimeout(resolve, 400));
 
-    // 🔥 VERY IMPORTANT FIX
+      // Step 3: Actual content height — getBoundingClientRect for accuracy
+      const contentHeight = await tab.evaluate(() => {
+        document.body.style.setProperty("min-height", "0", "important");
+        document.documentElement.style.setProperty("min-height", "0", "important");
+        void document.body.offsetHeight; // force reflow
+        // Find the true bottom of all rendered elements
+        const allEls = document.body.querySelectorAll("*");
+        let maxBottom = 0;
+        allEls.forEach((el) => {
+          const rect = el.getBoundingClientRect();
+          if (rect.bottom > maxBottom) maxBottom = rect.bottom;
+        });
+        return maxBottom > 50 ? maxBottom : document.body.scrollHeight;
+      });
+
+      // Step 4: Scale to fill A4 — 30px safety buffer so bottom content never clips
+      const safeA4 = A4_HEIGHT_PX - 30;
+      const zoom = (safeA4 / contentHeight).toFixed(4);
+      await tab.addStyleTag({
+        content: `
+          html { height: ${A4_HEIGHT_PX}px !important; overflow: hidden !important; }
+          body { zoom: ${zoom} !important; margin: 0 !important; }
+        `
+      });
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      await tab.emulateMediaType("screen");
+
+      const rawPdf = await tab.pdf({ format: "A4", printBackground: true });
+      await tab.close();
+
+      // pdf-lib: page 1 மட்டும் extract பண்ணும் (blank pages remove)
+      const rawDoc = await PDFDocument.load(rawPdf);
+      const singleDoc = await PDFDocument.create();
+      const [firstPage] = await singleDoc.copyPages(rawDoc, [0]);
+      singleDoc.addPage(firstPage);
+      singlePageBuffers.push(await singleDoc.save());
+    }
+
+    // எல்லா pages merge பண்ணும்
+    const mergedPdf = await PDFDocument.create();
+    for (const buffer of singlePageBuffers) {
+      const pdf = await PDFDocument.load(buffer);
+      const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+      pages.forEach((page) => mergedPdf.addPage(page));
+    }
+
+    const finalPdf = await mergedPdf.save();
+
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Length", pdfBuffer.length);
-
-    res.end(pdfBuffer);   // ❗ use end instead of send
+    res.setHeader("Content-Length", finalPdf.length);
+    res.end(Buffer.from(finalPdf));
 
   } catch (error) {
-    console.error("PDF error:", error);
-    res.status(500).send("PDF generation failed");
+    console.error("PDF error:", error.message);
+    res.status(500).json({ error: error.message });
+  } finally {
+    if (browser) await browser.close();
   }
 };
 

@@ -1,8 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import "./resumedetails.css";
-import API from "../../api"
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import API from "../../api";
 
 
 const Resumedetails = () => {
@@ -160,11 +158,25 @@ const getPage3Error = () => {
 
 
   const splitHTMLPages = (htmlString) => {
-  return htmlString
+  const pages = htmlString
     .split("</html>")
     .map(page => page.trim())
     .filter(page => page.length > 0)
     .map(page => page + "</html>");
+
+  if (pages.length <= 1) return pages;
+
+  // Page 1-ல் உள்ள CSS-ஐ மற்ற pages-க்கும் copy பண்ணும்
+  const styleMatch = pages[0].match(/<style[\s\S]*?<\/style>/gi);
+  const sharedStyles = styleMatch ? styleMatch.join("\n") : "";
+
+  return pages.map((page, index) => {
+    if (index === 0 || !sharedStyles) return page;
+    if (page.includes("</head>")) {
+      return page.replace("</head>", `${sharedStyles}\n</head>`);
+    }
+    return page;
+  });
 };
 
 
@@ -352,33 +364,25 @@ const downloadResumePDF = async () => {
     return;
   }
 
-  const pdf = new jsPDF("p", "mm", "a4"); // Portrait, mm, A4 size
+  try {
+    const response = await API.post(
+      "/download-pdf",
+      { htmlPages: previewPages },
+      { responseType: "arraybuffer" }
+    );
 
-  for (let i = 0; i < previewPages.length; i++) {
-    // Create temporary div to render iframe HTML
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = previewPages[i];
-    tempDiv.style.width = "794px"; // approx A4 width in px
-    tempDiv.style.padding = "10px";
-    document.body.appendChild(tempDiv);
+    const blob = new Blob([response.data], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${page1.fullName || "resume"}.pdf`;
+    link.click();
+    URL.revokeObjectURL(url);
 
-    // Render div to canvas
-    const canvas = await html2canvas(tempDiv, { scale: 2 });
-    const imgData = canvas.toDataURL("image/png");
-
-    // Add image to PDF
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    if (i > 0) pdf.addPage();
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-
-    // Remove temp div
-    document.body.removeChild(tempDiv);
+  } catch (error) {
+    console.error("Download error:", error);
+    alert("PDF download failed. Please try again.");
   }
-
-  // Save PDF
-  pdf.save(`${page1.fullName || "resume"}.pdf`);
 };
 
 
