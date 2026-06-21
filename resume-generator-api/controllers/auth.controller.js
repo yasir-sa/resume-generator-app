@@ -10,8 +10,6 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const Application = require("../models/Application");
-const puppeteerCore = require("puppeteer-core");
-const chromium = require("@sparticuz/chromium-min");
 const { PDFDocument } = require("pdf-lib");
 
 
@@ -3637,19 +3635,11 @@ exports.downloadPDF = async (req, res) => {
       return res.status(400).send("No HTML pages provided");
     }
 
-    if (process.env.VERCEL || process.env.RENDER) {
-      browser = await puppeteerCore.launch({
-        args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(
-          "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar"
-        ),
-        headless: chromium.headless,
-      });
-    } else {
-      const puppeteer = eval('require')('puppeteer');
-      browser = await puppeteer.launch({ headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"] });
-    }
+    const puppeteer = require("puppeteer");
+    browser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+    });
 
     const A4_HEIGHT_PX = 1123;
     const singlePageBuffers = [];
