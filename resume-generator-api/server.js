@@ -229,6 +229,8 @@ app.use(
     origin: [
       process.env.FRONTEND_URL,
       process.env.VERCEL_FRONTEND_URL,
+      "https://resume-generator-lovat.vercel.app",
+      "https://resume-generator-app-2.onrender.com",
       "http://localhost:5173"
     ].filter(Boolean),
     credentials: true,
