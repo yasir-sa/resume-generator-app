@@ -5,38 +5,9 @@
       "maxDuration": 60
     }
   },
-  "builds": [
-    {
-      "src": "resume-generator-ui/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    },
-    {
-      "src": "resume-generator-api/server.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/resume-generator-api/server.js"
-    },
-    {
-      "src": "/helo",
-      "dest": "/resume-generator-api/server.js"
-    },
-    {
-      "src": "/uploads/(.*)",
-      "dest": "/resume-generator-api/server.js"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/resume-generator-api/server.js" },
+    { "source": "/helo", "destination": "/resume-generator-api/server.js" },
+    { "source": "/uploads/:path*", "destination": "/resume-generator-api/server.js" }
   ]
 }
