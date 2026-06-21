@@ -13,6 +13,8 @@ const Application = require("../models/Application");
 
 
 const puppeteer = require("puppeteer");
+const puppeteerCore = require("puppeteer-core");
+const chromium = require("@sparticuz/chromium-min");
 const { PDFDocument } = require("pdf-lib");
 
 
@@ -3636,13 +3638,20 @@ exports.downloadPDF = async (req, res) => {
       return res.status(400).send("No HTML pages provided");
     }
 
-    const isLinux = process.platform === "linux";
-    const args = ["--no-sandbox", "--disable-setuid-sandbox"];
-    if (isLinux) {
-      args.push("--disable-dev-shm-usage", "--disable-gpu", "--single-process");
+    if (process.env.VERCEL || process.env.RENDER) {
+      // Serverless/cloud Chromium for Vercel and Render (no bundled Chrome)
+      browser = await puppeteerCore.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(
+          "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar"
+        ),
+        headless: chromium.headless,
+      });
+    } else {
+      // Local Windows/Mac — use full puppeteer with bundled Chrome
+      browser = await puppeteer.launch({ headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"] });
     }
-
-    browser = await puppeteer.launch({ headless: true, args });
 
     // ஒவ்வொரு page-ஐயும் தனியா render பண்ணி PDF எடுக்கும்
     const A4_HEIGHT_PX = 1123;

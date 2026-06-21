@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@sparticuz/chromium-min": "^149.0.0",
     "axios": "^1.15.0",
     "bcrypt": "^6.0.0",
     "connect-pg-simple": "^10.0.0",
@@ -34,6 +35,7 @@
     "pg": "^8.16.3",
     "pg-hstore": "^2.3.4",
     "puppeteer": "^24.41.0",
+    "puppeteer-core": "^25.1.0",
     "sequelize": "^6.37.8"
   },
   "devDependencies": {

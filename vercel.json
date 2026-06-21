@@ -1,5 +1,10 @@
 {
   "version": 2,
+  "functions": {
+    "resume-generator-api/server.js": {
+      "maxDuration": 60
+    }
+  },
   "builds": [
     {
       "src": "resume-generator-ui/package.json",
