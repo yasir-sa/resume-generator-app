@@ -15,8 +15,8 @@ const Resumedetails = () => {
 
 
   const [page1, setPage1] = useState({
-  fullName: "yasir",
-  jobTitle: "mernstack",
+  fullName: "",
+  jobTitle: "",
   email: "yasirsa05@gmail.com",
   phoneNumber: "8270089089",
   address: "71/96 Kalvathunayagam street",
